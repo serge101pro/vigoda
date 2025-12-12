@@ -62,6 +62,90 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* Stats Cards - Row 1 */}
+      <section className="px-4 pt-4">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Ваша экономия */}
+          <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                <span className="text-lg">💰</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Ваша экономия</span>
+            </div>
+            <p className="text-2xl font-bold text-primary">2 450 ₽</p>
+            <p className="text-xs text-muted-foreground mt-1">за этот месяц</p>
+          </div>
+
+          {/* Больше выгоды */}
+          <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-4 border border-accent/20">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                <span className="text-lg">🔥</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Больше выгоды</span>
+            </div>
+            <p className="text-sm font-medium text-foreground mb-2">Персональные скидки</p>
+            <Button size="sm" variant="accent" className="w-full text-xs h-7">
+              Хочу
+            </Button>
+          </div>
+
+          {/* Ваши бонусы */}
+          <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-2xl p-4 border border-border">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
+                <span className="text-lg">⭐</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Ваши бонусы</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">1 280</p>
+            <p className="text-xs text-muted-foreground mt-1">доступно</p>
+          </div>
+
+          {/* Пригласить друга */}
+          <Link to="/profile/affiliate" className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-lg">👥</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Пригласить друга</span>
+            </div>
+            <p className="text-sm font-medium text-foreground">+500 бонусов</p>
+            <p className="text-xs text-primary mt-1">за каждого друга →</p>
+          </Link>
+        </div>
+      </section>
+
+      {/* Stats Cards - Row 2 */}
+      <section className="px-4 pt-3">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Ваши рецепты */}
+          <Link to="/recipes" className="bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-lg">🍳</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Ваши рецепты</span>
+            </div>
+            <p className="text-lg font-bold text-foreground">12</p>
+            <p className="text-xs text-muted-foreground mt-1">сохранено</p>
+          </Link>
+
+          {/* Избранное */}
+          <Link to="/favorites" className="bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                <span className="text-lg">❤️</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Избранное</span>
+            </div>
+            <p className="text-lg font-bold text-foreground">8</p>
+            <p className="text-xs text-muted-foreground mt-1">товаров</p>
+          </Link>
+        </div>
+      </section>
+
       {/* Promo Banner */}
       <section className="px-4 pt-4">
         <PromoBanner
@@ -94,8 +178,8 @@ export default function HomePage() {
       {/* Popular Products */}
       <section className="pt-6">
         <SectionHeader title="Популярные товары" linkText="Все" linkTo="/catalog" />
-        <div className="grid grid-cols-2 gap-3 px-4">
-          {filteredProducts.slice(0, 4).map((product, index) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3 px-4">
+          {filteredProducts.slice(0, 8).map((product, index) => (
             <div key={product.id} className={`stagger-${index + 1}`}>
               <ProductCard product={product} />
             </div>
