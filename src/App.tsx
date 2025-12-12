@@ -2,11 +2,55 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAppStore } from "@/stores/useAppStore";
+
+// Layout
+import { MainLayout } from "@/components/layout/MainLayout";
+
+// Pages
+import { OnboardingPage } from "@/pages/OnboardingPage";
+import HomePage from "@/pages/HomePage";
+import CatalogPage from "@/pages/CatalogPage";
+import CartPage from "@/pages/CartPage";
+import RecipesPage from "@/pages/RecipesPage";
+import ProfilePage from "@/pages/ProfilePage";
+import AffiliatePage from "@/pages/AffiliatePage";
+import LoginPage from "@/pages/auth/LoginPage";
+import RegisterPage from "@/pages/auth/RegisterPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function AppRoutes() {
+  const hasSeenOnboarding = useAppStore((state) => state.hasSeenOnboarding);
+
+  if (!hasSeenOnboarding) {
+    return (
+      <Routes>
+        <Route path="*" element={<OnboardingPage />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/catalog" element={<CatalogPage />} />
+        <Route path="/catalog/:section" element={<CatalogPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/recipes" element={<RecipesPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/affiliate" element={<AffiliatePage />} />
+      </Route>
+      <Route path="/auth/login" element={<LoginPage />} />
+      <Route path="/auth/register" element={<RegisterPage />} />
+      <Route path="/onboarding" element={<OnboardingPage />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -14,11 +58,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppRoutes />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
