@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { 
   ArrowLeft, 
   User, 
@@ -8,26 +9,45 @@ import {
   Gift, 
   Crown, 
   ChevronRight,
-  Share2,
-  Copy,
-  Users,
-  Wallet
+  Trophy,
+  Activity,
+  MapPin,
+  CreditCard,
+  Wallet,
+  Bell,
+  ChefHat
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/stores/useAppStore';
+import { UserHeader } from '@/components/profile/UserHeader';
+import { ProfileStats } from '@/components/profile/ProfileStats';
+import { ProfileMenuItem } from '@/components/profile/ProfileMenuItem';
+import { SubscriptionCard } from '@/components/profile/SubscriptionCard';
+import { PeriodModal } from '@/components/profile/PeriodModal';
 
 const menuItems = [
+  { icon: Trophy, label: 'Награды', to: '/profile/awards', badge: '2' },
+  { icon: Activity, label: 'Активность', to: '/profile/activity' },
+  { icon: MapPin, label: 'Мои адреса', to: '/profile/addresses' },
+  { icon: CreditCard, label: 'Карты лояльности', to: '/profile/loyalty-cards' },
+  { icon: Wallet, label: 'Способы оплаты', to: '/profile/payment-methods' },
+  { icon: Bell, label: 'Уведомления', to: '/profile/notifications' },
+  { icon: Settings, label: 'Настройки', to: '/profile/settings' },
+];
+
+const quickLinks = [
   { icon: ClipboardList, label: 'Мои списки', to: '/profile/lists', badge: '3' },
   { icon: Heart, label: 'Избранное', to: '/profile/favorites' },
+  { icon: ChefHat, label: 'Мои рецепты', to: '/profile/recipes' },
   { icon: BarChart3, label: 'Аналитика расходов', to: '/profile/analytics' },
   { icon: Gift, label: 'Партнёрская программа', to: '/profile/affiliate', highlight: true },
-  { icon: Crown, label: 'Premium подписка', to: '/profile/premium', accent: true },
-  { icon: Settings, label: 'Настройки', to: '/profile/settings' },
 ];
 
 export default function ProfilePage() {
   const { isAuthenticated, user, logout } = useAppStore();
+  const [periodModal, setPeriodModal] = useState<'solo' | 'family' | null>(null);
 
   if (!isAuthenticated) {
     return (
@@ -62,7 +82,7 @@ export default function ProfilePage() {
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
             <Link to="/">
-              <Button variant="ghost" size="icon-sm">
+              <Button variant="ghost" size="icon">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
@@ -71,79 +91,116 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {/* User Info */}
-      <section className="px-4 pt-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-2xl font-bold text-primary-foreground">
-              {user?.name?.charAt(0) || 'П'}
-            </span>
+      {/* User Header */}
+      <UserHeader
+        name={user?.name || 'Пользователь'}
+        email={user?.email || 'user@example.com'}
+        plan="free"
+        onEditProfile={() => {}}
+      />
+
+      <div className="px-4 pb-6 space-y-6">
+        {/* Subscription Preview */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-bold text-foreground">Подписка</h2>
+            <Link to="/profile/premium" className="text-sm font-semibold text-primary">
+              Все планы
+            </Link>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-foreground">
-              {user?.name || 'Пользователь'}
-            </h2>
-            <p className="text-muted-foreground">{user?.email || 'user@example.com'}</p>
+          <SubscriptionCard type="free" isCurrentPlan />
+          
+          <div className="mt-3">
+            <SubscriptionCard 
+              type="solo" 
+              onSelectPeriod={() => setPeriodModal('solo')}
+            />
           </div>
-        </div>
+        </section>
+
+        {/* Quick Links */}
+        <section>
+          <h2 className="text-lg font-bold text-foreground mb-3">Быстрый доступ</h2>
+          <div className="space-y-2">
+            {quickLinks.map(item => (
+              <ProfileMenuItem
+                key={item.to}
+                icon={item.icon}
+                label={item.label}
+                to={item.to}
+                badge={item.badge}
+                iconClassName={item.highlight ? 'text-accent' : 'text-primary'}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Premium CTA */}
+        <section>
+          <Link to="/profile/premium">
+            <div className="bg-gradient-to-r from-accent to-accent/80 rounded-2xl p-4 text-accent-foreground">
+              <div className="flex items-center gap-3">
+                <Crown className="h-8 w-8" />
+                <div>
+                  <h3 className="font-bold text-lg">Premium подписка</h3>
+                  <p className="text-sm opacity-90">Больше возможностей для экономии</p>
+                </div>
+                <ChevronRight className="h-6 w-6 ml-auto" />
+              </div>
+            </div>
+          </Link>
+        </section>
+
+        {/* Menu */}
+        <section>
+          <h2 className="text-lg font-bold text-foreground mb-3">Настройки и данные</h2>
+          <div className="space-y-2">
+            {menuItems.map(item => (
+              <ProfileMenuItem
+                key={item.to}
+                icon={item.icon}
+                label={item.label}
+                to={item.to}
+                badge={item.badge}
+              />
+            ))}
+          </div>
+        </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-primary-light rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-primary">2 450 ₽</p>
-            <p className="text-xs text-muted-foreground">Экономия</p>
-          </div>
-          <div className="bg-accent-light rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-accent">12</p>
-            <p className="text-xs text-muted-foreground">Покупок</p>
-          </div>
-          <div className="bg-muted rounded-2xl p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">150</p>
-            <p className="text-xs text-muted-foreground">Бонусов</p>
-          </div>
-        </div>
-      </section>
+        <section>
+          <h2 className="text-lg font-bold text-foreground mb-3">Статистика</h2>
+          <ProfileStats
+            savings={3120}
+            listsCreated={23}
+            recipesPublished={1}
+            awardsEarned={2}
+          />
+        </section>
 
-      {/* Menu */}
-      <section className="px-4 pb-6">
-        <div className="space-y-2">
-          {menuItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
-                item.accent
-                  ? 'bg-accent text-accent-foreground'
-                  : item.highlight
-                  ? 'bg-primary-light'
-                  : 'bg-muted hover:bg-muted/80'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className={`h-5 w-5 ${item.accent ? '' : 'text-primary'}`} />
-                <span className="font-semibold">{item.label}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {item.badge && (
-                  <span className="px-2 py-0.5 bg-primary text-primary-foreground text-xs font-bold rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </Link>
-          ))}
-        </div>
-
+        {/* Logout */}
         <Button
           variant="ghost"
           size="lg"
-          className="w-full mt-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+          className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={logout}
         >
           Выйти из аккаунта
         </Button>
-      </section>
+      </div>
+
+      {/* Period Modal */}
+      {periodModal && (
+        <PeriodModal
+          open={!!periodModal}
+          onClose={() => setPeriodModal(null)}
+          planType={periodModal}
+          onSelect={(period) => {
+            console.log('Selected period:', period);
+            setPeriodModal(null);
+          }}
+        />
+      )}
     </div>
   );
 }
