@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAppStore } from "@/stores/useAppStore";
 
 // Layout
@@ -16,6 +16,7 @@ import CartPage from "@/pages/CartPage";
 import RecipesPage from "@/pages/RecipesPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AffiliatePage from "@/pages/AffiliatePage";
+import PriceComparisonPage from "@/pages/PriceComparisonPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,8 @@ import PremiumPage from "@/pages/profile/PremiumPage";
 import SettingsPage from "@/pages/profile/SettingsPage";
 import AwardsPage from "@/pages/profile/AwardsPage";
 import UserRecipesPage from "@/pages/profile/UserRecipesPage";
+import AnalyticsPage from "@/pages/profile/AnalyticsPage";
+import LoyaltyCardsPage from "@/pages/profile/LoyaltyCardsPage";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +49,7 @@ function AppRoutes() {
         <Route path="/catalog" element={<CatalogPage />} />
         <Route path="/catalog/:section" element={<CatalogPage />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/cart/compare" element={<PriceComparisonPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/affiliate" element={<AffiliatePage />} />
@@ -53,6 +57,8 @@ function AppRoutes() {
         <Route path="/profile/settings" element={<SettingsPage />} />
         <Route path="/profile/awards" element={<AwardsPage />} />
         <Route path="/profile/recipes" element={<UserRecipesPage />} />
+        <Route path="/profile/analytics" element={<AnalyticsPage />} />
+        <Route path="/profile/loyalty-cards" element={<LoyaltyCardsPage />} />
       </Route>
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/register" element={<RegisterPage />} />
