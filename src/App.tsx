@@ -20,6 +20,12 @@ import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import NotFound from "./pages/NotFound";
 
+// Profile pages
+import PremiumPage from "@/pages/profile/PremiumPage";
+import SettingsPage from "@/pages/profile/SettingsPage";
+import AwardsPage from "@/pages/profile/AwardsPage";
+import UserRecipesPage from "@/pages/profile/UserRecipesPage";
+
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -43,6 +49,10 @@ function AppRoutes() {
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/affiliate" element={<AffiliatePage />} />
+        <Route path="/profile/premium" element={<PremiumPage />} />
+        <Route path="/profile/settings" element={<SettingsPage />} />
+        <Route path="/profile/awards" element={<AwardsPage />} />
+        <Route path="/profile/recipes" element={<UserRecipesPage />} />
       </Route>
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/register" element={<RegisterPage />} />
