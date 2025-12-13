@@ -26,10 +26,11 @@ import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ProfileMenuItem } from '@/components/profile/ProfileMenuItem';
 import { SubscriptionCard } from '@/components/profile/SubscriptionCard';
 import { PeriodModal } from '@/components/profile/PeriodModal';
+import { ActivityModal } from '@/components/profile/ActivityModal';
 
 const menuItems = [
   { icon: Trophy, label: 'Награды', to: '/profile/awards', badge: '2' },
-  { icon: Activity, label: 'Активность', to: '/profile/activity' },
+  { icon: Activity, label: 'Активность', to: '', isModal: true },
   { icon: MapPin, label: 'Мои адреса', to: '/profile/addresses' },
   { icon: CreditCard, label: 'Карты лояльности', to: '/profile/loyalty-cards' },
   { icon: Wallet, label: 'Способы оплаты', to: '/profile/payment-methods' },
@@ -48,6 +49,7 @@ const quickLinks = [
 export default function ProfilePage() {
   const { isAuthenticated, user, logout } = useAppStore();
   const [periodModal, setPeriodModal] = useState<'solo' | 'family' | null>(null);
+  const [activityModalOpen, setActivityModalOpen] = useState(false);
 
   if (!isAuthenticated) {
     return (
