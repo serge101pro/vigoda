@@ -40,7 +40,7 @@ const menuItems = [
 
 const quickLinks = [
   { icon: ClipboardList, label: 'Мои списки', to: '/profile/lists', badge: '3' },
-  { icon: Heart, label: 'Избранное', to: '/profile/favorites' },
+  { icon: Heart, label: 'Избранное', to: '/favorites' },
   { icon: ChefHat, label: 'Мои рецепты', to: '/profile/recipes' },
   { icon: BarChart3, label: 'Аналитика расходов', to: '/profile/analytics' },
   { icon: Gift, label: 'Партнёрская программа', to: '/profile/affiliate', highlight: true },
