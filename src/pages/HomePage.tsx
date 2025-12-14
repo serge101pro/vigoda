@@ -146,6 +146,35 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Stats Cards - Row 3 */}
+      <section className="px-4 pt-3">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Готовая еда */}
+          <Link to="/ready-meals" className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-2xl p-4 border border-orange-500/20 hover:border-orange-500/40 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                <span className="text-lg">🍱</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Готовая еда</span>
+            </div>
+            <p className="text-sm font-medium text-foreground">Рационы и блюда</p>
+            <p className="text-xs text-orange-600 mt-1">от 799₽/день →</p>
+          </Link>
+
+          {/* Мои адреса */}
+          <Link to="/profile/addresses" className="bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <span className="text-lg">📍</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Мои адреса</span>
+            </div>
+            <p className="text-lg font-bold text-foreground">3</p>
+            <p className="text-xs text-muted-foreground mt-1">сохранено</p>
+          </Link>
+        </div>
+      </section>
+
       {/* Promo Banner */}
       <section className="px-4 pt-4">
         <PromoBanner
@@ -228,16 +257,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Second Promo */}
+      {/* Ready Meals Promo */}
       <section className="px-4 pb-6">
-        <PromoBanner
-          title="Готовые рационы на неделю"
-          subtitle="Экономьте время!"
-          buttonText="Подробнее"
-          buttonLink="/recipes/rations"
-          image={mockRecipes[1]?.image || heroImage}
-          variant="accent"
-        />
+        <Link to="/ready-meals">
+          <PromoBanner
+            title="Готовые рационы на неделю"
+            subtitle="Экономьте время!"
+            buttonText="Подробнее"
+            buttonLink="/ready-meals"
+            image={mockRecipes[1]?.image || heroImage}
+            variant="accent"
+          />
+        </Link>
       </section>
 
       {/* Sale Products */}
