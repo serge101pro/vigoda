@@ -29,6 +29,12 @@ import UserRecipesPage from "@/pages/profile/UserRecipesPage";
 import AnalyticsPage from "@/pages/profile/AnalyticsPage";
 import LoyaltyCardsPage from "@/pages/profile/LoyaltyCardsPage";
 
+// New pages
+import RecipeDetailPage from "@/pages/RecipeDetailPage";
+import AddressesPage from "@/pages/AddressesPage";
+import FavoritesPage from "@/pages/FavoritesPage";
+import ReadyMealsPage from "@/pages/ReadyMealsPage";
+
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -51,6 +57,10 @@ function AppRoutes() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/cart/compare" element={<PriceComparisonPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
+        <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+        <Route path="/favorites" element={<FavoritesPage />} />
+        <Route path="/ready-meals" element={<ReadyMealsPage />} />
+        <Route path="/profile/addresses" element={<AddressesPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/affiliate" element={<AffiliatePage />} />
         <Route path="/profile/premium" element={<PremiumPage />} />
