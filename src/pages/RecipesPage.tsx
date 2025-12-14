@@ -124,89 +124,91 @@ export default function RecipesPage() {
   const [category, setCategory] = useState('all');
 
   const UserRecipeCard = ({ recipe }: { recipe: UserRecipe }) => (
-    <div className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
-      {/* Image */}
-      <div className="relative h-40 bg-gradient-to-br from-accent to-accent/80">
-        {recipe.imageUrl ? (
-          <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-6xl">{recipe.emoji}</span>
+    <Link to={`/recipes/${recipe.id}`} className="block">
+      <div className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
+        {/* Image */}
+        <div className="relative h-40 bg-gradient-to-br from-accent to-accent/80">
+          {recipe.imageUrl ? (
+            <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-6xl">{recipe.emoji}</span>
+            </div>
+          )}
+          <div className="absolute top-3 left-3 flex gap-2">
+            {recipe.isVerified && (
+              <Badge className="bg-primary text-primary-foreground">
+                <Check className="h-3 w-3 mr-1" /> Проверено
+              </Badge>
+            )}
+            {recipe.isPopular && (
+              <Badge className="bg-accent text-accent-foreground">
+                <Flame className="h-3 w-3 mr-1" /> Популярное
+              </Badge>
+            )}
           </div>
-        )}
-        <div className="absolute top-3 left-3 flex gap-2">
-          {recipe.isVerified && (
-            <Badge className="bg-primary text-primary-foreground">
-              <Check className="h-3 w-3 mr-1" /> Проверено
-            </Badge>
-          )}
-          {recipe.isPopular && (
-            <Badge className="bg-accent text-accent-foreground">
-              <Flame className="h-3 w-3 mr-1" /> Популярное
-            </Badge>
-          )}
+        </div>
+
+        {/* Author */}
+        <div className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-xl">
+              {recipe.author.avatar}
+            </div>
+            <div>
+              <p className="font-semibold text-sm flex items-center gap-1">
+                {recipe.author.name}
+                {recipe.author.badge && <span>{recipe.author.badge}</span>}
+              </p>
+              <p className="text-xs text-muted-foreground">{recipe.createdAt}</p>
+            </div>
+          </div>
+
+          {/* Title */}
+          <h3 className="font-bold text-foreground mb-2">{recipe.title}</h3>
+
+          {/* Meta */}
+          <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
+            <span className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              {recipe.time} мин
+            </span>
+            <span className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              {recipe.servings} порц.
+            </span>
+            <span className="flex items-center gap-1">
+              🔥 {recipe.difficulty}
+            </span>
+          </div>
+
+          {/* Stats */}
+          <div className="flex items-center gap-4 text-sm text-muted-foreground pb-3 border-b border-border mb-3">
+            <span className="flex items-center gap-1">
+              <Heart className="h-4 w-4" />
+              {recipe.likes}
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="h-4 w-4" />
+              {recipe.views}
+            </span>
+            <span className="flex items-center gap-1">
+              <MessageCircle className="h-4 w-4" />
+              {recipe.comments}
+            </span>
+            <span className="flex items-center gap-1">
+              <Share2 className="h-4 w-4" />
+              {recipe.shares}
+            </span>
+          </div>
+
+          <Button variant="hero" size="sm" className="w-full" onClick={(e) => e.preventDefault()}>
+            <Plus className="h-4 w-4 mr-1" />
+            Добавить ингредиенты
+          </Button>
         </div>
       </div>
-
-      {/* Author */}
-      <div className="p-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-xl">
-            {recipe.author.avatar}
-          </div>
-          <div>
-            <p className="font-semibold text-sm flex items-center gap-1">
-              {recipe.author.name}
-              {recipe.author.badge && <span>{recipe.author.badge}</span>}
-            </p>
-            <p className="text-xs text-muted-foreground">{recipe.createdAt}</p>
-          </div>
-        </div>
-
-        {/* Title */}
-        <h3 className="font-bold text-foreground mb-2">{recipe.title}</h3>
-
-        {/* Meta */}
-        <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
-          <span className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {recipe.time} мин
-          </span>
-          <span className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            {recipe.servings} порц.
-          </span>
-          <span className="flex items-center gap-1">
-            🔥 {recipe.difficulty}
-          </span>
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground pb-3 border-b border-border mb-3">
-          <span className="flex items-center gap-1">
-            <Heart className="h-4 w-4" />
-            {recipe.likes}
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye className="h-4 w-4" />
-            {recipe.views}
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageCircle className="h-4 w-4" />
-            {recipe.comments}
-          </span>
-          <span className="flex items-center gap-1">
-            <Share2 className="h-4 w-4" />
-            {recipe.shares}
-          </span>
-        </div>
-
-        <Button variant="hero" size="sm" className="w-full">
-          <Plus className="h-4 w-4 mr-1" />
-          Добавить ингредиенты
-        </Button>
-      </div>
-    </div>
+    </Link>
   );
 
   return (
