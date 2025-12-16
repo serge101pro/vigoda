@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, MapPin, Bell, Mic } from 'lucide-react';
+import { Search, MapPin, Bell, Mic, Clock, Users, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { CategoryChip } from '@/components/ui/CategoryChip';
@@ -7,8 +7,8 @@ import { PromoBanner } from '@/components/ui/PromoBanner';
 import { ProductCard } from '@/components/products/ProductCard';
 import { mockProducts, mockRecipes, categories } from '@/data/mockData';
 import heroImage from '@/assets/hero-groceries.jpg';
-import { Clock, Users, Flame } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -37,7 +37,8 @@ export default function HomePage() {
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />
@@ -171,6 +172,64 @@ export default function HomePage() {
             </div>
             <p className="text-lg font-bold text-foreground">3</p>
             <p className="text-xs text-muted-foreground mt-1">сохранено</p>
+          </Link>
+        </div>
+      </section>
+
+      {/* New Sections - Row 4 */}
+      <section className="px-4 pt-3">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Кейтеринг */}
+          <Link to="/catering" className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-2xl p-4 border border-purple-500/20 hover:border-purple-500/40 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <span className="text-lg">🍽️</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Кейтеринг</span>
+            </div>
+            <p className="text-sm font-medium text-foreground">Мероприятия</p>
+            <p className="text-xs text-purple-600 mt-1">под ключ →</p>
+          </Link>
+
+          {/* Фермерские продукты */}
+          <Link to="/farm-products" className="bg-gradient-to-br from-green-600/10 to-green-600/5 rounded-2xl p-4 border border-green-600/20 hover:border-green-600/40 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-green-600/20 flex items-center justify-center">
+                <span className="text-lg">🌾</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Фермерское</span>
+            </div>
+            <p className="text-sm font-medium text-foreground">Эко продукты</p>
+            <p className="text-xs text-green-600 mt-1">с доставкой →</p>
+          </Link>
+        </div>
+      </section>
+
+      {/* New Sections - Row 5 */}
+      <section className="px-4 pt-3">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Семейное планирование */}
+          <Link to="/family" className="bg-gradient-to-br from-pink-500/10 to-pink-500/5 rounded-2xl p-4 border border-pink-500/20 hover:border-pink-500/40 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
+                <span className="text-lg">👨‍👩‍👧‍👦</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Семья</span>
+            </div>
+            <p className="text-sm font-medium text-foreground">Совместные списки</p>
+            <p className="text-xs text-pink-600 mt-1">планируйте вместе →</p>
+          </Link>
+
+          {/* Сообщество рецептов */}
+          <Link to="/social-recipes" className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 rounded-2xl p-4 border border-amber-500/20 hover:border-amber-500/40 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
+                <span className="text-lg">👨‍🍳</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Сообщество</span>
+            </div>
+            <p className="text-sm font-medium text-foreground">Соц. рецепты</p>
+            <p className="text-xs text-amber-600 mt-1">челленджи и рейтинги →</p>
           </Link>
         </div>
       </section>
