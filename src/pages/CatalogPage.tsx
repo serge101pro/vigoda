@@ -4,12 +4,20 @@ import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CategoryChip } from '@/components/ui/CategoryChip';
 import { ProductCard } from '@/components/products/ProductCard';
-import { mockProducts, categories } from '@/data/mockData';
+import { 
+  mockProducts, 
+  categories, 
+  cosmeticsProducts, 
+  cosmeticsCategories,
+  householdProducts,
+  householdCategories 
+} from '@/data/mockData';
 
 const catalogSections = [
-  { id: 'products', label: 'Продукты', emoji: '🛒' },
-  { id: 'beauty', label: 'Косметика', emoji: '💄' },
-  { id: 'household', label: 'Бытовая химия', emoji: '🧹' },
+  { id: 'products', label: 'Продукты', emoji: '🛒', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=200&fit=crop&q=80' },
+  { id: 'beauty', label: 'Косметика', emoji: '💄', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=200&fit=crop&q=80' },
+  { id: 'household', label: 'Бытовая химия', emoji: '🧹', image: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&h=200&fit=crop&q=80' },
+  { id: 'accessories', label: 'Хоз. мелочи', emoji: '🧰', image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=200&fit=crop&q=80' },
 ];
 
 export default function CatalogPage() {
@@ -18,10 +26,38 @@ export default function CatalogPage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Get products and categories based on active section
+  const getProductsForSection = () => {
+    switch (activeSection) {
+      case 'beauty':
+        return cosmeticsProducts;
+      case 'household':
+      case 'accessories':
+        return householdProducts;
+      default:
+        return mockProducts;
+    }
+  };
+
+  const getCategoriesForSection = () => {
+    switch (activeSection) {
+      case 'beauty':
+        return cosmeticsCategories;
+      case 'household':
+      case 'accessories':
+        return householdCategories;
+      default:
+        return categories;
+    }
+  };
+
+  const currentProducts = getProductsForSection();
+  const currentCategories = getCategoriesForSection();
+
   const filteredProducts =
     activeCategory === 'all'
-      ? mockProducts
-      : mockProducts.filter((p) => p.category === activeCategory);
+      ? currentProducts
+      : currentProducts.filter((p) => p.category === activeCategory);
 
   const searchFilteredProducts = searchQuery
     ? filteredProducts.filter((p) =>
@@ -36,7 +72,7 @@ export default function CatalogPage() {
         <div className="px-4 py-3">
           <div className="flex items-center gap-3 mb-3">
             <Link to="/">
-              <Button variant="ghost" size="icon-sm">
+              <Button variant="ghost" size="icon">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
@@ -53,18 +89,21 @@ export default function CatalogPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-search pr-12"
             />
-            <Button variant="ghost" size="icon-sm" className="absolute right-2 top-1/2 -translate-y-1/2">
+            <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2">
               <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
             </Button>
           </div>
 
           {/* Section Tabs */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
             {catalogSections.map((s) => (
               <button
                 key={s.id}
-                onClick={() => setActiveSection(s.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                onClick={() => {
+                  setActiveSection(s.id);
+                  setActiveCategory('all');
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
                   activeSection === s.id
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -78,10 +117,31 @@ export default function CatalogPage() {
         </div>
       </header>
 
+      {/* Section Banner */}
+      <section className="px-4 pt-4">
+        <div className="relative h-32 rounded-2xl overflow-hidden">
+          <img 
+            src={catalogSections.find(s => s.id === activeSection)?.image}
+            alt={catalogSections.find(s => s.id === activeSection)?.label}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/80 to-transparent flex items-center p-4">
+            <div>
+              <span className="text-3xl mb-2 block">
+                {catalogSections.find(s => s.id === activeSection)?.emoji}
+              </span>
+              <h2 className="text-xl font-bold text-foreground">
+                {catalogSections.find(s => s.id === activeSection)?.label}
+              </h2>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Categories */}
       <section className="pt-4">
         <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
-          {categories.map((cat) => (
+          {currentCategories.map((cat) => (
             <CategoryChip
               key={cat.id}
               emoji={cat.emoji}
