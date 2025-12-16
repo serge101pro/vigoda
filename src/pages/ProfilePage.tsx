@@ -15,7 +15,10 @@ import {
   CreditCard,
   Wallet,
   Bell,
-  ChefHat
+  ChefHat,
+  Users,
+  Utensils,
+  Leaf
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,6 +30,7 @@ import { ProfileMenuItem } from '@/components/profile/ProfileMenuItem';
 import { SubscriptionCard } from '@/components/profile/SubscriptionCard';
 import { PeriodModal } from '@/components/profile/PeriodModal';
 import { ActivityModal } from '@/components/profile/ActivityModal';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const menuItems = [
   { icon: Trophy, label: 'Награды', to: '/profile/awards', badge: '2' },
@@ -44,6 +48,9 @@ const quickLinks = [
   { icon: ChefHat, label: 'Мои рецепты', to: '/profile/recipes' },
   { icon: BarChart3, label: 'Аналитика расходов', to: '/profile/analytics' },
   { icon: Gift, label: 'Партнёрская программа', to: '/profile/affiliate', highlight: true },
+  { icon: Users, label: 'Семейное планирование', to: '/family' },
+  { icon: Utensils, label: 'Кейтеринг', to: '/catering' },
+  { icon: Leaf, label: 'Фермерские продукты', to: '/farm-products' },
 ];
 
 export default function ProfilePage() {
@@ -82,13 +89,16 @@ export default function ProfilePage() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
         <div className="px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Link to="/">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <h1 className="text-xl font-bold text-foreground">Профиль</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link to="/">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <h1 className="text-xl font-bold text-foreground">Профиль</h1>
+            </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
