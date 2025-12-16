@@ -13,11 +13,17 @@ import {
   householdCategories 
 } from '@/data/mockData';
 
+// Import local images
+import productsImage from '@/assets/catalog/products.jpg';
+import beautyImage from '@/assets/catalog/beauty.jpg';
+import householdImage from '@/assets/catalog/household.jpg';
+import accessoriesImage from '@/assets/catalog/accessories.jpg';
+
 const catalogSections = [
-  { id: 'products', label: 'Продукты', emoji: '🛒', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=200&fit=crop&q=80' },
-  { id: 'beauty', label: 'Косметика', emoji: '💄', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=200&fit=crop&q=80' },
-  { id: 'household', label: 'Бытовая химия', emoji: '🧹', image: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400&h=200&fit=crop&q=80' },
-  { id: 'accessories', label: 'Хоз. мелочи', emoji: '🧰', image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=200&fit=crop&q=80' },
+  { id: 'products', label: 'Продукты', emoji: '🛒', image: productsImage },
+  { id: 'beauty', label: 'Косметика', emoji: '💄', image: beautyImage },
+  { id: 'household', label: 'Бытовая химия', emoji: '🧹', image: householdImage },
+  { id: 'accessories', label: 'Хоз. мелочи', emoji: '🧰', image: accessoriesImage },
 ];
 
 export default function CatalogPage() {

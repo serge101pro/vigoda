@@ -1,50 +1,44 @@
 import { Product, Recipe } from '@/stores/useAppStore';
 
-// Product images from Unsplash
-const productImages = {
-  tomatoes: 'https://images.unsplash.com/photo-1546470427-0d4db154ceb8?w=600&h=600&fit=crop&q=80',
-  broccoli: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=600&h=600&fit=crop&q=80',
-  milk: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=600&h=600&fit=crop&q=80',
-  chicken: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=600&h=600&fit=crop&q=80',
-  bread: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&h=600&fit=crop&q=80',
-  apples: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600&h=600&fit=crop&q=80',
-  salmon: 'https://images.unsplash.com/photo-1574781330855-d0db8cc6a79c?w=600&h=600&fit=crop&q=80',
-  cheese: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=600&h=600&fit=crop&q=80',
-  eggs: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=600&h=600&fit=crop&q=80',
-  orangeJuice: 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=600&h=600&fit=crop&q=80',
-  pasta: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600&h=600&fit=crop&q=80',
-  salad: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=600&fit=crop&q=80',
-  beef: 'https://images.unsplash.com/photo-1603048297172-c92544798d5a?w=600&h=600&fit=crop&q=80',
-  honey: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&h=600&fit=crop&q=80',
-  avocado: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=600&h=600&fit=crop&q=80',
-};
+// Product images
+import tomatoes from '@/assets/products/tomatoes.jpg';
+import broccoli from '@/assets/products/broccoli.jpg';
+import milk from '@/assets/products/milk.jpg';
+import chicken from '@/assets/products/chicken.jpg';
+import bread from '@/assets/products/bread.jpg';
+import apples from '@/assets/products/apples.jpg';
+import salmon from '@/assets/products/salmon.jpg';
+import cheese from '@/assets/products/cheese.jpg';
+import eggs from '@/assets/products/eggs.jpg';
+import orangeJuice from '@/assets/products/orange-juice.jpg';
+import pasta from '@/assets/products/pasta.jpg';
+import salad from '@/assets/products/salad.jpg';
+import beef from '@/assets/products/beef.jpg';
+import honey from '@/assets/products/honey.jpg';
+import avocado from '@/assets/products/avocado.jpg';
 
 // Cosmetics images
-const cosmeticsImages = {
-  cream: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=600&fit=crop&q=80',
-  shampoo: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=600&h=600&fit=crop&q=80',
-  lipstick: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600&h=600&fit=crop&q=80',
-  perfume: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&h=600&fit=crop&q=80',
-  mascara: 'https://images.unsplash.com/photo-1631214524020-3e3d4e4d3d3d?w=600&h=600&fit=crop&q=80',
-  skincare: 'https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=600&h=600&fit=crop&q=80',
-};
+import cream from '@/assets/cosmetics/cream.jpg';
+import shampoo from '@/assets/cosmetics/shampoo.jpg';
+import lipstick from '@/assets/cosmetics/lipstick.jpg';
+import perfume from '@/assets/cosmetics/perfume.jpg';
+import mascara from '@/assets/cosmetics/mascara.jpg';
+import skincare from '@/assets/cosmetics/skincare.jpg';
 
 // Household images
-const householdImages = {
-  detergent: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=600&h=600&fit=crop&q=80',
-  cleaner: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=600&h=600&fit=crop&q=80',
-  dishSoap: 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=600&h=600&fit=crop&q=80',
-  sponges: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop&q=80',
-  toiletPaper: 'https://images.unsplash.com/photo-1584556812952-905ffd0c611a?w=600&h=600&fit=crop&q=80',
-  trashBags: 'https://images.unsplash.com/photo-1610141221033-19c6fcd0ea2d?w=600&h=600&fit=crop&q=80',
-};
+import detergent from '@/assets/household/detergent.jpg';
+import cleaner from '@/assets/household/cleaner.jpg';
+import dishSoap from '@/assets/household/dish-soap.jpg';
+import sponges from '@/assets/household/sponges.jpg';
+import toiletPaper from '@/assets/household/toilet-paper.jpg';
+import trashBags from '@/assets/household/trash-bags.jpg';
 
 export const mockProducts: Product[] = [
   {
     id: '1',
     name: 'Томаты на ветке',
     category: 'vegetables',
-    image: productImages.tomatoes,
+    image: tomatoes,
     price: 189,
     oldPrice: 249,
     unit: 'кг',
@@ -61,7 +55,7 @@ export const mockProducts: Product[] = [
     id: '2',
     name: 'Брокколи свежая',
     category: 'vegetables',
-    image: productImages.broccoli,
+    image: broccoli,
     price: 159,
     unit: 'шт',
     rating: 4.6,
@@ -77,7 +71,7 @@ export const mockProducts: Product[] = [
     id: '3',
     name: 'Молоко 3.2%',
     category: 'dairy',
-    image: productImages.milk,
+    image: milk,
     price: 89,
     oldPrice: 109,
     unit: 'л',
@@ -94,7 +88,7 @@ export const mockProducts: Product[] = [
     id: '4',
     name: 'Куриное филе',
     category: 'meat',
-    image: productImages.chicken,
+    image: chicken,
     price: 329,
     unit: 'кг',
     rating: 4.7,
@@ -109,7 +103,7 @@ export const mockProducts: Product[] = [
     id: '5',
     name: 'Хлеб белый',
     category: 'bakery',
-    image: productImages.bread,
+    image: bread,
     price: 49,
     unit: 'шт',
     rating: 4.5,
@@ -125,7 +119,7 @@ export const mockProducts: Product[] = [
     id: '6',
     name: 'Яблоки Гала',
     category: 'fruits',
-    image: productImages.apples,
+    image: apples,
     price: 129,
     unit: 'кг',
     rating: 4.7,
@@ -140,7 +134,7 @@ export const mockProducts: Product[] = [
     id: '7',
     name: 'Лосось филе',
     category: 'fish',
-    image: productImages.salmon,
+    image: salmon,
     price: 899,
     oldPrice: 1099,
     unit: 'кг',
@@ -157,7 +151,7 @@ export const mockProducts: Product[] = [
     id: '8',
     name: 'Сыр Российский',
     category: 'dairy',
-    image: productImages.cheese,
+    image: cheese,
     price: 449,
     unit: 'кг',
     rating: 4.6,
@@ -172,7 +166,7 @@ export const mockProducts: Product[] = [
     id: '9',
     name: 'Яйца С0 10шт',
     category: 'dairy',
-    image: productImages.eggs,
+    image: eggs,
     price: 119,
     unit: 'уп',
     rating: 4.8,
@@ -188,7 +182,7 @@ export const mockProducts: Product[] = [
     id: '10',
     name: 'Сок апельсиновый',
     category: 'drinks',
-    image: productImages.orangeJuice,
+    image: orangeJuice,
     price: 159,
     unit: 'л',
     rating: 4.5,
@@ -207,7 +201,7 @@ export const cosmeticsProducts: Product[] = [
     id: 'cos1',
     name: 'Крем для лица увлажняющий',
     category: 'skincare',
-    image: cosmeticsImages.cream,
+    image: cream,
     price: 599,
     oldPrice: 799,
     unit: 'шт',
@@ -224,7 +218,7 @@ export const cosmeticsProducts: Product[] = [
     id: 'cos2',
     name: 'Шампунь для волос',
     category: 'haircare',
-    image: cosmeticsImages.shampoo,
+    image: shampoo,
     price: 349,
     unit: 'шт',
     rating: 4.6,
@@ -239,7 +233,7 @@ export const cosmeticsProducts: Product[] = [
     id: 'cos3',
     name: 'Помада матовая',
     category: 'makeup',
-    image: cosmeticsImages.lipstick,
+    image: lipstick,
     price: 499,
     unit: 'шт',
     rating: 4.7,
@@ -255,7 +249,7 @@ export const cosmeticsProducts: Product[] = [
     id: 'cos4',
     name: 'Духи женские 50мл',
     category: 'perfume',
-    image: cosmeticsImages.perfume,
+    image: perfume,
     price: 2990,
     oldPrice: 3490,
     unit: 'шт',
@@ -272,7 +266,7 @@ export const cosmeticsProducts: Product[] = [
     id: 'cos5',
     name: 'Сыворотка для лица',
     category: 'skincare',
-    image: cosmeticsImages.skincare,
+    image: skincare,
     price: 899,
     unit: 'шт',
     rating: 4.8,
@@ -292,7 +286,7 @@ export const householdProducts: Product[] = [
     id: 'hh1',
     name: 'Стиральный порошок 3кг',
     category: 'laundry',
-    image: householdImages.detergent,
+    image: detergent,
     price: 449,
     oldPrice: 549,
     unit: 'шт',
@@ -309,7 +303,7 @@ export const householdProducts: Product[] = [
     id: 'hh2',
     name: 'Средство для мытья полов',
     category: 'cleaning',
-    image: householdImages.cleaner,
+    image: cleaner,
     price: 189,
     unit: 'шт',
     rating: 4.5,
@@ -324,7 +318,7 @@ export const householdProducts: Product[] = [
     id: 'hh3',
     name: 'Средство для посуды',
     category: 'dishes',
-    image: householdImages.dishSoap,
+    image: dishSoap,
     price: 129,
     unit: 'шт',
     rating: 4.6,
@@ -339,7 +333,7 @@ export const householdProducts: Product[] = [
     id: 'hh4',
     name: 'Губки кухонные 5шт',
     category: 'accessories',
-    image: householdImages.sponges,
+    image: sponges,
     price: 79,
     unit: 'уп',
     rating: 4.4,
@@ -354,7 +348,7 @@ export const householdProducts: Product[] = [
     id: 'hh5',
     name: 'Туалетная бумага 12шт',
     category: 'paper',
-    image: householdImages.toiletPaper,
+    image: toiletPaper,
     price: 299,
     oldPrice: 349,
     unit: 'уп',
@@ -371,7 +365,7 @@ export const householdProducts: Product[] = [
     id: 'hh6',
     name: 'Мешки для мусора 60л',
     category: 'accessories',
-    image: householdImages.trashBags,
+    image: trashBags,
     price: 149,
     unit: 'уп',
     rating: 4.5,
@@ -388,7 +382,7 @@ export const mockRecipes: Recipe[] = [
   {
     id: '1',
     name: 'Паста с томатами и базиликом',
-    image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800&h=600&fit=crop&q=80',
+    image: pasta,
     time: 25,
     calories: 420,
     servings: 2,
@@ -403,7 +397,7 @@ export const mockRecipes: Recipe[] = [
   {
     id: '2',
     name: 'Салат с авокадо',
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=600&fit=crop&q=80',
+    image: salad,
     time: 15,
     calories: 280,
     servings: 2,
@@ -418,7 +412,7 @@ export const mockRecipes: Recipe[] = [
   {
     id: '3',
     name: 'Борщ классический',
-    image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=600&fit=crop&q=80',
+    image: beef,
     time: 120,
     calories: 350,
     servings: 6,
@@ -433,7 +427,7 @@ export const mockRecipes: Recipe[] = [
   {
     id: '4',
     name: 'Куриные котлеты',
-    image: 'https://images.unsplash.com/photo-1606728035253-49e8a23146de?w=800&h=600&fit=crop&q=80',
+    image: chicken,
     time: 40,
     calories: 250,
     servings: 4,
@@ -448,7 +442,7 @@ export const mockRecipes: Recipe[] = [
   {
     id: '5',
     name: 'Смузи с бананом',
-    image: 'https://images.unsplash.com/photo-1638176066666-ffb2f013c7dd?w=800&h=600&fit=crop&q=80',
+    image: honey,
     time: 5,
     calories: 180,
     servings: 1,
@@ -462,7 +456,7 @@ export const mockRecipes: Recipe[] = [
   {
     id: '6',
     name: 'Греческий салат',
-    image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&h=600&fit=crop&q=80',
+    image: salad,
     time: 10,
     calories: 220,
     servings: 2,
