@@ -26,15 +26,10 @@ export default function LoginPage() {
     const { error } = await signIn(email, password);
 
     if (error) {
-      let message = 'Ошибка входа';
-      if (error.message.includes('Invalid login credentials')) {
-        message = 'Неверный email или пароль';
-      } else if (error.message.includes('Email not confirmed')) {
-        message = 'Подтвердите email для входа';
-      }
+      // Generic error message to prevent user enumeration
       toast({
         title: 'Ошибка',
-        description: message,
+        description: 'Не удалось войти. Проверьте данные и попробуйте снова.',
         variant: 'destructive',
       });
     } else {
