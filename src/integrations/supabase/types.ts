@@ -14,7 +14,395 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string | null
+          recipe_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          recipe_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          recipe_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meal_plans: {
+        Row: {
+          calories_per_day: number | null
+          created_at: string
+          days: number
+          description: string | null
+          discount: number | null
+          id: string
+          image: string | null
+          is_popular: boolean | null
+          meals_per_day: number
+          name: string
+          price: number
+          price_per_day: number | null
+          rating: number | null
+          reviews: number | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          calories_per_day?: number | null
+          created_at?: string
+          days?: number
+          description?: string | null
+          discount?: number | null
+          id?: string
+          image?: string | null
+          is_popular?: boolean | null
+          meals_per_day?: number
+          name: string
+          price: number
+          price_per_day?: number | null
+          rating?: number | null
+          reviews?: number | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          calories_per_day?: number | null
+          created_at?: string
+          days?: number
+          description?: string | null
+          discount?: number | null
+          id?: string
+          image?: string | null
+          is_popular?: boolean | null
+          meals_per_day?: number
+          name?: string
+          price?: number
+          price_per_day?: number | null
+          rating?: number | null
+          reviews?: number | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          badge: string | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          in_stock: boolean | null
+          name: string
+          old_price: number | null
+          price: number
+          rating: number | null
+          review_count: number | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          badge?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          in_stock?: boolean | null
+          name: string
+          old_price?: number | null
+          price: number
+          rating?: number | null
+          review_count?: number | null
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          badge?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          in_stock?: boolean | null
+          name?: string
+          old_price?: number | null
+          price?: number
+          rating?: number | null
+          review_count?: number | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bonus_points: number | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          phone: string | null
+          total_savings: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bonus_points?: number | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          phone?: string | null
+          total_savings?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bonus_points?: number | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          total_savings?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recipe_ingredients: {
+        Row: {
+          amount: string
+          id: string
+          name: string
+          product_id: string | null
+          recipe_id: string
+        }
+        Insert: {
+          amount: string
+          id?: string
+          name: string
+          product_id?: string | null
+          recipe_id: string
+        }
+        Update: {
+          amount?: string
+          id?: string
+          name?: string
+          product_id?: string | null
+          recipe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_ingredients_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipe_steps: {
+        Row: {
+          description: string
+          id: string
+          recipe_id: string
+          step_number: number
+        }
+        Insert: {
+          description: string
+          id?: string
+          recipe_id: string
+          step_number: number
+        }
+        Update: {
+          description?: string
+          id?: string
+          recipe_id?: string
+          step_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_steps_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          author_id: string | null
+          calories: number | null
+          carbs: number | null
+          category: string | null
+          created_at: string
+          description: string | null
+          difficulty: string | null
+          fat: number | null
+          id: string
+          image: string | null
+          is_user_created: boolean | null
+          name: string
+          protein: number | null
+          rating: number | null
+          review_count: number | null
+          servings: number
+          time_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          calories?: number | null
+          carbs?: number | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          fat?: number | null
+          id?: string
+          image?: string | null
+          is_user_created?: boolean | null
+          name: string
+          protein?: number | null
+          rating?: number | null
+          review_count?: number | null
+          servings?: number
+          time_minutes: number
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          calories?: number | null
+          carbs?: number | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          fat?: number | null
+          id?: string
+          image?: string | null
+          is_user_created?: boolean | null
+          name?: string
+          protein?: number | null
+          rating?: number | null
+          review_count?: number | null
+          servings?: number
+          time_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shopping_list_items: {
+        Row: {
+          created_at: string
+          id: string
+          is_checked: boolean | null
+          list_id: string
+          name: string
+          product_id: string | null
+          quantity: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_checked?: boolean | null
+          list_id: string
+          name: string
+          product_id?: string | null
+          quantity?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_checked?: boolean | null
+          list_id?: string
+          name?: string
+          product_id?: string | null
+          quantity?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_list_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "shopping_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopping_list_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopping_lists: {
+        Row: {
+          created_at: string
+          id: string
+          is_shared: boolean | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_shared?: boolean | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_shared?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
