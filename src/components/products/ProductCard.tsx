@@ -1,4 +1,5 @@
 import { Plus, Minus, Heart, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAppStore, Product } from '@/stores/useAppStore';
 import { cn } from '@/lib/utils';
@@ -21,7 +22,7 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
   if (variant === 'horizontal') {
     return (
       <div className="card-product flex gap-4 animate-fade-in">
-        <div className="relative w-24 h-24 flex-shrink-0">
+        <Link to={`/product/${product.id}`} className="relative w-24 h-24 flex-shrink-0">
           <img
             src={product.image}
             alt={product.name}
@@ -39,10 +40,12 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
               {product.badge === 'hot' && 'Хит'}
             </span>
           )}
-        </div>
+        </Link>
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <div>
-            <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
+            <Link to={`/product/${product.id}`}>
+              <h3 className="font-semibold text-foreground truncate hover:text-primary transition-colors">{product.name}</h3>
+            </Link>
             <div className="flex items-center gap-1 mt-1">
               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
               <span className="text-xs text-muted-foreground">
@@ -65,7 +68,7 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
                 <Button
                   variant="outline"
                   size="icon-sm"
-                  onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}
+                  onClick={(e) => { e.preventDefault(); updateQuantity(product.id, cartItem.quantity - 1); }}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
@@ -73,13 +76,13 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
                 <Button
                   variant="default"
                   size="icon-sm"
-                  onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
+                  onClick={(e) => { e.preventDefault(); updateQuantity(product.id, cartItem.quantity + 1); }}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
-              <Button variant="default" size="sm" onClick={() => addToCart(product)}>
+              <Button variant="default" size="sm" onClick={(e) => { e.preventDefault(); addToCart(product); }}>
                 <Plus className="h-4 w-4" />
               </Button>
             )}
@@ -119,13 +122,13 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
       )}
 
       {/* Image */}
-      <div className="aspect-square mb-3 rounded-xl overflow-hidden bg-muted">
+      <Link to={`/product/${product.id}`} className="block aspect-square mb-3 rounded-xl overflow-hidden bg-muted">
         <img
           src={product.image}
           alt={product.name}
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
         />
-      </div>
+      </Link>
 
       {/* Rating */}
       <div className="flex items-center gap-1 mb-1">
@@ -135,9 +138,11 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
       </div>
 
       {/* Name */}
-      <h3 className="font-semibold text-foreground text-sm mb-2 line-clamp-2 min-h-[2.5rem]">
-        {product.name}
-      </h3>
+      <Link to={`/product/${product.id}`}>
+        <h3 className="font-semibold text-foreground text-sm mb-2 line-clamp-2 min-h-[2.5rem] hover:text-primary transition-colors">
+          {product.name}
+        </h3>
+      </Link>
 
       {/* Price and Add Button */}
       <div className="flex items-center justify-between">
