@@ -269,7 +269,7 @@ export default function ReadyMealsPage() {
             {/* Plans */}
             <div className="space-y-4">
               {mealPlans.map((plan) => (
-                <div key={plan.id} className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
+                <Link key={plan.id} to={`/meal-plan/${plan.id}`} className="block bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/50 transition-colors">
                   <div className="relative h-44">
                     <img src={plan.image} alt={plan.name} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
@@ -324,12 +324,12 @@ export default function ReadyMealsPage() {
                       </div>
                     </div>
 
-                    <Button variant="hero" className="w-full" onClick={() => handleAddPlanToCart(plan)}>
+                    <Button variant="hero" className="w-full" onClick={(e) => { e.preventDefault(); handleAddPlanToCart(plan); }}>
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Заказать рацион
                     </Button>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </TabsContent>
