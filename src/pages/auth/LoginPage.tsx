@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAppStore } from '@/stores/useAppStore';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
@@ -11,33 +11,44 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const setUser = useAppStore((state) => state.setUser);
+  const { signIn, user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/');
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login
-    setTimeout(() => {
-      setUser({
-        id: '1',
-        name: 'Пользователь',
-        email,
-        referralCode: 'VIGODNO' + Math.random().toString(36).substring(7).toUpperCase(),
-        bonusBalance: 150,
+    const { error } = await signIn(email, password);
+
+    if (error) {
+      let message = 'Ошибка входа';
+      if (error.message.includes('Invalid login credentials')) {
+        message = 'Неверный email или пароль';
+      } else if (error.message.includes('Email not confirmed')) {
+        message = 'Подтвердите email для входа';
+      }
+      toast({
+        title: 'Ошибка',
+        description: message,
+        variant: 'destructive',
       });
+    } else {
       toast({
         title: 'Добро пожаловать!',
         description: 'Вы успешно вошли в аккаунт',
       });
       navigate('/');
-      setIsLoading(false);
-    }, 1000);
+    }
+    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="px-4 py-3">
         <Link to="/">
           <Button variant="ghost" size="icon-sm">

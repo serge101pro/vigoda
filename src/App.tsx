@@ -19,6 +19,7 @@ import AffiliatePage from "@/pages/AffiliatePage";
 import PriceComparisonPage from "@/pages/PriceComparisonPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import NotFound from "./pages/NotFound";
 
 // Profile pages
@@ -84,6 +85,7 @@ function AppRoutes() {
       </Route>
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/register" element={<RegisterPage />} />
+      <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
