@@ -29,6 +29,7 @@ import AwardsPage from "@/pages/profile/AwardsPage";
 import UserRecipesPage from "@/pages/profile/UserRecipesPage";
 import AnalyticsPage from "@/pages/profile/AnalyticsPage";
 import LoyaltyCardsPage from "@/pages/profile/LoyaltyCardsPage";
+import ShoppingListsPage from "@/pages/profile/ShoppingListsPage";
 
 // New pages
 import RecipeDetailPage from "@/pages/RecipeDetailPage";
@@ -82,6 +83,7 @@ function AppRoutes() {
         <Route path="/profile/recipes" element={<UserRecipesPage />} />
         <Route path="/profile/analytics" element={<AnalyticsPage />} />
         <Route path="/profile/loyalty-cards" element={<LoyaltyCardsPage />} />
+        <Route path="/profile/lists" element={<ShoppingListsPage />} />
       </Route>
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/register" element={<RegisterPage />} />
