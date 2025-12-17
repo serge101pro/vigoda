@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { ArrowLeft, Copy, Share2, Users, Wallet, Gift, ChevronRight, QrCode } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAppStore } from '@/stores/useAppStore';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
 export default function AffiliatePage() {
-  const { user } = useAppStore();
-  const referralCode = user?.referralCode || 'VIGODNO123';
+  const { user } = useAuth();
+  const referralCode = user?.id?.slice(0, 8).toUpperCase() || 'VIGODNO123';
   const referralLink = `https://vigodnotut.app/ref/${referralCode}`;
 
   const [showQR, setShowQR] = useState(false);

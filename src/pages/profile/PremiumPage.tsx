@@ -7,7 +7,8 @@ import { SubscriptionCard } from '@/components/profile/SubscriptionCard';
 import { PeriodModal } from '@/components/profile/PeriodModal';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ProfileMenuItem } from '@/components/profile/ProfileMenuItem';
-import { useAppStore } from '@/stores/useAppStore';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { 
   Trophy, 
   Activity, 
@@ -19,8 +20,12 @@ import {
 } from 'lucide-react';
 
 export default function PremiumPage() {
-  const { user } = useAppStore();
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [periodModal, setPeriodModal] = useState<'solo' | 'family' | null>(null);
+
+  const displayName = profile?.display_name || user?.user_metadata?.display_name || 'Пользователь';
+  const email = profile?.email || user?.email || '';
 
   const menuItems = [
     { icon: Trophy, label: 'Награды', to: '/profile/awards' },
@@ -50,8 +55,8 @@ export default function PremiumPage() {
 
       {/* User Header */}
       <UserHeader
-        name={user?.name || 'Пользователь'}
-        email={user?.email || 'user@example.com'}
+        name={displayName}
+        email={email}
         plan="free"
       />
 

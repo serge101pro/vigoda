@@ -2,6 +2,7 @@ import { Plus, Minus, Heart, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAppStore, Product } from '@/stores/useAppStore';
+import { useFavorites } from '@/hooks/useFavorites';
 import { cn } from '@/lib/utils';
 
 interface ProductCardProps {
@@ -10,10 +11,19 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, variant = 'default' }: ProductCardProps) {
-  const { cart, addToCart, updateQuantity, favorites, toggleFavorite } = useAppStore();
+  const { cart, addToCart, updateQuantity } = useAppStore();
+  const { isProductFavorite, addProductToFavorites, removeProductFromFavorites } = useFavorites();
   
   const cartItem = cart.find((item) => item.product.id === product.id);
-  const isFavorite = favorites.includes(product.id);
+  const isFavorite = isProductFavorite(product.id);
+
+  const handleToggleFavorite = async () => {
+    if (isFavorite) {
+      await removeProductFromFavorites(product.id);
+    } else {
+      await addProductToFavorites(product.id);
+    }
+  };
   const hasDiscount = product.oldPrice && product.oldPrice > product.price;
   const discountPercent = hasDiscount
     ? Math.round((1 - product.price / product.oldPrice!) * 100)
@@ -96,7 +106,7 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
     <div className="card-product relative animate-fade-in">
       {/* Favorite Button */}
       <button
-        onClick={() => toggleFavorite(product.id)}
+        onClick={handleToggleFavorite}
         className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-background/80 backdrop-blur-sm"
       >
         <Heart

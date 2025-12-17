@@ -30,27 +30,12 @@ export interface Recipe {
   ingredients: { name: string; amount: string }[];
 }
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  referralCode: string;
-  bonusBalance: number;
-}
-
 type CartStrategy = 'savings' | 'time' | 'balanced';
 
 interface AppState {
   // Onboarding
   hasSeenOnboarding: boolean;
   setHasSeenOnboarding: (value: boolean) => void;
-
-  // Auth
-  isAuthenticated: boolean;
-  user: User | null;
-  setUser: (user: User | null) => void;
-  logout: () => void;
 
   // Cart
   cart: CartItem[];
@@ -60,15 +45,6 @@ interface AppState {
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   setCartStrategy: (strategy: CartStrategy) => void;
-
-  // Shopping Lists
-  shoppingLists: { id: string; name: string; items: string[] }[];
-  addShoppingList: (name: string) => void;
-  addItemToList: (listId: string, item: string) => void;
-
-  // Favorites
-  favorites: string[];
-  toggleFavorite: (productId: string) => void;
 
   // Search
   searchQuery: string;
@@ -85,12 +61,6 @@ export const useAppStore = create<AppState>()(
       // Onboarding
       hasSeenOnboarding: false,
       setHasSeenOnboarding: (value) => set({ hasSeenOnboarding: value }),
-
-      // Auth
-      isAuthenticated: false,
-      user: null,
-      setUser: (user) => set({ user, isAuthenticated: !!user }),
-      logout: () => set({ user: null, isAuthenticated: false }),
 
       // Cart
       cart: [],
@@ -127,35 +97,6 @@ export const useAppStore = create<AppState>()(
       clearCart: () => set({ cart: [] }),
       setCartStrategy: (strategy) => set({ cartStrategy: strategy }),
 
-      // Shopping Lists
-      shoppingLists: [],
-      addShoppingList: (name) => {
-        set({
-          shoppingLists: [
-            ...get().shoppingLists,
-            { id: Date.now().toString(), name, items: [] },
-          ],
-        });
-      },
-      addItemToList: (listId, item) => {
-        set({
-          shoppingLists: get().shoppingLists.map((list) =>
-            list.id === listId ? { ...list, items: [...list.items, item] } : list
-          ),
-        });
-      },
-
-      // Favorites
-      favorites: [],
-      toggleFavorite: (productId) => {
-        const favorites = get().favorites;
-        if (favorites.includes(productId)) {
-          set({ favorites: favorites.filter((id) => id !== productId) });
-        } else {
-          set({ favorites: [...favorites, productId] });
-        }
-      },
-
       // Search
       searchQuery: '',
       setSearchQuery: (query) => set({ searchQuery: query }),
@@ -169,10 +110,6 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         hasSeenOnboarding: state.hasSeenOnboarding,
         cart: state.cart,
-        favorites: state.favorites,
-        shoppingLists: state.shoppingLists,
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
       }),
     }
   )
