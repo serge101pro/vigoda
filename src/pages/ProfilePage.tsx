@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { 
   ArrowLeft, 
-  User, 
   Settings, 
   Heart, 
   ClipboardList, 
@@ -19,20 +18,29 @@ import {
   Users,
   Utensils,
   Leaf,
-  Loader2
+  Loader2,
+  User
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useShoppingLists } from '@/hooks/useShoppingLists';
-import { UserHeader } from '@/components/profile/UserHeader';
+import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ProfileMenuItem } from '@/components/profile/ProfileMenuItem';
 import { SubscriptionCard } from '@/components/profile/SubscriptionCard';
 import { PeriodModal } from '@/components/profile/PeriodModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+
+const planLabels = {
+  free: 'Бесплатная',
+  solo: 'Solo',
+  family: 'Family',
+  corp: 'Корп'
+};
 
 const menuItems = [
   { icon: Trophy, label: 'Награды', to: '/profile/awards', badge: '2' },
@@ -124,13 +132,15 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {/* User Header */}
-      <UserHeader
-        name={displayName}
-        email={email}
-        plan="free"
-        onEditProfile={() => navigate('/profile/settings')}
-      />
+      {/* User Header with Avatar Upload */}
+      <div className="flex flex-col items-center pt-6 pb-4">
+        <AvatarUpload size="lg" />
+        <h1 className="mt-3 text-xl font-bold text-foreground">{displayName}</h1>
+        <p className="text-muted-foreground text-sm">{email}</p>
+        <Badge variant="secondary" className="mt-2">
+          {planLabels.free}
+        </Badge>
+      </div>
 
       <div className="px-4 pb-6 space-y-6">
         {/* Subscription Preview */}

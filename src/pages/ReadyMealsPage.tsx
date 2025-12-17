@@ -10,6 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 
+// Import local images
+import saladImg from '@/assets/products/salad.jpg';
+import chickenImg from '@/assets/products/chicken.jpg';
+import honeyImg from '@/assets/products/honey.jpg';
+import milkImg from '@/assets/products/milk.jpg';
+import broccoliImg from '@/assets/products/broccoli.jpg';
+import beefImg from '@/assets/products/beef.jpg';
+
 interface MealPlan {
   id: string;
   name: string;
@@ -48,7 +56,7 @@ const mealPlans: MealPlan[] = [
     id: '1',
     name: 'Сбалансированное питание',
     description: 'Идеальный рацион для поддержания здоровья и энергии на каждый день',
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=250&fit=crop',
+    image: saladImg,
     days: 7,
     mealsPerDay: 5,
     caloriesPerDay: 1800,
@@ -64,7 +72,7 @@ const mealPlans: MealPlan[] = [
     id: '2',
     name: 'Похудение без голода',
     description: 'Дефицит калорий с максимальным насыщением. Результат через 2 недели!',
-    image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=250&fit=crop',
+    image: broccoliImg,
     days: 14,
     mealsPerDay: 5,
     caloriesPerDay: 1400,
@@ -79,7 +87,7 @@ const mealPlans: MealPlan[] = [
     id: '3',
     name: 'Набор массы',
     description: 'Высокобелковый рацион для спортсменов и активного образа жизни',
-    image: 'https://images.unsplash.com/photo-1432139509613-5c4255815697?w=400&h=250&fit=crop',
+    image: beefImg,
     days: 7,
     mealsPerDay: 6,
     caloriesPerDay: 2800,
@@ -93,7 +101,7 @@ const mealPlans: MealPlan[] = [
     id: '4',
     name: 'Вегетарианский',
     description: 'Полноценный растительный рацион со всеми необходимыми нутриентами',
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=250&fit=crop',
+    image: saladImg,
     days: 7,
     mealsPerDay: 4,
     caloriesPerDay: 1600,
@@ -125,7 +133,7 @@ const readyMeals: ReadyMeal[] = [
     id: '1',
     name: 'Куриная грудка с киноа и овощами',
     description: 'Нежное филе с полезным гарниром',
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&h=200&fit=crop',
+    image: chickenImg,
     weight: 350,
     calories: 420,
     protein: 38,
