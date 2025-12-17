@@ -18,18 +18,20 @@ import {
   ChefHat,
   Users,
   Utensils,
-  Leaf
+  Leaf,
+  Loader2
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAppStore } from '@/stores/useAppStore';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useShoppingLists } from '@/hooks/useShoppingLists';
 import { UserHeader } from '@/components/profile/UserHeader';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ProfileMenuItem } from '@/components/profile/ProfileMenuItem';
 import { SubscriptionCard } from '@/components/profile/SubscriptionCard';
 import { PeriodModal } from '@/components/profile/PeriodModal';
-import { ActivityModal } from '@/components/profile/ActivityModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 const menuItems = [
@@ -42,26 +44,42 @@ const menuItems = [
   { icon: Settings, label: 'Настройки', to: '/profile/settings' },
 ];
 
-const quickLinks = [
-  { icon: ClipboardList, label: 'Мои списки', to: '/profile/lists', badge: '3' },
-  { icon: Heart, label: 'Избранное', to: '/favorites' },
-  { icon: ChefHat, label: 'Мои рецепты', to: '/profile/recipes' },
-  { icon: BarChart3, label: 'Аналитика расходов', to: '/profile/analytics' },
-  { icon: Gift, label: 'Партнёрская программа', to: '/profile/affiliate', highlight: true },
-  { icon: Users, label: 'Семейное планирование', to: '/family' },
-  { icon: Utensils, label: 'Кейтеринг', to: '/catering' },
-  { icon: Leaf, label: 'Фермерские продукты', to: '/farm-products' },
-];
-
 export default function ProfilePage() {
-  const { isAuthenticated, user, logout } = useAppStore();
+  const navigate = useNavigate();
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
+  const { favoriteProducts, favoriteRecipes } = useFavorites();
+  const { lists } = useShoppingLists();
   const [periodModal, setPeriodModal] = useState<'solo' | 'family' | null>(null);
-  const [activityModalOpen, setActivityModalOpen] = useState(false);
 
-  if (!isAuthenticated) {
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const quickLinks = [
+    { icon: ClipboardList, label: 'Мои списки', to: '/profile/lists', badge: lists.length > 0 ? String(lists.length) : undefined },
+    { icon: Heart, label: 'Избранное', to: '/favorites', badge: (favoriteProducts.length + favoriteRecipes.length) > 0 ? String(favoriteProducts.length + favoriteRecipes.length) : undefined },
+    { icon: ChefHat, label: 'Мои рецепты', to: '/profile/recipes' },
+    { icon: BarChart3, label: 'Аналитика расходов', to: '/profile/analytics' },
+    { icon: Gift, label: 'Партнёрская программа', to: '/profile/affiliate', highlight: true },
+    { icon: Users, label: 'Семейное планирование', to: '/family' },
+    { icon: Utensils, label: 'Кейтеринг', to: '/catering' },
+    { icon: Leaf, label: 'Фермерские продукты', to: '/farm-products' },
+  ];
+
+  if (authLoading) {
+    return (
+      <div className="page-container flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
     return (
       <div className="page-container flex flex-col items-center justify-center px-4">
-        <div className="w-24 h-24 rounded-full bg-primary-light flex items-center justify-center mb-6">
+        <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
           <User className="h-12 w-12 text-primary" />
         </div>
         <h1 className="text-2xl font-bold text-foreground mb-2">Войдите в аккаунт</h1>
@@ -75,7 +93,7 @@ export default function ProfilePage() {
             </Button>
           </Link>
           <Link to="/auth/register" className="flex-1">
-            <Button variant="hero-outline" size="lg" className="w-full">
+            <Button variant="outline" size="lg" className="w-full">
               Регистрация
             </Button>
           </Link>
@@ -83,6 +101,9 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  const displayName = profile?.display_name || user.user_metadata?.display_name || 'Пользователь';
+  const email = profile?.email || user.email || '';
 
   return (
     <div className="page-container">
@@ -105,10 +126,10 @@ export default function ProfilePage() {
 
       {/* User Header */}
       <UserHeader
-        name={user?.name || 'Пользователь'}
-        email={user?.email || 'user@example.com'}
+        name={displayName}
+        email={email}
         plan="free"
-        onEditProfile={() => {}}
+        onEditProfile={() => navigate('/profile/settings')}
       />
 
       <div className="px-4 pb-6 space-y-6">
@@ -169,7 +190,7 @@ export default function ProfilePage() {
           <div className="space-y-2">
             {menuItems.map(item => (
               <ProfileMenuItem
-                key={item.to}
+                key={item.to || item.label}
                 icon={item.icon}
                 label={item.label}
                 to={item.to}
@@ -183,10 +204,10 @@ export default function ProfilePage() {
         <section>
           <h2 className="text-lg font-bold text-foreground mb-3">Статистика</h2>
           <ProfileStats
-            savings={3120}
-            listsCreated={23}
-            recipesPublished={1}
-            awardsEarned={2}
+            savings={Number(profile?.total_savings) || 0}
+            listsCreated={lists.length}
+            recipesPublished={0}
+            awardsEarned={profile?.bonus_points || 0}
           />
         </section>
 
@@ -195,7 +216,7 @@ export default function ProfilePage() {
           variant="ghost"
           size="lg"
           className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={logout}
+          onClick={handleLogout}
         >
           Выйти из аккаунта
         </Button>
