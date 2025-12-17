@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAppStore } from '@/stores/useAppStore';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
 export default function RegisterPage() {
@@ -12,33 +12,46 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const setUser = useAppStore((state) => state.setUser);
+  const { signUp, user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/');
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate registration
-    setTimeout(() => {
-      setUser({
-        id: '1',
-        name,
-        email,
-        referralCode: 'VIGODNO' + Math.random().toString(36).substring(7).toUpperCase(),
-        bonusBalance: 0,
-      });
+    const { error } = await signUp(email, password, name);
+
+    if (error) {
+      let message = 'Ошибка регистрации';
+      if (error.message.includes('User already registered')) {
+        message = 'Пользователь с таким email уже зарегистрирован';
+      } else if (error.message.includes('Password should be at least')) {
+        message = 'Пароль должен содержать минимум 6 символов';
+      } else if (error.message.includes('Invalid email')) {
+        message = 'Введите корректный email';
+      }
       toast({
-        title: 'Добро пожаловать!',
-        description: 'Аккаунт успешно создан',
+        title: 'Ошибка',
+        description: message,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Регистрация успешна!',
+        description: 'Проверьте почту для подтверждения аккаунта',
       });
       navigate('/');
-      setIsLoading(false);
-    }, 1000);
+    }
+    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="px-4 py-3">
         <Link to="/">
           <Button variant="ghost" size="icon-sm">
@@ -102,9 +115,9 @@ export default function RegisterPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Минимум 8 символов"
+                placeholder="Минимум 6 символов"
                 required
-                minLength={8}
+                minLength={6}
                 className="w-full pl-10 pr-12 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary/20 transition-all"
               />
               <button
