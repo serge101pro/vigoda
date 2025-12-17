@@ -27,14 +27,11 @@ export default function RegisterPage() {
     const { error } = await signUp(email, password, name);
 
     if (error) {
-      let message = 'Ошибка регистрации';
-      if (error.message.includes('User already registered')) {
-        message = 'Пользователь с таким email уже зарегистрирован';
-      } else if (error.message.includes('Password should be at least')) {
-        message = 'Пароль должен содержать минимум 6 символов';
-      } else if (error.message.includes('Invalid email')) {
-        message = 'Введите корректный email';
-      }
+      // Generic error message to prevent user enumeration
+      // Only show password length hint as it's client-validatable
+      const message = error.message.includes('Password should be at least')
+        ? 'Пароль должен содержать минимум 6 символов'
+        : 'Не удалось создать аккаунт. Попробуйте другой email.';
       toast({
         title: 'Ошибка',
         description: message,
