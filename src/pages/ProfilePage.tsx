@@ -45,6 +45,7 @@ const planLabels = {
 const menuItems = [
   { icon: Trophy, label: 'Награды', to: '/profile/awards', badge: '2' },
   { icon: Activity, label: 'Активность', to: '', isModal: true },
+  { icon: ClipboardList, label: 'Совместные списки', to: '/family' },
   { icon: MapPin, label: 'Мои адреса', to: '/profile/addresses' },
   { icon: CreditCard, label: 'Карты лояльности', to: '/profile/loyalty-cards' },
   { icon: Wallet, label: 'Способы оплаты', to: '/profile/payment-methods' },
@@ -140,6 +141,11 @@ export default function ProfilePage() {
         <Badge variant="secondary" className="mt-2">
           {planLabels.free}
         </Badge>
+        <Link to="/profile/edit">
+          <Button variant="outline" size="sm" className="mt-3">
+            Редактировать профиль
+          </Button>
+        </Link>
       </div>
 
       <div className="px-4 pb-6 space-y-6">
