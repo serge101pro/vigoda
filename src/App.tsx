@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAppStore } from "@/stores/useAppStore";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 // Layout
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -30,6 +31,7 @@ import UserRecipesPage from "@/pages/profile/UserRecipesPage";
 import AnalyticsPage from "@/pages/profile/AnalyticsPage";
 import LoyaltyCardsPage from "@/pages/profile/LoyaltyCardsPage";
 import ShoppingListsPage from "@/pages/profile/ShoppingListsPage";
+import ProfileEditPage from "@/pages/profile/ProfileEditPage";
 
 // New pages
 import RecipeDetailPage from "@/pages/RecipeDetailPage";
@@ -57,40 +59,44 @@ function AppRoutes() {
   }
 
   return (
-    <Routes>
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/catalog" element={<CatalogPage />} />
-        <Route path="/catalog/:section" element={<CatalogPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/cart/compare" element={<PriceComparisonPage />} />
-        <Route path="/recipes" element={<RecipesPage />} />
-        <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-        <Route path="/favorites" element={<FavoritesPage />} />
-        <Route path="/ready-meals" element={<ReadyMealsPage />} />
-        <Route path="/product/:id" element={<ProductDetailPage />} />
-        <Route path="/meal-plan/:id" element={<MealPlanDetailPage />} />
-        <Route path="/catering" element={<CateringPage />} />
-        <Route path="/farm-products" element={<FarmProductsPage />} />
-        <Route path="/family" element={<FamilyPlanningPage />} />
-        <Route path="/social-recipes" element={<SocialRecipesPage />} />
-        <Route path="/profile/addresses" element={<AddressesPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/profile/affiliate" element={<AffiliatePage />} />
-        <Route path="/profile/premium" element={<PremiumPage />} />
-        <Route path="/profile/settings" element={<SettingsPage />} />
-        <Route path="/profile/awards" element={<AwardsPage />} />
-        <Route path="/profile/recipes" element={<UserRecipesPage />} />
-        <Route path="/profile/analytics" element={<AnalyticsPage />} />
-        <Route path="/profile/loyalty-cards" element={<LoyaltyCardsPage />} />
-        <Route path="/profile/lists" element={<ShoppingListsPage />} />
-      </Route>
-      <Route path="/auth/login" element={<LoginPage />} />
-      <Route path="/auth/register" element={<RegisterPage />} />
-      <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/onboarding" element={<OnboardingPage />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/catalog" element={<CatalogPage />} />
+          <Route path="/catalog/:section" element={<CatalogPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/cart/compare" element={<PriceComparisonPage />} />
+          <Route path="/recipes" element={<RecipesPage />} />
+          <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/ready-meals" element={<ReadyMealsPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
+          <Route path="/meal-plan/:id" element={<MealPlanDetailPage />} />
+          <Route path="/catering" element={<CateringPage />} />
+          <Route path="/farm-products" element={<FarmProductsPage />} />
+          <Route path="/family" element={<FamilyPlanningPage />} />
+          <Route path="/social-recipes" element={<SocialRecipesPage />} />
+          <Route path="/profile/addresses" element={<AddressesPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/affiliate" element={<AffiliatePage />} />
+          <Route path="/profile/premium" element={<PremiumPage />} />
+          <Route path="/profile/settings" element={<SettingsPage />} />
+          <Route path="/profile/awards" element={<AwardsPage />} />
+          <Route path="/profile/recipes" element={<UserRecipesPage />} />
+          <Route path="/profile/analytics" element={<AnalyticsPage />} />
+          <Route path="/profile/loyalty-cards" element={<LoyaltyCardsPage />} />
+          <Route path="/profile/lists" element={<ShoppingListsPage />} />
+          <Route path="/profile/edit" element={<ProfileEditPage />} />
+        </Route>
+        <Route path="/auth/login" element={<LoginPage />} />
+        <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 }
 

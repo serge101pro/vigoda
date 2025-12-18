@@ -1,23 +1,79 @@
 import { useState } from 'react';
-import { Search, MapPin, Bell, Mic, Clock, Users, Flame } from 'lucide-react';
+import { Search, MapPin, Bell, Mic, Clock, Users, Flame, Heart, ChefHat, Star, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { CategoryChip } from '@/components/ui/CategoryChip';
 import { PromoBanner } from '@/components/ui/PromoBanner';
-import { ProductCard } from '@/components/products/ProductCard';
+import { ProductCarousel } from '@/components/home/ProductCarousel';
+import { MealCarousel } from '@/components/home/MealCarousel';
+import { MealPlanCarousel } from '@/components/home/MealPlanCarousel';
+import { CateringCarousel } from '@/components/home/CateringCarousel';
 import { mockProducts, mockRecipes, categories } from '@/data/mockData';
 import heroImage from '@/assets/hero-groceries.jpg';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+
+// Mock data for various sections
+const farmProducts = mockProducts.slice(0, 6).map(p => ({
+  ...p,
+  badge: 'new' as const,
+  name: `Фермерский ${p.name.toLowerCase()}`
+}));
+
+const monthNames = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
+const currentMonth = monthNames[new Date().getMonth()];
+
+const saleProducts = mockProducts.filter(p => p.badge === 'sale' || p.badge === 'hot');
+
+const readyMeals = [
+  { id: '1', name: 'Куриная грудка с киноа', image: mockProducts[3]?.image || '', weight: 350, calories: 420, protein: 38, price: 449, oldPrice: 549, rating: 4.8 },
+  { id: '2', name: 'Лосось терияки с рисом', image: mockProducts[6]?.image || '', weight: 380, calories: 520, protein: 32, price: 649, rating: 4.9 },
+  { id: '3', name: 'Греческий салат с фетой', image: mockProducts[0]?.image || '', weight: 250, calories: 280, protein: 8, price: 349, oldPrice: 399, rating: 4.6 },
+  { id: '4', name: 'Борщ со сметаной', image: mockProducts[12]?.image || '', weight: 400, calories: 320, protein: 18, price: 299, rating: 4.7 },
+  { id: '5', name: 'Паста Карбонара', image: mockProducts[10]?.image || '', weight: 320, calories: 580, protein: 22, price: 399, rating: 4.8 },
+  { id: '6', name: 'Овсянка с ягодами', image: mockProducts[13]?.image || '', weight: 280, calories: 340, protein: 12, price: 249, rating: 4.5 },
+];
+
+const mealPlans = [
+  { id: '1', name: 'Сбалансированное питание', image: mockProducts[11]?.image || '', days: 7, mealsPerDay: 5, caloriesPerDay: 1800, price: 6990, pricePerDay: 999, discount: 15, rating: 4.9, isPopular: true },
+  { id: '2', name: 'Похудение без голода', image: mockProducts[1]?.image || '', days: 14, mealsPerDay: 5, caloriesPerDay: 1400, price: 11990, pricePerDay: 857, discount: 20, rating: 4.8 },
+  { id: '3', name: 'Набор массы', image: mockProducts[12]?.image || '', days: 7, mealsPerDay: 6, caloriesPerDay: 2800, price: 8990, pricePerDay: 1284, rating: 4.7 },
+  { id: '4', name: 'Вегетарианский', image: mockProducts[0]?.image || '', days: 7, mealsPerDay: 4, caloriesPerDay: 1600, price: 5990, pricePerDay: 856, rating: 4.6 },
+];
+
+const cateringOffers = [
+  { id: '1', title: 'Семейный ужин', description: 'Уютный ужин на дому для всей семьи', image: mockProducts[3]?.image || '', category: 'home' as const, priceFrom: 2500, guestsMin: 4, guestsMax: 8 },
+  { id: '2', title: 'Бизнес-ланч', description: 'Деловые обеды с доставкой в офис', image: mockProducts[10]?.image || '', category: 'office' as const, priceFrom: 450, guestsMin: 10, guestsMax: 50 },
+  { id: '3', title: 'День рождения', description: 'Праздничное меню для особого дня', image: mockProducts[5]?.image || '', category: 'themed' as const, priceFrom: 3500, guestsMin: 8, guestsMax: 30 },
+  { id: '4', title: 'Корпоратив', description: 'Фуршет и банкет для компании', image: mockProducts[6]?.image || '', category: 'office' as const, priceFrom: 800, guestsMin: 20, guestsMax: 100 },
+  { id: '5', title: 'Детский праздник', description: 'Весёлое меню для малышей', image: mockProducts[13]?.image || '', category: 'themed' as const, priceFrom: 1500, guestsMin: 6, guestsMax: 20 },
+  { id: '6', title: 'Романтический ужин', description: 'Изысканный ужин на двоих', image: mockProducts[6]?.image || '', category: 'home' as const, priceFrom: 3000, guestsMin: 2, guestsMax: 2 },
+  { id: '7', title: 'Пикник на природе', description: 'Готовые сеты для пикника', image: mockProducts[0]?.image || '', category: 'themed' as const, priceFrom: 1800, guestsMin: 4, guestsMax: 12 },
+  { id: '8', title: 'Кофе-брейк', description: 'Перерыв на кофе с угощениями', image: mockProducts[4]?.image || '', category: 'office' as const, priceFrom: 250, guestsMin: 10, guestsMax: 100 },
+  { id: '9', title: 'Свадебный банкет', description: 'Праздничное меню для свадьбы', image: mockProducts[7]?.image || '', category: 'themed' as const, priceFrom: 5000, guestsMin: 30, guestsMax: 200 },
+];
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useAuth();
+  const { profile } = useProfile();
 
-  const filteredProducts =
-    activeCategory === 'all'
-      ? mockProducts
-      : mockProducts.filter((p) => p.category === activeCategory);
+  const filteredProducts = activeCategory === 'all'
+    ? mockProducts
+    : mockProducts.filter((p) => p.category === activeCategory);
+
+  // Determine if user has premium subscription (mock logic)
+  const hasPremium = false; // TODO: Implement real subscription check
+  const savings = profile?.total_savings || 2450;
+  const bonusPoints = profile?.bonus_points || 1280;
+
+  const handleVoiceSearch = () => {
+    // TODO: Implement voice search
+    console.log('Voice search activated');
+  };
 
   return (
     <div className="page-container">
@@ -45,25 +101,32 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
-
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Поиск товаров..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-search"
-            />
-            <Button variant="ghost" size="icon-sm" className="absolute right-2 top-1/2 -translate-y-1/2">
-              <Mic className="h-4 w-4 text-muted-foreground" />
-            </Button>
-          </div>
         </div>
       </header>
 
-      {/* Stats Cards - Row 1 */}
+      {/* Search with voice input - 2.2 */}
+      <section className="px-4 pt-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Поиск товаров..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input-search"
+          />
+          <Button 
+            variant="ghost" 
+            size="icon-sm" 
+            className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-primary/10"
+            onClick={handleVoiceSearch}
+          >
+            <Mic className="h-4 w-4 text-primary" />
+          </Button>
+        </div>
+      </section>
+
+      {/* Stats Cards - Row 1: Экономия и Бонусы - 2.3, 2.4 */}
       <section className="px-4 pt-4">
         <div className="grid grid-cols-2 gap-3">
           {/* Ваша экономия */}
@@ -74,22 +137,13 @@ export default function HomePage() {
               </div>
               <span className="text-xs text-muted-foreground">Ваша экономия</span>
             </div>
-            <p className="text-2xl font-bold text-primary">2 450 ₽</p>
-            <p className="text-xs text-muted-foreground mt-1">за этот месяц</p>
-          </div>
-
-          {/* Больше выгоды */}
-          <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-2xl p-4 border border-accent/20">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-                <span className="text-lg">🔥</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Больше выгоды</span>
-            </div>
-            <p className="text-sm font-medium text-foreground mb-2">Персональные скидки</p>
-            <Button size="sm" variant="accent" className="w-full text-xs h-7">
-              Хочу
-            </Button>
+            <p className="text-2xl font-bold text-primary">{savings.toLocaleString()} ₽</p>
+            <p className="text-xs text-muted-foreground mt-1">в {currentMonth}</p>
+            <Link to={hasPremium ? "/profile/affiliate" : "/profile/premium"}>
+              <Button size="sm" variant="accent" className="w-full text-xs h-7 mt-2">
+                Хочу больше
+              </Button>
+            </Link>
           </div>
 
           {/* Ваши бонусы */}
@@ -100,155 +154,63 @@ export default function HomePage() {
               </div>
               <span className="text-xs text-muted-foreground">Ваши бонусы</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">1 280</p>
+            <p className="text-2xl font-bold text-foreground">{bonusPoints.toLocaleString()}</p>
             <p className="text-xs text-muted-foreground mt-1">доступно</p>
+            <Link to="/profile/affiliate">
+              <Button size="sm" variant="outline" className="w-full text-xs h-7 mt-2">
+                Получить бонусы
+              </Button>
+            </Link>
           </div>
-
-          {/* Пригласить друга */}
-          <Link to="/profile/affiliate" className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-lg">👥</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Пригласить друга</span>
-            </div>
-            <p className="text-sm font-medium text-foreground">+500 бонусов</p>
-            <p className="text-xs text-primary mt-1">за каждого друга →</p>
-          </Link>
         </div>
       </section>
 
-      {/* Stats Cards - Row 2 */}
+      {/* Stats Cards - Row 2: Избранное и Ваши рецепты - 2.5, 2.6 */}
       <section className="px-4 pt-3">
         <div className="grid grid-cols-2 gap-3">
-          {/* Ваши рецепты */}
-          <Link to="/recipes" className="bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-lg">🍳</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Ваши рецепты</span>
-            </div>
-            <p className="text-lg font-bold text-foreground">12</p>
-            <p className="text-xs text-muted-foreground mt-1">сохранено</p>
-          </Link>
-
           {/* Избранное */}
           <Link to="/favorites" className="bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-                <span className="text-lg">❤️</span>
+                <Heart className="h-4 w-4 text-accent" />
               </div>
-              <span className="text-xs text-muted-foreground">Избранное</span>
+              <span className="text-sm font-medium text-foreground">Избранное</span>
             </div>
-            <p className="text-lg font-bold text-foreground">8</p>
-            <p className="text-xs text-muted-foreground mt-1">товаров</p>
+            <p className="text-xs text-muted-foreground">Ваши сохранённые товары</p>
+            <ChevronRight className="h-4 w-4 text-muted-foreground mt-2 ml-auto" />
+          </Link>
+
+          {/* Ваши рецепты */}
+          <Link to="/profile/recipes" className="bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <ChefHat className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-foreground">Ваши рецепты</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Рецепты и подписки</p>
+            <ChevronRight className="h-4 w-4 text-muted-foreground mt-2 ml-auto" />
           </Link>
         </div>
       </section>
 
-      {/* Stats Cards - Row 3 */}
-      <section className="px-4 pt-3">
-        <div className="grid grid-cols-2 gap-3">
-          {/* Готовая еда */}
-          <Link to="/ready-meals" className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-2xl p-4 border border-orange-500/20 hover:border-orange-500/40 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-                <span className="text-lg">🍱</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Готовая еда</span>
-            </div>
-            <p className="text-sm font-medium text-foreground">Рационы и блюда</p>
-            <p className="text-xs text-orange-600 mt-1">от 799₽/день →</p>
-          </Link>
-
-          {/* Мои адреса */}
-          <Link to="/profile/addresses" className="bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                <span className="text-lg">📍</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Мои адреса</span>
-            </div>
-            <p className="text-lg font-bold text-foreground">3</p>
-            <p className="text-xs text-muted-foreground mt-1">сохранено</p>
-          </Link>
-        </div>
-      </section>
-
-      {/* New Sections - Row 4 */}
-      <section className="px-4 pt-3">
-        <div className="grid grid-cols-2 gap-3">
-          {/* Кейтеринг */}
-          <Link to="/catering" className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-2xl p-4 border border-purple-500/20 hover:border-purple-500/40 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <span className="text-lg">🍽️</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Кейтеринг</span>
-            </div>
-            <p className="text-sm font-medium text-foreground">Мероприятия</p>
-            <p className="text-xs text-purple-600 mt-1">под ключ →</p>
-          </Link>
-
-          {/* Фермерские продукты */}
-          <Link to="/farm-products" className="bg-gradient-to-br from-green-600/10 to-green-600/5 rounded-2xl p-4 border border-green-600/20 hover:border-green-600/40 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-green-600/20 flex items-center justify-center">
-                <span className="text-lg">🌾</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Фермерское</span>
-            </div>
-            <p className="text-sm font-medium text-foreground">Эко продукты</p>
-            <p className="text-xs text-green-600 mt-1">с доставкой →</p>
-          </Link>
-        </div>
-      </section>
-
-      {/* New Sections - Row 5 */}
-      <section className="px-4 pt-3">
-        <div className="grid grid-cols-2 gap-3">
-          {/* Семейное планирование */}
-          <Link to="/family" className="bg-gradient-to-br from-pink-500/10 to-pink-500/5 rounded-2xl p-4 border border-pink-500/20 hover:border-pink-500/40 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
-                <span className="text-lg">👨‍👩‍👧‍👦</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Семья</span>
-            </div>
-            <p className="text-sm font-medium text-foreground">Совместные списки</p>
-            <p className="text-xs text-pink-600 mt-1">планируйте вместе →</p>
-          </Link>
-
-          {/* Сообщество рецептов */}
-          <Link to="/social-recipes" className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 rounded-2xl p-4 border border-amber-500/20 hover:border-amber-500/40 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-                <span className="text-lg">👨‍🍳</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Сообщество</span>
-            </div>
-            <p className="text-sm font-medium text-foreground">Соц. рецепты</p>
-            <p className="text-xs text-amber-600 mt-1">челленджи и рейтинги →</p>
-          </Link>
-        </div>
-      </section>
-
-      {/* Promo Banner */}
+      {/* Banner: Скидки дня - 2.7 */}
       <section className="px-4 pt-4">
-        <PromoBanner
-          title="Скидки до 30% на свежие продукты"
-          subtitle="Только сегодня!"
-          buttonText="Смотреть"
-          buttonLink="/catalog"
-          image={heroImage}
-          variant="primary"
-        />
+        <Link to="/catalog?filter=sale">
+          <PromoBanner
+            title="Скидки дня"
+            subtitle="До 50% на популярные товары!"
+            buttonText="Смотреть"
+            buttonLink="/catalog?filter=sale"
+            image={heroImage}
+            variant="primary"
+          />
+        </Link>
       </section>
 
-      {/* Categories */}
+      {/* Categories - 2.8 */}
       <section className="pt-6">
-        <SectionHeader title="Категории" linkText="Все" linkTo="/catalog" />
+        <SectionHeader title="Продукты" linkText="Все" linkTo="/catalog" />
         <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
           {categories.map((cat) => (
             <CategoryChip
@@ -263,65 +225,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Popular Products */}
+      {/* Popular Products - 2.9 (3 rows carousel) */}
       <section className="pt-6">
         <SectionHeader title="Популярные товары" linkText="Все" linkTo="/catalog" />
-        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3 px-4">
-          {filteredProducts.slice(0, 8).map((product, index) => (
-            <div key={product.id} className={`stagger-${index + 1}`}>
-              <ProductCard product={product} />
-            </div>
-          ))}
-        </div>
+        <ProductCarousel products={filteredProducts.slice(0, 12)} rows={3} />
       </section>
 
-      {/* Recipes */}
-      <section className="pt-6 pb-6">
-        <SectionHeader title="Рецепты" linkText="Все" linkTo="/recipes" />
-        <div className="flex gap-4 overflow-x-auto px-4 pb-2 hide-scrollbar">
-          {mockRecipes.map((recipe) => (
-            <Link
-              key={recipe.id}
-              to={`/recipes/${recipe.id}`}
-              className="flex-shrink-0 w-64 animate-fade-in"
-            >
-              <div className="card-product">
-                <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3">
-                  <img
-                    src={recipe.image}
-                    alt={recipe.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
-                  {recipe.name}
-                </h3>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{recipe.time} мин</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Flame className="h-3.5 w-3.5" />
-                    <span>{recipe.calories} ккал</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3.5 w-3.5" />
-                    <span>{recipe.servings} порц.</span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+      {/* Farm Products - 2.10 (2 rows carousel) */}
+      <section className="pt-6">
+        <SectionHeader title="Фермерские/Эко продукты" linkText="Все" linkTo="/farm-products" />
+        <ProductCarousel products={farmProducts} rows={2} />
       </section>
 
-      {/* Ready Meals Promo */}
-      <section className="px-4 pb-6">
+      {/* Sale Products - 2.11 (2 rows carousel) */}
+      <section className="pt-6">
+        <SectionHeader title="Акции" linkText="Все" linkTo="/catalog?filter=sale" />
+        <ProductCarousel products={[...saleProducts, ...mockProducts.slice(0, 4)]} rows={2} />
+      </section>
+
+      {/* Banner: Готовые блюда и рационы - 2.12 */}
+      <section className="px-4 pt-6">
         <Link to="/ready-meals">
           <PromoBanner
-            title="Готовые рационы на неделю"
-            subtitle="Экономьте время!"
+            title="Готовые блюда и рационы питания"
+            subtitle="Экономьте время на готовку!"
             buttonText="Подробнее"
             buttonLink="/ready-meals"
             image={mockRecipes[1]?.image || heroImage}
@@ -330,25 +257,40 @@ export default function HomePage() {
         </Link>
       </section>
 
-      {/* Sale Products */}
-      <section className="pb-8">
-        <SectionHeader title="Акции" linkText="Все" linkTo="/catalog?filter=sale" />
-        <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
-          {mockProducts
-            .filter((p) => p.badge === 'sale')
-            .map((product) => (
-              <div key={product.id} className="flex-shrink-0 w-44">
-                <ProductCard product={product} />
+      {/* Popular Meals - 2.13 (2 rows carousel) */}
+      <section className="pt-6">
+        <SectionHeader title="Популярные блюда" linkText="Все" linkTo="/ready-meals?tab=meals" />
+        <MealCarousel meals={readyMeals} rows={2} />
+      </section>
+
+      {/* Meal Plans - 2.14 (2 rows carousel) */}
+      <section className="pt-6">
+        <SectionHeader title="Готовые рационы" linkText="Все" linkTo="/ready-meals?tab=plans" />
+        <MealPlanCarousel plans={mealPlans} rows={2} />
+      </section>
+
+      {/* Banner: Клуб Кулинаров - 2.15 */}
+      <section className="px-4 pt-6">
+        <Link to="/social-recipes">
+          <div className="relative rounded-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-3xl">👨‍🍳</span>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Клуб Кулинаров</h3>
+                  <p className="text-white/80 text-sm">Челленджи, рейтинги, призы</p>
+                </div>
+                <ChevronRight className="h-6 w-6 text-white ml-auto" />
               </div>
-            ))}
-          {mockProducts
-            .filter((p) => p.badge === 'hot')
-            .map((product) => (
-              <div key={product.id} className="flex-shrink-0 w-44">
-                <ProductCard product={product} />
-              </div>
-            ))}
-        </div>
+            </div>
+          </div>
+        </Link>
+      </section>
+
+      {/* Catering - 2.16 (3 rows carousel) */}
+      <section className="pt-6 pb-8">
+        <SectionHeader title="Кейтеринг" linkText="Все" linkTo="/catering" />
+        <CateringCarousel offers={cateringOffers} rows={3} />
       </section>
     </div>
   );
