@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, MapPin, Bell, Mic, Clock, Users, Flame, Heart, ChefHat, Star, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Bell, Clock, Users, Flame, Heart, ChefHat, Star, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { CategoryChip } from '@/components/ui/CategoryChip';
@@ -8,12 +8,14 @@ import { ProductCarousel } from '@/components/home/ProductCarousel';
 import { MealCarousel } from '@/components/home/MealCarousel';
 import { MealPlanCarousel } from '@/components/home/MealPlanCarousel';
 import { CateringCarousel } from '@/components/home/CateringCarousel';
+import { VoiceSearch } from '@/components/home/VoiceSearch';
 import { mockProducts, mockRecipes, categories } from '@/data/mockData';
 import heroImage from '@/assets/hero-groceries.jpg';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useSubscription } from '@/hooks/useSubscription';
 
 // Mock data for various sections
 const farmProducts = mockProducts.slice(0, 6).map(p => ({
@@ -60,19 +62,17 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { hasPaidPlan } = useSubscription();
 
   const filteredProducts = activeCategory === 'all'
     ? mockProducts
     : mockProducts.filter((p) => p.category === activeCategory);
 
-  // Determine if user has premium subscription (mock logic)
-  const hasPremium = false; // TODO: Implement real subscription check
   const savings = profile?.total_savings || 2450;
   const bonusPoints = profile?.bonus_points || 1280;
 
-  const handleVoiceSearch = () => {
-    // TODO: Implement voice search
-    console.log('Voice search activated');
+  const handleVoiceResult = (text: string) => {
+    setSearchQuery(text);
   };
 
   return (
@@ -115,14 +115,10 @@ export default function HomePage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input-search"
           />
-          <Button 
-            variant="ghost" 
-            size="icon-sm" 
-            className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-primary/10"
-            onClick={handleVoiceSearch}
-          >
-            <Mic className="h-4 w-4 text-primary" />
-          </Button>
+          <VoiceSearch 
+            onResult={handleVoiceResult} 
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+          />
         </div>
       </section>
 
@@ -139,7 +135,7 @@ export default function HomePage() {
             </div>
             <p className="text-2xl font-bold text-primary">{savings.toLocaleString()} ₽</p>
             <p className="text-xs text-muted-foreground mt-1">в {currentMonth}</p>
-            <Link to={hasPremium ? "/profile/affiliate" : "/profile/premium"}>
+            <Link to={hasPaidPlan ? "/profile/affiliate" : "/profile/premium"}>
               <Button size="sm" variant="accent" className="w-full text-xs h-7 mt-2">
                 Хочу больше
               </Button>
