@@ -3,6 +3,7 @@ import { Search, Heart, ChefHat, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { PromoBanner } from '@/components/ui/PromoBanner';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ProductCarousel } from '@/components/home/ProductCarousel';
 import { MealCarousel } from '@/components/home/MealCarousel';
 import { MealPlanCarousel } from '@/components/home/MealPlanCarousel';
@@ -198,25 +199,28 @@ export default function HomePage() {
         <CategoryChipsCarousel initialExpanded={true} />
       </section>
 
-      {/* Popular Products - (3 rows carousel) */}
+      {/* Popular Products - 1 row, collapsible */}
       <section className="pt-6">
-        <SectionHeader title="Популярные товары" linkText="Все" linkTo="/catalog" />
-        <ProductCarousel products={mockProducts.slice(0, 12)} rows={3} />
+        <CollapsibleSection title="Популярные товары" linkText="Все" linkTo="/catalog" initialExpanded={true}>
+          <ProductCarousel products={mockProducts.slice(0, 12)} rows={1} />
+        </CollapsibleSection>
       </section>
 
-      {/* Farm Products - 2.10 (2 rows carousel) */}
+      {/* Farm Products - 1 row, collapsible */}
       <section className="pt-6">
-        <SectionHeader title="Фермерские/Эко продукты" linkText="Все" linkTo="/farm-products" />
-        <ProductCarousel products={farmProducts} rows={2} />
+        <CollapsibleSection title="Фермерские/Эко продукты" linkText="Все" linkTo="/farm-products" initialExpanded={true}>
+          <ProductCarousel products={farmProducts} rows={1} />
+        </CollapsibleSection>
       </section>
 
-      {/* Sale Products - 2.11 (2 rows carousel) */}
+      {/* Sale Products - 1 row, collapsible */}
       <section className="pt-6">
-        <SectionHeader title="Акции" linkText="Все" linkTo="/catalog?filter=sale" />
-        <ProductCarousel products={[...saleProducts, ...mockProducts.slice(0, 4)]} rows={2} />
+        <CollapsibleSection title="Акции" linkText="Все" linkTo="/catalog?filter=sale" initialExpanded={true}>
+          <ProductCarousel products={[...saleProducts, ...mockProducts.slice(0, 4)]} rows={1} />
+        </CollapsibleSection>
       </section>
 
-      {/* Banner: Готовые блюда и рационы - 2.12 */}
+      {/* Banner: Готовые блюда и рационы */}
       <section className="px-4 pt-6">
         <Link to="/ready-meals">
           <PromoBanner
@@ -230,16 +234,18 @@ export default function HomePage() {
         </Link>
       </section>
 
-      {/* Popular Meals - 2.13 (2 rows carousel) */}
+      {/* Popular Meals - 1 row, collapsible */}
       <section className="pt-6">
-        <SectionHeader title="Популярные блюда" linkText="Все" linkTo="/ready-meals?tab=meals" />
-        <MealCarousel meals={readyMeals} rows={2} />
+        <CollapsibleSection title="Популярные блюда" linkText="Все" linkTo="/ready-meals?tab=meals" initialExpanded={true}>
+          <MealCarousel meals={readyMeals} rows={1} />
+        </CollapsibleSection>
       </section>
 
-      {/* Meal Plans - 2.14 (2 rows carousel) */}
+      {/* Meal Plans - 1 row, collapsible */}
       <section className="pt-6">
-        <SectionHeader title="Готовые рационы" linkText="Все" linkTo="/ready-meals?tab=plans" />
-        <MealPlanCarousel plans={mealPlans} rows={2} />
+        <CollapsibleSection title="Готовые рационы" linkText="Все" linkTo="/ready-meals?tab=plans" initialExpanded={true}>
+          <MealPlanCarousel plans={mealPlans} rows={1} />
+        </CollapsibleSection>
       </section>
 
       {/* Banner: Клуб Кулинаров - 2.15 */}
