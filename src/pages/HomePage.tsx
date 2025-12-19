@@ -1,18 +1,22 @@
 import { useState } from 'react';
-import { Search, MapPin, Bell, Clock, Users, Flame, Heart, ChefHat, Star, ChevronRight } from 'lucide-react';
+import { Search, Heart, ChefHat, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { CategoryChip } from '@/components/ui/CategoryChip';
 import { PromoBanner } from '@/components/ui/PromoBanner';
 import { ProductCarousel } from '@/components/home/ProductCarousel';
 import { MealCarousel } from '@/components/home/MealCarousel';
 import { MealPlanCarousel } from '@/components/home/MealPlanCarousel';
 import { CateringCarousel } from '@/components/home/CateringCarousel';
 import { VoiceSearch } from '@/components/home/VoiceSearch';
-import { mockProducts, mockRecipes, categories } from '@/data/mockData';
+import { PromoBannerCarousel } from '@/components/home/PromoBannerCarousel';
+import { CategoryChipsCarousel } from '@/components/home/CategoryChipsCarousel';
+import { HeaderAvatar } from '@/components/home/HeaderAvatar';
+import { AddressDropdown } from '@/components/home/AddressDropdown';
+import { LanguageSelector } from '@/components/home/LanguageSelector';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { mockProducts, mockRecipes } from '@/data/mockData';
 import heroImage from '@/assets/hero-groceries.jpg';
 import { Link } from 'react-router-dom';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -58,15 +62,10 @@ const cateringOffers = [
 ];
 
 export default function HomePage() {
-  const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { profile } = useProfile();
   const { hasPaidPlan } = useSubscription();
-
-  const filteredProducts = activeCategory === 'all'
-    ? mockProducts
-    : mockProducts.filter((p) => p.category === activeCategory);
 
   const savings = profile?.total_savings || 2450;
   const bonusPoints = profile?.bonus_points || 1280;
@@ -77,34 +76,44 @@ export default function HomePage() {
 
   return (
     <div className="page-container">
-      {/* Header */}
+      {/* Header - 2.2 */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
         <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">В</span>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Доставка в</p>
-                <button className="flex items-center gap-1 text-sm font-semibold text-foreground">
-                  <MapPin className="h-3.5 w-3.5 text-primary" />
-                  <span>Москва, Центр</span>
-                </button>
-              </div>
+          <div className="flex items-center justify-between">
+            {/* Left: Avatar + Address */}
+            <div className="flex items-center gap-3">
+              {/* 2.2.1 Avatar */}
+              <HeaderAvatar />
+              
+              {/* 2.2.2 Address Dropdown */}
+              <AddressDropdown />
             </div>
+            
+            {/* Right: Favorites, Language, Theme */}
             <div className="flex items-center gap-1">
+              {/* 2.2.3 Favorites icon */}
+              <Link to="/favorites">
+                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10">
+                  <Heart className="h-5 w-5" />
+                </Button>
+              </Link>
+              
+              {/* 2.2.4 Language selector */}
+              <LanguageSelector />
+              
+              {/* 2.2.5 Theme toggle */}
               <ThemeToggle />
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />
-              </Button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Search with voice input - 2.2 */}
+      {/* Promo Banner Carousel - 2.2 (после шапки) */}
+      <section className="px-4 pt-4">
+        <PromoBannerCarousel />
+      </section>
+
+      {/* Search with voice input - 2.3 */}
       <section className="px-4 pt-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -122,70 +131,50 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Cards - Row 1: Экономия и Бонусы - 2.3, 2.4 */}
+      {/* Stats Cards Row - Экономия, Бонусы, Рецепты - 2.3, 2.4, 2.5 */}
       <section className="px-4 pt-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {/* Ваша экономия */}
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <span className="text-lg">💰</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Ваша экономия</span>
+          <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-3 border border-primary/20">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-base">💰</span>
+              <span className="text-xs text-muted-foreground">Экономия</span>
             </div>
-            <p className="text-2xl font-bold text-primary">{savings.toLocaleString()} ₽</p>
-            <p className="text-xs text-muted-foreground mt-1">в {currentMonth}</p>
+            <p className="text-lg font-bold text-primary">{savings.toLocaleString()} ₽</p>
+            <p className="text-xs text-muted-foreground">в {currentMonth}</p>
             <Link to={hasPaidPlan ? "/profile/affiliate" : "/profile/premium"}>
-              <Button size="sm" variant="accent" className="w-full text-xs h-7 mt-2">
+              <Button size="sm" variant="accent" className="w-full text-xs h-6 mt-2">
                 Хочу больше
               </Button>
             </Link>
           </div>
 
           {/* Ваши бонусы */}
-          <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-2xl p-4 border border-border">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
-                <span className="text-lg">⭐</span>
-              </div>
-              <span className="text-xs text-muted-foreground">Ваши бонусы</span>
+          <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-2xl p-3 border border-border">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-base">⭐</span>
+              <span className="text-xs text-muted-foreground">Бонусы</span>
             </div>
-            <p className="text-2xl font-bold text-foreground">{bonusPoints.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground mt-1">доступно</p>
+            <p className="text-lg font-bold text-foreground">{bonusPoints.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">доступно</p>
             <Link to="/profile/affiliate">
-              <Button size="sm" variant="outline" className="w-full text-xs h-7 mt-2">
-                Получить бонусы
+              <Button size="sm" variant="outline" className="w-full text-xs h-6 mt-2">
+                Получить
               </Button>
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* Stats Cards - Row 2: Избранное и Ваши рецепты - 2.5, 2.6 */}
-      <section className="px-4 pt-3">
-        <div className="grid grid-cols-2 gap-3">
-          {/* Избранное */}
-          <Link to="/favorites" className="bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-                <Heart className="h-4 w-4 text-accent" />
-              </div>
-              <span className="text-sm font-medium text-foreground">Избранное</span>
-            </div>
-            <p className="text-xs text-muted-foreground">Ваши сохранённые товары</p>
-            <ChevronRight className="h-4 w-4 text-muted-foreground mt-2 ml-auto" />
-          </Link>
 
           {/* Ваши рецепты */}
-          <Link to="/profile/recipes" className="bg-card rounded-2xl p-4 border border-border hover:border-primary/30 transition-colors">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <ChefHat className="h-4 w-4 text-primary" />
-              </div>
-              <span className="text-sm font-medium text-foreground">Ваши рецепты</span>
+          <Link to="/profile/recipes" className="bg-card rounded-2xl p-3 border border-border hover:border-primary/30 transition-colors">
+            <div className="flex items-center gap-1.5 mb-1">
+              <ChefHat className="h-4 w-4 text-primary" />
+              <span className="text-xs text-muted-foreground">Рецепты</span>
             </div>
-            <p className="text-xs text-muted-foreground">Рецепты и подписки</p>
-            <ChevronRight className="h-4 w-4 text-muted-foreground mt-2 ml-auto" />
+            <p className="text-sm font-medium text-foreground mt-1">Ваши рецепты</p>
+            <p className="text-xs text-muted-foreground">и подписки</p>
+            <div className="flex justify-end mt-1">
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
           </Link>
         </div>
       </section>
@@ -204,27 +193,15 @@ export default function HomePage() {
         </Link>
       </section>
 
-      {/* Categories - 2.8 */}
+      {/* Categories - 2.8, 2.9 */}
       <section className="pt-6">
-        <SectionHeader title="Продукты" linkText="Все" linkTo="/catalog" />
-        <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
-          {categories.map((cat) => (
-            <CategoryChip
-              key={cat.id}
-              emoji={cat.emoji}
-              label={cat.label}
-              color={cat.color}
-              isActive={activeCategory === cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-            />
-          ))}
-        </div>
+        <CategoryChipsCarousel initialExpanded={true} />
       </section>
 
-      {/* Popular Products - 2.9 (3 rows carousel) */}
+      {/* Popular Products - (3 rows carousel) */}
       <section className="pt-6">
         <SectionHeader title="Популярные товары" linkText="Все" linkTo="/catalog" />
-        <ProductCarousel products={filteredProducts.slice(0, 12)} rows={3} />
+        <ProductCarousel products={mockProducts.slice(0, 12)} rows={3} />
       </section>
 
       {/* Farm Products - 2.10 (2 rows carousel) */}
