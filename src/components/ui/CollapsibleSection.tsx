@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, ReactNode } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -21,6 +21,11 @@ export function CollapsibleSection({
   const [isExpanded, setIsExpanded] = useState(initialExpanded);
   const [height, setHeight] = useState<number | 'auto'>('auto');
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Sync with external initialExpanded prop changes
+  useEffect(() => {
+    setIsExpanded(initialExpanded);
+  }, [initialExpanded]);
 
   useEffect(() => {
     if (contentRef.current) {
