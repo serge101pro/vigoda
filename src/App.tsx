@@ -32,7 +32,6 @@ import AnalyticsPage from "@/pages/profile/AnalyticsPage";
 import LoyaltyCardsPage from "@/pages/profile/LoyaltyCardsPage";
 import ShoppingListsPage from "@/pages/profile/ShoppingListsPage";
 import ProfileEditPage from "@/pages/profile/ProfileEditPage";
-import OrderHistoryPage from "@/pages/profile/OrderHistoryPage";
 
 // New pages
 import RecipeDetailPage from "@/pages/RecipeDetailPage";
@@ -114,7 +113,6 @@ function AppRoutes() {
           <Route path="/profile/loyalty-cards" element={<LoyaltyCardsPage />} />
           <Route path="/profile/lists" element={<ShoppingListsPage />} />
           <Route path="/profile/edit" element={<ProfileEditPage />} />
-          <Route path="/profile/orders" element={<OrderHistoryPage />} />
         </Route>
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />

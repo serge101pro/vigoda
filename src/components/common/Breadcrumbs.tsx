@@ -41,7 +41,6 @@ const routeLabels: Record<string, { label: string; color: string }> = {
   'addresses': { label: 'Адреса', color: 'bg-blue-500/10 text-blue-600' },
   'affiliate': { label: 'Партнёрская программа', color: 'bg-primary/10 text-primary' },
   'nearest-stores': { label: 'Ближайшие магазины', color: 'bg-blue-500/10 text-blue-600' },
-  'orders': { label: 'История заказов', color: 'bg-purple-500/10 text-purple-600' },
 };
 
 export function Breadcrumbs() {
