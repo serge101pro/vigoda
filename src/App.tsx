@@ -61,6 +61,7 @@ import OrganizationAnalyticsPage from "@/pages/organization/OrganizationAnalytic
 import OrganizationDocumentsPage from "@/pages/organization/OrganizationDocumentsPage";
 import OrganizationEmployeesPage from "@/pages/organization/OrganizationEmployeesPage";
 import OrganizationOrdersPage from "@/pages/organization/OrganizationOrdersPage";
+import OrganizationApprovalsPage from "@/pages/organization/OrganizationApprovalsPage";
 import CoopCartPage from "@/pages/organization/CoopCartPage";
 
 const queryClient = new QueryClient();
@@ -115,6 +116,7 @@ function AppRoutes() {
           <Route path="/organization/documents" element={<OrganizationDocumentsPage />} />
           <Route path="/organization/employees" element={<OrganizationEmployeesPage />} />
           <Route path="/organization/orders" element={<OrganizationOrdersPage />} />
+          <Route path="/organization/approvals" element={<OrganizationApprovalsPage />} />
           <Route path="/organization/coop-cart" element={<CoopCartPage />} />
           <Route path="/profile/addresses" element={<AddressesPage />} />
           <Route path="/profile" element={<ProfilePage />} />

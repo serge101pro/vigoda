@@ -76,6 +76,7 @@ export type Database = {
       }
       coop_carts: {
         Row: {
+          approval_required: boolean | null
           auto_order_time: string
           created_at: string
           deadline_time: string
@@ -87,6 +88,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approval_required?: boolean | null
           auto_order_time?: string
           created_at?: string
           deadline_time?: string
@@ -98,6 +100,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approval_required?: boolean | null
           auto_order_time?: string
           created_at?: string
           deadline_time?: string
@@ -213,6 +216,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      order_approvals: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          order_id: string | null
+          organization_id: string
+          requested_by: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          organization_id: string
+          requested_by: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          organization_id?: string
+          requested_by?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_approvals_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
@@ -502,6 +552,7 @@ export type Database = {
       }
       organizations: {
         Row: {
+          approval_threshold: number | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string
@@ -510,9 +561,11 @@ export type Database = {
           kpp: string | null
           legal_address: string | null
           name: string
+          telegram_chat_id: string | null
           updated_at: string
         }
         Insert: {
+          approval_threshold?: number | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -521,9 +574,11 @@ export type Database = {
           kpp?: string | null
           legal_address?: string | null
           name: string
+          telegram_chat_id?: string | null
           updated_at?: string
         }
         Update: {
+          approval_threshold?: number | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -532,6 +587,7 @@ export type Database = {
           kpp?: string | null
           legal_address?: string | null
           name?: string
+          telegram_chat_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -596,6 +652,7 @@ export type Database = {
           email: string | null
           id: string
           phone: string | null
+          telegram_chat_id: string | null
           total_savings: number | null
           updated_at: string
           user_id: string
@@ -608,6 +665,7 @@ export type Database = {
           email?: string | null
           id: string
           phone?: string | null
+          telegram_chat_id?: string | null
           total_savings?: number | null
           updated_at?: string
           user_id: string
@@ -620,6 +678,7 @@ export type Database = {
           email?: string | null
           id?: string
           phone?: string | null
+          telegram_chat_id?: string | null
           total_savings?: number | null
           updated_at?: string
           user_id?: string

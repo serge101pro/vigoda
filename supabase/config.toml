@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.notify-coop-deadline]
 verify_jwt = false
+
+[functions.telegram-notify]
+verify_jwt = true
+
+[functions.export-analytics]
+verify_jwt = true

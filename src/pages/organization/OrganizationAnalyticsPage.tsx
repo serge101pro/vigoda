@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, BarChart3, PieChart, TrendingUp, Users, Calendar, Download, Filter } from 'lucide-react';
+import { ArrowLeft, BarChart3, TrendingUp, Calendar, Download, Filter, FileSpreadsheet, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useOrganization } from '@/hooks/useOrganization';
 import { 
   BarChart, 
   Bar, 
@@ -58,13 +62,76 @@ const dailyData = [
 
 export default function OrganizationAnalyticsPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { organization } = useOrganization();
   const [period, setPeriod] = useState('month');
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const totalSpent = 95500;
   const totalBudget = 125000;
   const projectedDays = 12;
   const averageOrderValue = 1150;
   const totalOrders = 83;
+
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    if (!organization?.id) {
+      // Demo mode - use mock org ID
+      toast({
+        title: 'Демо-режим',
+        description: 'В демо-режиме экспорт использует тестовые данные',
+      });
+    }
+
+    setIsExporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('export-analytics', {
+        body: {
+          organizationId: organization?.id || 'demo-org-id',
+          format,
+          period,
+        },
+      });
+
+      if (error) throw error;
+
+      if (format === 'excel') {
+        // Download CSV
+        const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `analytics_${period}_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        // Open PDF in new window for printing
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(data);
+          printWindow.document.close();
+          printWindow.print();
+        }
+      }
+
+      toast({
+        title: 'Экспорт завершён',
+        description: format === 'excel' ? 'Файл скачан' : 'Открыто окно печати',
+      });
+      setShowExportDialog(false);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: 'Ошибка экспорта',
+        description: 'Не удалось сформировать отчёт',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="page-container">
@@ -79,7 +146,7 @@ export default function OrganizationAnalyticsPage() {
           <div className="flex-1">
             <h1 className="text-lg font-bold text-foreground">Аналитика B2B</h1>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setShowExportDialog(true)}>
             <Download className="h-4 w-4 mr-1" />
             Экспорт
           </Button>
@@ -321,6 +388,57 @@ export default function OrganizationAnalyticsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Export Dialog */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Экспорт аналитики</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Выберите формат для экспорта отчёта за {
+                period === 'week' ? 'неделю' : 
+                period === 'month' ? 'месяц' : 
+                period === 'quarter' ? 'квартал' : 'год'
+              }:
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-24 flex-col gap-2"
+                onClick={() => handleExport('excel')}
+                disabled={isExporting}
+              >
+                <FileSpreadsheet className="h-8 w-8 text-green-500" />
+                <span>Excel (CSV)</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="h-24 flex-col gap-2"
+                onClick={() => handleExport('pdf')}
+                disabled={isExporting}
+              >
+                <FileText className="h-8 w-8 text-red-500" />
+                <span>PDF</span>
+              </Button>
+            </div>
+
+            <div className="bg-muted/50 rounded-xl p-4">
+              <h4 className="font-medium mb-2">Отчёт включает:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Сводка по использованию бюджета</li>
+                <li>• Детализация по сотрудникам</li>
+                <li>• Разбивка по категориям расходов</li>
+                <li>• Ключевые метрики и тренды</li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
