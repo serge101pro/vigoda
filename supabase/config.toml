@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.process-coop-cart]
 verify_jwt = false
+
+[functions.notify-coop-deadline]
+verify_jwt = false
