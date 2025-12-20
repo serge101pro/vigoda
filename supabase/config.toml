@@ -2,3 +2,6 @@ project_id = "ryhwcwnlcuqzbnnfhskq"
 
 [functions.generate-pdf]
 verify_jwt = true
+
+[functions.process-coop-cart]
+verify_jwt = false

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +13,7 @@ interface InvoiceRequest {
   amount?: number;
   periodStart?: string;
   periodEnd?: string;
+  sendEmail?: boolean;
 }
 
 // Simple PDF generation (Base64 encoded) - for production use a library like pdf-lib
@@ -21,8 +23,6 @@ function generateInvoicePDF(
   amount: number,
   dueDate: string
 ): string {
-  // This creates a simple text-based PDF structure
-  // In production, use pdf-lib or jsPDF for proper PDF generation
   const content = `
 %PDF-1.4
 1 0 obj
@@ -157,6 +157,57 @@ startxref
   return btoa(content);
 }
 
+async function sendDocumentEmail(
+  resend: any,
+  email: string,
+  type: 'invoice' | 'upd',
+  documentNumber: string,
+  organization: any,
+  amount: number,
+  pdfBase64: string,
+  dueDate?: string,
+  periodStart?: string,
+  periodEnd?: string
+) {
+  const isInvoice = type === 'invoice';
+  const subject = isInvoice 
+    ? `Счёт на оплату ${documentNumber}` 
+    : `УПД ${documentNumber}`;
+  
+  const html = isInvoice ? `
+    <h1>Счёт на оплату</h1>
+    <p>Организация: <strong>${organization.name}</strong></p>
+    <p>Номер счёта: <strong>${documentNumber}</strong></p>
+    <p>Сумма к оплате: <strong>${amount.toLocaleString('ru-RU')} ₽</strong></p>
+    <p>Срок оплаты: <strong>${dueDate}</strong></p>
+    <hr />
+    <p>PDF-документ прикреплён к письму.</p>
+    <p>Благодарим за сотрудничество!</p>
+  ` : `
+    <h1>Универсальный передаточный документ</h1>
+    <p>Организация: <strong>${organization.name}</strong></p>
+    <p>Номер документа: <strong>${documentNumber}</strong></p>
+    <p>Период: <strong>${periodStart} - ${periodEnd}</strong></p>
+    <p>Сумма: <strong>${amount.toLocaleString('ru-RU')} ₽</strong></p>
+    <hr />
+    <p>PDF-документ прикреплён к письму.</p>
+    <p>Благодарим за сотрудничество!</p>
+  `;
+
+  await resend.emails.send({
+    from: "Документы <documents@resend.dev>",
+    to: [email],
+    subject,
+    html,
+    attachments: [
+      {
+        filename: `${documentNumber}.pdf`,
+        content: pdfBase64,
+      },
+    ],
+  });
+}
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("generate-pdf function called");
 
@@ -167,11 +218,14 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-    const { type, organizationId, amount, periodStart, periodEnd }: InvoiceRequest = await req.json();
+    const { type, organizationId, amount, periodStart, periodEnd, sendEmail = true }: InvoiceRequest = await req.json();
 
-    console.log("Request params:", { type, organizationId, amount, periodStart, periodEnd });
+    console.log("Request params:", { type, organizationId, amount, periodStart, periodEnd, sendEmail });
 
     // Get organization details
     const { data: organization, error: orgError } = await supabase
@@ -190,22 +244,24 @@ const handler = async (req: Request): Promise<Response> => {
 
     let pdfBase64: string;
     let documentData: any;
+    let documentNumber: string;
+    let dueDateStr: string | undefined;
 
     if (type === "invoice") {
       // Generate invoice
-      const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
+      documentNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + 14);
-      const dueDateStr = dueDate.toLocaleDateString("ru-RU");
+      dueDateStr = dueDate.toLocaleDateString("ru-RU");
 
-      pdfBase64 = generateInvoicePDF(invoiceNumber, organization, amount || 0, dueDateStr);
+      pdfBase64 = generateInvoicePDF(documentNumber, organization, amount || 0, dueDateStr);
 
       // Save invoice to database
       const { data: invoice, error: invoiceError } = await supabase
         .from("org_invoices")
         .insert({
           organization_id: organizationId,
-          invoice_number: invoiceNumber,
+          invoice_number: documentNumber,
           amount: amount || 0,
           status: "pending",
           due_date: dueDate.toISOString().split("T")[0],
@@ -220,11 +276,30 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       documentData = invoice;
-      console.log("Invoice created:", invoiceNumber);
+      console.log("Invoice created:", documentNumber);
+
+      // Send email notification
+      if (sendEmail && resend && organization.contact_email) {
+        try {
+          await sendDocumentEmail(
+            resend,
+            organization.contact_email,
+            'invoice',
+            documentNumber,
+            organization,
+            amount || 0,
+            pdfBase64,
+            dueDateStr
+          );
+          console.log(`Invoice email sent to ${organization.contact_email}`);
+        } catch (emailError) {
+          console.error("Error sending invoice email:", emailError);
+        }
+      }
 
     } else if (type === "upd") {
       // Generate UPD
-      const documentNumber = `UPD-${Date.now().toString(36).toUpperCase()}`;
+      documentNumber = `UPD-${Date.now().toString(36).toUpperCase()}`;
       
       // Calculate total amount for the period
       const { data: transactions, error: txError } = await supabase
@@ -237,11 +312,14 @@ const handler = async (req: Request): Promise<Response> => {
 
       const totalAmount = transactions?.reduce((sum, tx) => sum + Math.abs(tx.amount), 0) || amount || 0;
 
+      const periodStartFormatted = new Date(periodStart!).toLocaleDateString("ru-RU");
+      const periodEndFormatted = new Date(periodEnd!).toLocaleDateString("ru-RU");
+
       pdfBase64 = generateUPDPDF(
         documentNumber,
         organization,
-        new Date(periodStart!).toLocaleDateString("ru-RU"),
-        new Date(periodEnd!).toLocaleDateString("ru-RU"),
+        periodStartFormatted,
+        periodEndFormatted,
         totalAmount
       );
 
@@ -266,6 +344,27 @@ const handler = async (req: Request): Promise<Response> => {
 
       documentData = upd;
       console.log("UPD created:", documentNumber);
+
+      // Send email notification
+      if (sendEmail && resend && organization.contact_email) {
+        try {
+          await sendDocumentEmail(
+            resend,
+            organization.contact_email,
+            'upd',
+            documentNumber,
+            organization,
+            totalAmount,
+            pdfBase64,
+            undefined,
+            periodStartFormatted,
+            periodEndFormatted
+          );
+          console.log(`UPD email sent to ${organization.contact_email}`);
+        } catch (emailError) {
+          console.error("Error sending UPD email:", emailError);
+        }
+      }
     } else {
       return new Response(
         JSON.stringify({ error: "Invalid document type" }),
@@ -278,6 +377,7 @@ const handler = async (req: Request): Promise<Response> => {
         success: true,
         document: documentData,
         pdfBase64,
+        emailSent: sendEmail && resend && organization.contact_email,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

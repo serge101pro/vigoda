@@ -77,10 +77,10 @@ const useCases = [
 ];
 
 const pricingTiers = [
-  { employees: '1-10', price: '0 ₽/мес', note: 'Бесплатно' },
-  { employees: '11-50', price: '2 990 ₽/мес', note: '~ 60 ₽ на сотрудника' },
-  { employees: '51-200', price: '7 990 ₽/мес', note: '~ 40 ₽ на сотрудника' },
-  { employees: '200+', price: 'Индивидуально', note: 'Свяжитесь с нами' },
+  { employees: '1-10', price: '119 ₽/чел/мес', note: 'Первый месяц: 30 ₽/чел' },
+  { employees: '11-50', price: '99 ₽/чел/мес', note: 'Первый месяц: 25 ₽/чел' },
+  { employees: '51-200', price: '89 ₽/чел/мес', note: 'Первый месяц: 22 ₽/чел' },
+  { employees: '200+', price: '79 ₽/чел/мес', note: 'Первый месяц: 20 ₽/чел' },
 ];
 
 export default function BusinessLandingPage() {
@@ -134,7 +134,7 @@ export default function BusinessLandingPage() {
           </p>
           <div className="flex gap-3 justify-center">
             <Button variant="hero" size="lg" onClick={() => setShowDemo(true)}>
-              Попробовать бесплатно
+              Первый месяц -75%
             </Button>
             <Button variant="outline" size="lg" onClick={() => navigate('/organization')}>
               Демо-кабинет
@@ -250,9 +250,9 @@ export default function BusinessLandingPage() {
         {/* CTA */}
         <section className="bg-primary rounded-2xl p-6 text-primary-foreground text-center">
           <Zap className="h-10 w-10 mx-auto mb-3" />
-          <h2 className="text-xl font-bold mb-2">Начните бесплатно</h2>
+          <h2 className="text-xl font-bold mb-2">С нами удобно!</h2>
           <p className="text-sm opacity-90 mb-4">
-            До 10 сотрудников — бесплатно навсегда
+            Первый месяц почти бесплатно: -75% от тарифа
           </p>
           <Button 
             variant="secondary" 
