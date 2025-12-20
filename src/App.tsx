@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAppStore } from "@/stores/useAppStore";
 import { ScrollToTop } from "@/components/ScrollToTop";
-
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 // Layout
 import { MainLayout } from "@/components/layout/MainLayout";
 
@@ -69,6 +69,7 @@ function AppRoutes() {
   return (
     <>
       <ScrollToTop />
+      <ScrollToTopButton />
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
@@ -77,6 +78,7 @@ function AppRoutes() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/cart/compare" element={<PriceComparisonPage />} />
           <Route path="/recipes" element={<RecipesPage />} />
+          <Route path="/recipe/:id" element={<RecipeDetailPage />} />
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/ready-meals" element={<ReadyMealsPage />} />
