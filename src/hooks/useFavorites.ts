@@ -66,7 +66,9 @@ export function useFavorites() {
         .eq('user_id', user.id)
         .not('product_id', 'is', null);
 
-      if (productError) throw productError;
+      if (productError) {
+        console.error('Error fetching product favorites:', productError);
+      }
 
       // Fetch favorite recipes
       const { data: recipeFavorites, error: recipeError } = await supabase
@@ -87,7 +89,9 @@ export function useFavorites() {
         .eq('user_id', user.id)
         .not('recipe_id', 'is', null);
 
-      if (recipeError) throw recipeError;
+      if (recipeError) {
+        console.error('Error fetching recipe favorites:', recipeError);
+      }
 
       setFavoriteProducts(
         (productFavorites || []).map(f => ({
@@ -109,11 +113,11 @@ export function useFavorites() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     fetchFavorites();
-  }, [fetchFavorites]);
+  }, [user?.id]);
 
   const addProductToFavorites = async (productId: string) => {
     if (!user) {

@@ -36,10 +36,13 @@ export function useSubscription() {
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching subscription:', error);
+        setSubscription(null);
+        setLoading(false);
+        return;
       }
       
       // Map the data to our Subscription type
@@ -57,6 +60,7 @@ export function useSubscription() {
       }
     } catch (err) {
       console.error('Error:', err);
+      setSubscription(null);
     } finally {
       setLoading(false);
     }
