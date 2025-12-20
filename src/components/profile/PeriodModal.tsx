@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Period {
   months: number;
@@ -39,6 +40,13 @@ const familyPeriods: Period[] = [
 export function PeriodModal({ open, onClose, planType, onSelect }: PeriodModalProps) {
   const periods = planType === 'solo' ? soloPeriods : familyPeriods;
   const [selected, setSelected] = useState<number | null>(null);
+
+  const handlePayment = () => {
+    if (selected !== null) {
+      window.location.href = `/payment?plan=${planType}&months=${periods[selected].months}&amount=${periods[selected].total}`;
+      onClose();
+    }
+  };
 
   const getBadge = (badge?: 'promo' | 'popular' | 'best') => {
     switch (badge) {
@@ -121,9 +129,9 @@ export function PeriodModal({ open, onClose, planType, onSelect }: PeriodModalPr
           size="lg" 
           className="w-full mt-4"
           disabled={selected === null}
-          onClick={() => selected !== null && onSelect?.(periods[selected])}
+          onClick={handlePayment}
         >
-          Оформить подписку
+          Оплатить {selected !== null ? `${periods[selected].total} ₽` : ''}
         </Button>
       </DialogContent>
     </Dialog>

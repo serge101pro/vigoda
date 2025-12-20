@@ -204,7 +204,7 @@ export default function HomePage() {
 
       {/* Sale Products - 1 row, collapsible */}
       <section className="pt-6">
-        <CollapsibleSection title="Акции" linkText="Все" linkTo="/catalog?filter=sale" initialExpanded={true}>
+        <CollapsibleSection title="Акции" linkText="Все" linkTo="/promos" initialExpanded={true}>
           <ProductCarousel products={[...saleProducts, ...mockProducts.slice(0, 4)]} rows={1} />
         </CollapsibleSection>
       </section>

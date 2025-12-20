@@ -1,14 +1,6 @@
-import { Home, Search, ShoppingCart, ChefHat, User, Store } from 'lucide-react';
+import { Home, Search, ShoppingCart, ChefHat, UtensilsCrossed } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAppStore } from '@/stores/useAppStore';
-
-const navItems = [
-  { to: '/', icon: Home, label: 'Главная' },
-  { to: '/catalog', icon: Search, label: 'Каталог' },
-  { to: '/stores', icon: Store, label: 'Магазины' },
-  { to: '/cart', icon: ShoppingCart, label: 'Корзина' },
-  { to: '/profile', icon: User, label: 'Профиль' },
-];
 
 export function BottomNav() {
   const cart = useAppStore((state) => state.cart);
@@ -16,26 +8,70 @@ export function BottomNav() {
 
   return (
     <nav className="bottom-nav">
-      <div className="flex items-center justify-around py-1">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            className="bottom-nav-item bottom-nav-item-inactive relative"
-            activeClassName="bottom-nav-item-active"
-          >
-            <div className="relative">
-              <item.icon className="h-6 w-6" />
-              {item.to === '/cart' && cartItemsCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
-                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                </span>
-              )}
-            </div>
-            <span className="mt-1 text-xs font-medium">{item.label}</span>
-          </NavLink>
-        ))}
+      <div className="flex items-center justify-around py-1.5">
+        {/* Home - Circular Button */}
+        <NavLink
+          to="/"
+          end
+          className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105"
+          activeClassName="ring-2 ring-primary/50"
+        >
+          <Home className="h-6 w-6 stroke-[2.5]" />
+        </NavLink>
+
+        {/* Catalog */}
+        <NavLink
+          to="/catalog"
+          className="bottom-nav-item bottom-nav-item-inactive"
+          activeClassName="bottom-nav-item-active"
+        >
+          <Search className="h-5 w-5" />
+          <span className="mt-0.5 text-[10px] font-medium">Каталог</span>
+        </NavLink>
+
+        {/* Recipes */}
+        <NavLink
+          to="/recipes"
+          className="bottom-nav-item bottom-nav-item-inactive"
+          activeClassName="bottom-nav-item-active"
+        >
+          <ChefHat className="h-5 w-5" />
+          <span className="mt-0.5 text-[10px] font-medium">Рецепты</span>
+        </NavLink>
+
+        {/* Ready Meals */}
+        <NavLink
+          to="/ready-meals"
+          className="bottom-nav-item bottom-nav-item-inactive"
+          activeClassName="bottom-nav-item-active"
+        >
+          <UtensilsCrossed className="h-5 w-5" />
+          <span className="mt-0.5 text-[10px] font-medium">Готовое</span>
+        </NavLink>
+
+        {/* Catering */}
+        <NavLink
+          to="/catering"
+          className="bottom-nav-item bottom-nav-item-inactive"
+          activeClassName="bottom-nav-item-active"
+        >
+          <span className="text-lg">🍽️</span>
+          <span className="mt-0.5 text-[10px] font-medium">Кейтеринг</span>
+        </NavLink>
+
+        {/* Cart - Circular Button */}
+        <NavLink
+          to="/cart"
+          className="relative flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105"
+          activeClassName="ring-2 ring-primary/50"
+        >
+          <ShoppingCart className="h-6 w-6 stroke-[2.5]" />
+          {cartItemsCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
+              {cartItemsCount > 99 ? '99+' : cartItemsCount}
+            </span>
+          )}
+        </NavLink>
       </div>
     </nav>
   );

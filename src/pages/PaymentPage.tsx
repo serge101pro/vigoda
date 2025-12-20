@@ -1,0 +1,310 @@
+import { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, CreditCard, Smartphone, Check, Lock, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  icon: string;
+  type: 'sbp' | 'card' | 'wallet' | 'bank-app';
+}
+
+const paymentMethods: PaymentMethod[] = [
+  { id: 'sbp', name: 'СБП', icon: '⚡', type: 'sbp' },
+  { id: 'russian-card', name: 'Картой РФ банка', icon: '💳', type: 'card' },
+  { id: 'foreign-card', name: 'Картой зарубежного банка', icon: '🌍', type: 'card' },
+  { id: 'yandex-pay', name: 'Yandex Pay', icon: '🟡', type: 'wallet' },
+  { id: 'sber-pay', name: 'SberPay', icon: '🟢', type: 'wallet' },
+  { id: 'yoomoney', name: 'ЮMoney', icon: '🟣', type: 'wallet' },
+];
+
+const bankApps = [
+  { id: 'sber', name: 'Сбербанк', color: 'bg-green-500', icon: '🟢' },
+  { id: 'tbank', name: 'Т-Банк', color: 'bg-yellow-400', icon: '🟡' },
+  { id: 'alfa', name: 'Альфа-Банк', color: 'bg-red-500', icon: '🔴' },
+  { id: 'vtb', name: 'ВТБ', color: 'bg-blue-600', icon: '🔵' },
+  { id: 'raiffeisen', name: 'Райффайзен', color: 'bg-yellow-500', icon: '🟠' },
+  { id: 'gazprom', name: 'Газпромбанк', color: 'bg-blue-500', icon: '⚪' },
+  { id: 'otkritie', name: 'Открытие', color: 'bg-cyan-500', icon: '🔷' },
+  { id: 'psb', name: 'ПСБ', color: 'bg-orange-500', icon: '🟧' },
+];
+
+export default function PaymentPage() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  
+  const plan = searchParams.get('plan') || 'solo';
+  const months = searchParams.get('months') || '1';
+  const amount = searchParams.get('amount') || '399';
+
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [showSmsVerification, setShowSmsVerification] = useState(false);
+  const [showBankApps, setShowBankApps] = useState(false);
+  const [saveCard, setSaveCard] = useState(true);
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [smsCode, setSmsCode] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleMethodSelect = (methodId: string) => {
+    setSelectedMethod(methodId);
+    const method = paymentMethods.find(m => m.id === methodId);
+    
+    if (method?.type === 'card') {
+      setShowCardForm(true);
+    } else if (methodId === 'sbp') {
+      setShowBankApps(true);
+    } else {
+      // Simulate wallet payment
+      processPayment();
+    }
+  };
+
+  const handleBankAppSelect = (bankId: string) => {
+    setShowBankApps(false);
+    processPayment();
+  };
+
+  const handleCardSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cardNumber.length < 16 || expiry.length < 5 || cvv.length < 3) {
+      toast({ title: 'Заполните все поля карты', variant: 'destructive' });
+      return;
+    }
+    setShowCardForm(false);
+    setShowSmsVerification(true);
+  };
+
+  const handleSmsVerification = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (smsCode.length < 4) {
+      toast({ title: 'Введите код из СМС', variant: 'destructive' });
+      return;
+    }
+    setShowSmsVerification(false);
+    processPayment();
+  };
+
+  const processPayment = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({ 
+        title: 'Оплата прошла успешно!',
+        description: `Подписка ${plan === 'solo' ? 'Solo' : 'Family'} на ${months} мес. активирована`,
+      });
+      navigate('/profile/premium');
+    }, 2000);
+  };
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    return parts.length ? parts.join(' ') : value;
+  };
+
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    return v;
+  };
+
+  return (
+    <div className="page-container">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <button onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </button>
+          <h1 className="text-xl font-bold text-foreground">Оплата</h1>
+        </div>
+      </header>
+
+      <div className="px-4 py-4 space-y-6">
+        {/* Order Summary */}
+        <div className="bg-card rounded-2xl border border-border p-4">
+          <h2 className="font-semibold mb-3">Ваш заказ</h2>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-muted-foreground">Подписка Premium {plan === 'solo' ? 'Solo' : 'Family'}</span>
+          </div>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-muted-foreground">Период</span>
+            <span>{months} мес.</span>
+          </div>
+          <div className="border-t border-border my-3" />
+          <div className="flex justify-between items-center">
+            <span className="font-bold text-lg">Итого</span>
+            <span className="font-bold text-lg text-primary">{amount} ₽</span>
+          </div>
+        </div>
+
+        {/* Security Badge */}
+        <div className="flex items-center gap-3 bg-green-500/10 rounded-xl p-3 border border-green-500/20">
+          <Shield className="h-5 w-5 text-green-500" />
+          <div>
+            <p className="font-medium text-sm">Безопасная оплата</p>
+            <p className="text-xs text-muted-foreground">256-bit SSL шифрование</p>
+          </div>
+          <Lock className="h-4 w-4 text-green-500 ml-auto" />
+        </div>
+
+        {/* Payment Methods */}
+        <div>
+          <h2 className="font-semibold mb-3">Способ оплаты</h2>
+          <div className="space-y-2">
+            {paymentMethods.map((method) => (
+              <button
+                key={method.id}
+                onClick={() => handleMethodSelect(method.id)}
+                className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                  selectedMethod === method.id
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border bg-card hover:border-primary/50'
+                }`}
+              >
+                <span className="text-2xl">{method.icon}</span>
+                <span className="font-medium">{method.name}</span>
+                {selectedMethod === method.id && (
+                  <Check className="h-5 w-5 text-primary ml-auto" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Bank Apps */}
+        <div>
+          <h2 className="font-semibold mb-3">Через приложение банка</h2>
+          <div className="grid grid-cols-4 gap-2">
+            {bankApps.map((bank) => (
+              <button
+                key={bank.id}
+                onClick={() => handleBankAppSelect(bank.id)}
+                className="flex flex-col items-center gap-1 p-3 rounded-xl border border-border bg-card hover:border-primary/50 transition-all"
+              >
+                <div className={`w-10 h-10 rounded-full ${bank.color} flex items-center justify-center text-white text-lg`}>
+                  {bank.icon}
+                </div>
+                <span className="text-xs text-center line-clamp-1">{bank.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Card Form Dialog */}
+      <Dialog open={showCardForm} onOpenChange={setShowCardForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Данные карты</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCardSubmit} className="space-y-4">
+            <div>
+              <Label>Номер карты</Label>
+              <Input
+                placeholder="0000 0000 0000 0000"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                maxLength={19}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Срок</Label>
+                <Input
+                  placeholder="MM/YY"
+                  value={expiry}
+                  onChange={(e) => setExpiry(formatExpiry(e.target.value))}
+                  maxLength={5}
+                />
+              </div>
+              <div>
+                <Label>CVV</Label>
+                <Input
+                  type="password"
+                  placeholder="***"
+                  value={cvv}
+                  onChange={(e) => setCvv(e.target.value.replace(/\D/g, ''))}
+                  maxLength={4}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                id="save-card" 
+                checked={saveCard} 
+                onCheckedChange={(checked) => setSaveCard(!!checked)} 
+              />
+              <Label htmlFor="save-card" className="text-sm">Сохранить карту для будущих платежей</Label>
+            </div>
+            <Button type="submit" className="w-full" variant="hero">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Продолжить
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* SMS Verification Dialog */}
+      <Dialog open={showSmsVerification} onOpenChange={setShowSmsVerification}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Подтверждение 3D-Secure</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSmsVerification} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Мы отправили код подтверждения на номер, привязанный к карте ****{cardNumber.slice(-4)}
+            </p>
+            <div>
+              <Label>Код из СМС</Label>
+              <Input
+                placeholder="Введите код"
+                value={smsCode}
+                onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, ''))}
+                maxLength={6}
+                className="text-center text-2xl tracking-widest"
+              />
+            </div>
+            <Button type="submit" className="w-full" variant="hero">
+              <Lock className="h-4 w-4 mr-2" />
+              Подтвердить
+            </Button>
+            <Button type="button" variant="ghost" className="w-full" onClick={() => toast({ title: 'Код отправлен повторно' })}>
+              Отправить код повторно
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Processing Overlay */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="font-semibold">Обрабатываем платёж...</p>
+            <p className="text-sm text-muted-foreground">Не закрывайте страницу</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
