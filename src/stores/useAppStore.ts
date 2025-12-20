@@ -15,6 +15,8 @@ export interface Product {
   stores?: { name: string; price: number }[];
   minQuantity?: number; // Minimum purchasable quantity
   quantityStep?: number; // Step for quantity changes
+  description?: string;
+  characteristics?: Record<string, string>;
 }
 
 export interface Recipe {
