@@ -1,100 +1,106 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Share2, Plus, Minus, Star, Clock, ThermometerSnowflake, Package, ShoppingCart, Check } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Plus, Minus, Star, Clock, ThermometerSnowflake, Package, ShoppingCart, Check, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useAppStore, Product } from '@/stores/useAppStore';
+import { useFavorites } from '@/hooks/useFavorites';
+import { mockProducts } from '@/data/mockData';
+import { petProducts } from '@/data/petData';
+import { perfumeProducts, extendedHouseholdProducts, accessoriesProducts } from '@/data/extendedMockData';
+import { ProductCard } from '@/components/products/ProductCard';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 
-interface StorePrice {
-  store: string;
-  logo: string;
-  price: number;
-  oldPrice?: number;
-  inStock: boolean;
-  delivery: string;
-}
-
-interface NutritionInfo {
-  calories: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-  fiber?: number;
-}
-
-const mockProduct = {
-  id: '1',
-  name: 'Филе куриное охлаждённое "Петелинка" высший сорт',
-  brand: 'Петелинка',
-  category: 'Мясо и птица',
-  image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=800&q=80',
-  images: [
-    'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=800&q=80',
-    'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=800&q=80',
-    'https://images.unsplash.com/photo-1606728035253-49e8a23146de?w=800&q=80',
-  ],
-  description: 'Нежное куриное филе высшего сорта от проверенного производителя. Без костей и кожи, идеально для диетического питания.',
-  weight: '1 кг',
-  rating: 4.8,
-  reviewCount: 1256,
-  nutrition: {
-    calories: 110,
-    protein: 23.1,
-    fat: 1.2,
-    carbs: 0,
-    fiber: 0,
-  } as NutritionInfo,
-  composition: 'Куриное филе (грудка куриная)',
-  storageConditions: 'Хранить при температуре от 0°C до +4°C',
-  shelfLife: '7 суток',
-  manufacturer: 'ООО "Петелинка"',
-  country: 'Россия',
-};
-
-const storePrices: StorePrice[] = [
-  { store: 'Пятёрочка', logo: '🏪', price: 389, oldPrice: 459, inStock: true, delivery: '30-60 мин' },
-  { store: 'Перекрёсток', logo: '🛒', price: 399, inStock: true, delivery: '45-90 мин' },
-  { store: 'ВкусВилл', logo: '🥬', price: 429, inStock: true, delivery: '60-120 мин' },
-  { store: 'Магнит', logo: '🧲', price: 379, oldPrice: 449, inStock: false, delivery: '1-2 дня' },
-  { store: 'Лента', logo: '📦', price: 359, inStock: true, delivery: '1-2 дня' },
-];
-
-const similarProducts = [
-  { id: '2', name: 'Филе индейки охл.', image: 'https://images.unsplash.com/photo-1606728035253-49e8a23146de?w=400&q=80', price: 499, oldPrice: 599 },
-  { id: '3', name: 'Куриные бёдра', image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&q=80', price: 259, oldPrice: null },
-  { id: '4', name: 'Грудка утиная', image: 'https://images.unsplash.com/photo-1518492104633-130d0cc84637?w=400&q=80', price: 649, oldPrice: 799 },
+// Mock reviews
+const mockReviews = [
+  { id: '1', author: 'Анна К.', date: '15 декабря 2024', rating: 5, text: 'Отличный товар! Качество супер, доставка быстрая. Рекомендую!', avatar: '👩' },
+  { id: '2', author: 'Михаил П.', date: '10 декабря 2024', rating: 4, text: 'Хороший продукт за свои деньги. Минус — упаковка немного помятая.', avatar: '👨' },
+  { id: '3', author: 'Елена С.', date: '5 декабря 2024', rating: 5, text: 'Покупаю уже третий раз. Всегда довольна качеством!', avatar: '👩‍🦰' },
+  { id: '4', author: 'Дмитрий Н.', date: '1 декабря 2024', rating: 5, text: 'Соотношение цена/качество на высоте. Буду заказывать ещё.', avatar: '👨‍🦱' },
 ];
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-  const [selectedStore, setSelectedStore] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState(0);
+  const { cart, addToCart, updateQuantity, removeFromCart } = useAppStore();
+  const { isProductFavorite, addProductToFavorites, removeProductFromFavorites } = useFavorites();
+  
+  // Combine all products
+  const allProducts = useMemo(() => [
+    ...mockProducts, 
+    ...petProducts, 
+    ...perfumeProducts, 
+    ...extendedHouseholdProducts, 
+    ...accessoriesProducts
+  ], []);
+  
+  const product = allProducts.find(p => p.id === id);
+  
+  const [selectedStore, setSelectedStore] = useState<number>(0);
 
-  const bestPrice = Math.min(...storePrices.filter(s => s.inStock).map(s => s.price));
+  const cartItem = cart.find(item => item.type === 'product' && item.product?.id === id);
+  const quantity = cartItem?.quantity || 0;
+  const isFavorite = product ? isProductFavorite(product.id) : false;
+
+  // Get similar products
+  const similarProducts = useMemo(() => {
+    if (!product) return [];
+    return allProducts
+      .filter(p => p.category === product.category && p.id !== product.id)
+      .slice(0, 6);
+  }, [product, allProducts]);
+
+  if (!product) {
+    return (
+      <div className="page-container">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+          <p className="text-lg font-semibold text-foreground mb-2">Товар не найден</p>
+          <Link to="/catalog">
+            <Button variant="outline">Перейти в каталог</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const bestPrice = product.stores 
+    ? Math.min(...product.stores.map(s => s.price))
+    : product.price;
 
   const handleAddToCart = () => {
-    if (!selectedStore) {
-      toast({
-        title: 'Выберите магазин',
-        description: 'Для добавления в корзину выберите магазин',
-      });
-      return;
-    }
+    addToCart(product, 1);
     toast({
       title: 'Добавлено в корзину',
-      description: `${mockProduct.name} x${quantity} из ${selectedStore}`,
+      description: product.name,
     });
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast({ title: 'Ссылка скопирована!' });
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: product.name,
+        url: window.location.href,
+      });
+    } catch {
+      navigator.clipboard.writeText(window.location.href);
+      toast({ title: 'Ссылка скопирована!' });
+    }
   };
+
+  const handleToggleFavorite = async () => {
+    if (isFavorite) {
+      await removeProductFromFavorites(product.id);
+    } else {
+      await addProductToFavorites(product.id);
+    }
+  };
+
+  const discount = product.oldPrice 
+    ? Math.round((1 - product.price / product.oldPrice) * 100)
+    : 0;
 
   return (
     <div className="page-container pb-32">
@@ -110,7 +116,7 @@ export default function ProductDetailPage() {
               <Share2 className="h-5 w-5" />
             </button>
             <button 
-              onClick={() => setIsFavorite(!isFavorite)} 
+              onClick={handleToggleFavorite} 
               className="p-2 rounded-full hover:bg-muted"
             >
               <Heart className={`h-5 w-5 ${isFavorite ? 'fill-destructive text-destructive' : ''}`} />
@@ -119,43 +125,43 @@ export default function ProductDetailPage() {
         </div>
       </header>
 
+      {/* Breadcrumbs */}
+      <Breadcrumbs />
+
       {/* Main Image */}
-      <section className="relative">
-        <div className="aspect-square bg-muted">
+      <section className="relative px-4">
+        <div className="aspect-square bg-muted rounded-2xl overflow-hidden">
           <img 
-            src={mockProduct.images[selectedImage]} 
-            alt={mockProduct.name}
+            src={product.image} 
+            alt={product.name}
             className="w-full h-full object-cover"
           />
-        </div>
-        {/* Image Thumbnails */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-          {mockProduct.images.map((img, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedImage(idx)}
-              className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                selectedImage === idx ? 'border-primary' : 'border-background'
-              }`}
-            >
-              <img src={img} alt="" className="w-full h-full object-cover" />
-            </button>
-          ))}
+          {product.badge && (
+            <Badge className={`absolute top-4 left-4 ${
+              product.badge === 'sale' ? 'bg-red-500' :
+              product.badge === 'new' ? 'bg-green-500' : 'bg-orange-500'
+            }`}>
+              {product.badge === 'sale' ? `-${discount}%` :
+               product.badge === 'new' ? 'Новинка' : 'Хит'}
+            </Badge>
+          )}
         </div>
       </section>
 
       {/* Product Info */}
       <section className="p-4">
         <div className="flex items-center gap-2 mb-2">
-          <Badge variant="secondary">{mockProduct.category}</Badge>
+          <Badge variant="secondary">{product.category}</Badge>
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-            <span className="text-sm font-medium">{mockProduct.rating}</span>
-            <span className="text-sm text-muted-foreground">({mockProduct.reviewCount} отзывов)</span>
+            <span className="text-sm font-medium">{product.rating}</span>
+            <span className="text-sm text-muted-foreground">({product.reviewCount} отзывов)</span>
           </div>
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-2">{mockProduct.name}</h2>
-        <p className="text-muted-foreground mb-4">{mockProduct.description}</p>
+        <h2 className="text-xl font-bold text-foreground mb-2">{product.name}</h2>
+        {product.description && (
+          <p className="text-muted-foreground mb-4">{product.description}</p>
+        )}
 
         {/* Best Price Banner */}
         <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-4">
@@ -165,199 +171,190 @@ export default function ProductDetailPage() {
               <p className="text-2xl font-bold text-primary">{bestPrice} ₽</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">за {mockProduct.weight}</p>
-              <p className="text-xs text-primary">Экономия до 90₽</p>
+              <p className="text-sm text-muted-foreground">за {product.unit}</p>
+              {product.oldPrice && (
+                <p className="text-xs text-primary">Экономия {product.oldPrice - product.price} ₽</p>
+              )}
             </div>
           </div>
         </div>
       </section>
 
       {/* Store Prices */}
-      <section className="px-4 mb-6">
-        <h3 className="font-bold text-lg mb-3">Цены в магазинах</h3>
-        <div className="space-y-2">
-          {storePrices.map((store) => (
-            <button
-              key={store.store}
-              onClick={() => store.inStock && setSelectedStore(store.store)}
-              disabled={!store.inStock}
-              className={`w-full p-4 rounded-xl border transition-all ${
-                selectedStore === store.store 
-                  ? 'border-primary bg-primary/5' 
-                  : store.inStock 
-                    ? 'border-border hover:border-primary/50' 
-                    : 'border-border opacity-50'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{store.logo}</span>
-                  <div className="text-left">
-                    <p className="font-semibold">{store.store}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {store.inStock ? `Доставка: ${store.delivery}` : 'Нет в наличии'}
-                    </p>
+      {product.stores && product.stores.length > 0 && (
+        <section className="px-4 mb-6">
+          <h3 className="font-bold text-lg mb-3">Цены в магазинах</h3>
+          <div className="space-y-2">
+            {product.stores.map((store, index) => (
+              <button
+                key={store.name}
+                onClick={() => setSelectedStore(index)}
+                className={`w-full p-4 rounded-xl border transition-all ${
+                  selectedStore === index 
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🏪</span>
+                    <div className="text-left">
+                      <p className="font-semibold">{store.name}</p>
+                      <p className="text-xs text-muted-foreground">Доставка: 30-60 мин</p>
+                    </div>
                   </div>
-                </div>
-                <div className="text-right flex items-center gap-3">
-                  <div>
-                    <p className={`font-bold text-lg ${store.price === bestPrice ? 'text-primary' : ''}`}>
-                      {store.price} ₽
-                    </p>
-                    {store.oldPrice && (
-                      <p className="text-xs text-muted-foreground line-through">{store.oldPrice} ₽</p>
+                  <div className="text-right flex items-center gap-3">
+                    <div>
+                      <p className={`font-bold text-lg ${store.price === bestPrice ? 'text-primary' : ''}`}>
+                        {store.price} ₽
+                      </p>
+                    </div>
+                    {selectedStore === index && (
+                      <Check className="h-5 w-5 text-primary" />
                     )}
                   </div>
-                  {selectedStore === store.store && (
-                    <Check className="h-5 w-5 text-primary" />
-                  )}
                 </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Tabs */}
       <section className="px-4 mb-6">
-        <Tabs defaultValue="composition" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 bg-muted rounded-xl">
-            <TabsTrigger value="composition">Состав</TabsTrigger>
-            <TabsTrigger value="nutrition">КБЖУ</TabsTrigger>
-            <TabsTrigger value="storage">Хранение</TabsTrigger>
+        <Tabs defaultValue="reviews" className="w-full">
+          <TabsList className="w-full grid grid-cols-2 bg-muted rounded-xl">
+            <TabsTrigger value="reviews">Отзывы</TabsTrigger>
+            <TabsTrigger value="characteristics">Характеристики</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="composition" className="mt-4">
-            <div className="bg-card rounded-xl p-4 border border-border">
-              <h4 className="font-semibold mb-2">Состав</h4>
-              <p className="text-muted-foreground">{mockProduct.composition}</p>
-              <div className="mt-4 pt-4 border-t border-border grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Производитель</p>
-                  <p className="font-medium">{mockProduct.manufacturer}</p>
+          <TabsContent value="reviews" className="mt-4 space-y-3">
+            {mockReviews.map((review) => (
+              <div key={review.id} className="bg-card rounded-xl p-4 border border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{review.avatar}</span>
+                    <div>
+                      <p className="font-medium text-foreground">{review.author}</p>
+                      <p className="text-xs text-muted-foreground">{review.date}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-3 w-3 ${i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-muted'}`}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Страна</p>
-                  <p className="font-medium">{mockProduct.country}</p>
-                </div>
+                <p className="text-sm text-foreground">{review.text}</p>
               </div>
-            </div>
+            ))}
+            <Button variant="outline" className="w-full">
+              Написать отзыв
+            </Button>
           </TabsContent>
 
-          <TabsContent value="nutrition" className="mt-4">
-            <div className="bg-card rounded-xl p-4 border border-border">
-              <h4 className="font-semibold mb-4">Пищевая ценность на 100г</h4>
-              <div className="grid grid-cols-4 gap-4 text-center">
-                <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-primary">{mockProduct.nutrition.calories}</p>
-                  <p className="text-xs text-muted-foreground">ккал</p>
-                </div>
-                <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-foreground">{mockProduct.nutrition.protein}</p>
-                  <p className="text-xs text-muted-foreground">белки, г</p>
-                </div>
-                <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-foreground">{mockProduct.nutrition.fat}</p>
-                  <p className="text-xs text-muted-foreground">жиры, г</p>
-                </div>
-                <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-foreground">{mockProduct.nutrition.carbs}</p>
-                  <p className="text-xs text-muted-foreground">углеводы, г</p>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="storage" className="mt-4">
-            <div className="bg-card rounded-xl p-4 border border-border space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                  <ThermometerSnowflake className="h-5 w-5 text-blue-500" />
-                </div>
-                <div>
-                  <p className="font-semibold">Условия хранения</p>
-                  <p className="text-sm text-muted-foreground">{mockProduct.storageConditions}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-amber-500" />
-                </div>
-                <div>
-                  <p className="font-semibold">Срок годности</p>
-                  <p className="text-sm text-muted-foreground">{mockProduct.shelfLife}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Package className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold">Вес нетто</p>
-                  <p className="text-sm text-muted-foreground">{mockProduct.weight}</p>
-                </div>
-              </div>
+          <TabsContent value="characteristics" className="mt-4">
+            <div className="bg-card rounded-xl border border-border divide-y divide-border">
+              {product.characteristics ? (
+                Object.entries(product.characteristics).map(([key, value]) => (
+                  <div key={key} className="flex justify-between py-3 px-4">
+                    <span className="text-muted-foreground">{key}</span>
+                    <span className="font-medium text-foreground">{value}</span>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="flex justify-between py-3 px-4">
+                    <span className="text-muted-foreground">Категория</span>
+                    <span className="font-medium text-foreground">{product.category}</span>
+                  </div>
+                  <div className="flex justify-between py-3 px-4">
+                    <span className="text-muted-foreground">Единица</span>
+                    <span className="font-medium text-foreground">{product.unit}</span>
+                  </div>
+                  <div className="flex justify-between py-3 px-4">
+                    <span className="text-muted-foreground">Рейтинг</span>
+                    <span className="font-medium text-foreground">{product.rating} ⭐</span>
+                  </div>
+                  <div className="flex justify-between py-3 px-4">
+                    <span className="text-muted-foreground">Отзывов</span>
+                    <span className="font-medium text-foreground">{product.reviewCount}</span>
+                  </div>
+                </>
+              )}
             </div>
           </TabsContent>
         </Tabs>
       </section>
 
       {/* Similar Products */}
-      <section className="px-4 mb-24">
-        <h3 className="font-bold text-lg mb-3">Похожие товары</h3>
-        <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
-          {similarProducts.map((product) => (
-            <Link 
-              key={product.id}
-              to={`/product/${product.id}`}
-              className="flex-shrink-0 w-36 bg-card rounded-xl border border-border overflow-hidden"
-            >
-              <div className="aspect-square bg-muted">
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-              </div>
-              <div className="p-3">
-                <p className="text-sm font-medium line-clamp-2 mb-1">{product.name}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-bold">{product.price} ₽</span>
-                  {product.oldPrice && (
-                    <span className="text-xs text-muted-foreground line-through">{product.oldPrice} ₽</span>
-                  )}
-                </div>
-              </div>
+      {similarProducts.length > 0 && (
+        <section className="mb-24">
+          <div className="flex items-center justify-between px-4 mb-3">
+            <h3 className="font-bold text-lg">Похожие товары</h3>
+            <Link to={`/catalog?category=${product.category}`} className="text-sm text-primary flex items-center">
+              Все <ChevronRight className="h-4 w-4" />
             </Link>
-          ))}
-        </div>
-      </section>
+          </div>
+          <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
+            {similarProducts.map((p) => (
+              <div key={p.id} className="flex-shrink-0 w-[140px]">
+                <ProductCard product={p} variant="compact" />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Fixed Bottom Bar */}
-      <div className="fixed bottom-20 left-0 right-0 bg-background border-t border-border p-4 z-30">
+      <div className="fixed bottom-16 left-0 right-0 bg-background border-t border-border p-4 z-30">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <span className="w-8 text-center font-semibold">{quantity}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setQuantity(quantity + 1)}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <Button 
-            className="flex-1 h-12 rounded-xl text-base"
-            onClick={handleAddToCart}
-          >
-            <ShoppingCart className="h-5 w-5 mr-2" />
-            В корзину • {selectedStore ? storePrices.find(s => s.store === selectedStore)?.price! * quantity : bestPrice * quantity} ₽
-          </Button>
+          {quantity > 0 ? (
+            <>
+              <div className="flex items-center gap-2 bg-primary/10 rounded-xl px-3 py-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => quantity > 1 ? updateQuantity(product.id, quantity - 1) : removeFromCart(product.id)}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="w-8 text-center font-semibold">{quantity}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => updateQuantity(product.id, quantity + 1)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex-1 text-right">
+                <p className="text-sm text-muted-foreground">В корзине</p>
+                <p className="font-bold text-lg">{product.price * quantity} ₽</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex-1">
+                <p className="text-2xl font-bold text-foreground">{bestPrice} ₽</p>
+                {product.oldPrice && (
+                  <p className="text-sm text-muted-foreground line-through">{product.oldPrice} ₽</p>
+                )}
+              </div>
+              <Button 
+                className="flex-1 h-12 rounded-xl text-base"
+                onClick={handleAddToCart}
+              >
+                <ShoppingCart className="h-5 w-5 mr-2" />
+                В корзину
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>
