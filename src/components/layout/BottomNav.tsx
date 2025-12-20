@@ -1,12 +1,12 @@
-import { Home, Search, ShoppingCart, ChefHat, User } from 'lucide-react';
+import { Home, Search, ShoppingCart, ChefHat, User, Store } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAppStore } from '@/stores/useAppStore';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Главная' },
   { to: '/catalog', icon: Search, label: 'Каталог' },
+  { to: '/stores', icon: Store, label: 'Магазины' },
   { to: '/cart', icon: ShoppingCart, label: 'Корзина' },
-  { to: '/recipes', icon: ChefHat, label: 'Рецепты' },
   { to: '/profile', icon: User, label: 'Профиль' },
 ];
 

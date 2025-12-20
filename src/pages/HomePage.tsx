@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Heart, ChefHat, ChevronRight } from 'lucide-react';
+import { Search, Heart, ChefHat, ChevronRight, Store, Tractor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { PromoBanner } from '@/components/ui/PromoBanner';
@@ -253,6 +253,28 @@ export default function HomePage() {
             </div>
           </div>
         </Link>
+      </section>
+
+      {/* Магазины и Фермы */}
+      <section className="px-4 pt-6">
+        <div className="grid grid-cols-2 gap-3">
+          <Link to="/stores" className="block">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
+              <Store className="h-8 w-8 mb-2" />
+              <h3 className="font-bold">Магазины</h3>
+              <p className="text-sm text-white/80">Сетевые и локальные</p>
+              <ChevronRight className="h-5 w-5 mt-2" />
+            </div>
+          </Link>
+          <Link to="/farms" className="block">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white">
+              <Tractor className="h-8 w-8 mb-2" />
+              <h3 className="font-bold">Фермы</h3>
+              <p className="text-sm text-white/80">Свежее от фермеров</p>
+              <ChevronRight className="h-5 w-5 mt-2" />
+            </div>
+          </Link>
+        </div>
       </section>
 
       {/* Catering - 3 rows by category */}
