@@ -8,6 +8,7 @@ import { ProductCarousel } from '@/components/home/ProductCarousel';
 import { MealCarousel } from '@/components/home/MealCarousel';
 import { MealPlanCarousel } from '@/components/home/MealPlanCarousel';
 import { CateringCarousel } from '@/components/home/CateringCarousel';
+import { FarmProductCarousel } from '@/components/home/FarmProductCarousel';
 import { VoiceSearch } from '@/components/home/VoiceSearch';
 import { PromoBannerCarousel } from '@/components/home/PromoBannerCarousel';
 import { CategoryChipsCarousel } from '@/components/home/CategoryChipsCarousel';
@@ -17,18 +18,12 @@ import { LanguageSelector } from '@/components/home/LanguageSelector';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { mockProducts, mockRecipes } from '@/data/mockData';
 import { homeCateringOffers, officeCateringOffers, themedCateringOffers } from '@/data/cateringData';
+import { farmProducts } from '@/data/farmData';
 import heroImage from '@/assets/hero-groceries.jpg';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
-
-// Mock data for various sections
-const farmProducts = mockProducts.slice(0, 6).map(p => ({
-  ...p,
-  badge: 'new' as const,
-  name: `Фермерский ${p.name.toLowerCase()}`
-}));
 
 const monthNames = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
 const currentMonth = monthNames[new Date().getMonth()];
@@ -203,7 +198,7 @@ export default function HomePage() {
       {/* Farm Products - 1 row, collapsible */}
       <section className="pt-6">
         <CollapsibleSection title="Фермерские/Эко продукты" linkText="Все" linkTo="/farm-products" initialExpanded={true}>
-          <ProductCarousel products={farmProducts} rows={1} />
+          <FarmProductCarousel products={farmProducts} rows={1} />
         </CollapsibleSection>
       </section>
 
