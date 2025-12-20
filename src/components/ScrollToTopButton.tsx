@@ -23,7 +23,7 @@ export function ScrollToTopButton() {
   return (
     <Button
       onClick={scrollToTop}
-      className="fixed bottom-20 right-4 z-50 h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground animate-fade-in"
+      className="fixed bottom-20 right-4 z-50 h-12 w-12 rounded-full shadow-lg bg-foreground hover:bg-foreground/90 text-background animate-fade-in"
       size="icon"
       aria-label="Наверх"
     >

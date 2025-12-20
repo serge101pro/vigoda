@@ -52,6 +52,8 @@ import StoresPage from "@/pages/StoresPage";
 import StoreDetailPage from "@/pages/StoreDetailPage";
 import FarmsPage from "@/pages/FarmsPage";
 import FarmDetailPage from "@/pages/FarmDetailPage";
+import PromosPage from "@/pages/PromosPage";
+import PaymentPage from "@/pages/PaymentPage";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +89,7 @@ function AppRoutes() {
           <Route path="/ready-meal/:id" element={<ReadyMealDetailPage />} />
           <Route path="/catering" element={<CateringPage />} />
           <Route path="/catering/:id" element={<CateringDetailPage />} />
+          <Route path="/promos" element={<PromosPage />} />
           <Route path="/promo/:id" element={<PromoDetailPage />} />
           <Route path="/farm-products" element={<FarmProductsPage />} />
           <Route path="/farm-product/:id" element={<FarmProductDetailPage />} />
@@ -96,6 +99,7 @@ function AppRoutes() {
           <Route path="/farm/:id" element={<FarmDetailPage />} />
           <Route path="/family" element={<FamilyPlanningPage />} />
           <Route path="/social-recipes" element={<SocialRecipesPage />} />
+          <Route path="/payment" element={<PaymentPage />} />
           <Route path="/profile/addresses" element={<AddressesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/affiliate" element={<AffiliatePage />} />
