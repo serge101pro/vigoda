@@ -5,26 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { farmProducts, farmCategories, FarmProduct } from '@/data/farmData';
 
-interface FarmProduct {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  price: number;
-  unit: string;
-  farm: string;
-  farmLogo: string;
-  location: string;
-  rating: number;
-  reviewCount: number;
-  organic: boolean;
-  delivery: string;
-  inStock: boolean;
-  category: string;
-}
-
-interface Farm {
+interface FarmDisplay {
   id: string;
   name: string;
   logo: string;
@@ -37,18 +20,9 @@ interface Farm {
   verified: boolean;
 }
 
-const categories = [
-  { id: 'all', name: 'Все', emoji: '🌾' },
-  { id: 'dairy', name: 'Молочные', emoji: '🥛' },
-  { id: 'meat', name: 'Мясо', emoji: '🥩' },
-  { id: 'eggs', name: 'Яйца', emoji: '🥚' },
-  { id: 'vegetables', name: 'Овощи', emoji: '🥕' },
-  { id: 'fruits', name: 'Фрукты', emoji: '🍎' },
-  { id: 'honey', name: 'Мёд', emoji: '🍯' },
-  { id: 'bread', name: 'Хлеб', emoji: '🍞' },
-];
+const categories = farmCategories;
 
-const farms: Farm[] = [
+const farms: FarmDisplay[] = [
   {
     id: '1',
     name: 'Ферма "Зелёная долина"',
@@ -87,145 +61,6 @@ const farms: Farm[] = [
   },
 ];
 
-const farmProducts: FarmProduct[] = [
-  {
-    id: '1',
-    name: 'Молоко цельное фермерское',
-    description: 'Свежее молоко от коров свободного выпаса',
-    image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&q=80',
-    price: 120,
-    unit: 'л',
-    farm: 'Ферма "Зелёная долина"',
-    farmLogo: '🏡',
-    location: 'МО, 45 км',
-    rating: 4.9,
-    reviewCount: 89,
-    organic: true,
-    delivery: 'Завтра',
-    inStock: true,
-    category: 'dairy',
-  },
-  {
-    id: '2',
-    name: 'Сыр "Российский" выдержанный',
-    description: '6 месяцев выдержки, натуральный вкус',
-    image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&q=80',
-    price: 890,
-    unit: 'кг',
-    farm: 'Ферма "Зелёная долина"',
-    farmLogo: '🏡',
-    location: 'МО, 45 км',
-    rating: 4.8,
-    reviewCount: 156,
-    organic: true,
-    delivery: '2-3 дня',
-    inStock: true,
-    category: 'dairy',
-  },
-  {
-    id: '3',
-    name: 'Говядина мраморная',
-    description: 'Премиальная говядина зернового откорма',
-    image: 'https://images.unsplash.com/photo-1603048297172-c92544798d5a?w=400&q=80',
-    price: 1490,
-    unit: 'кг',
-    farm: 'Хозяйство Ивановых',
-    farmLogo: '🐄',
-    location: 'Тула, 120 км',
-    rating: 4.9,
-    reviewCount: 67,
-    organic: false,
-    delivery: '2-3 дня',
-    inStock: true,
-    category: 'meat',
-  },
-  {
-    id: '4',
-    name: 'Яйца деревенские',
-    description: 'От кур свободного выгула, крупные',
-    image: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&q=80',
-    price: 180,
-    unit: '10 шт',
-    farm: 'Хозяйство Ивановых',
-    farmLogo: '🐄',
-    location: 'Тула, 120 км',
-    rating: 4.7,
-    reviewCount: 234,
-    organic: true,
-    delivery: 'Завтра',
-    inStock: true,
-    category: 'eggs',
-  },
-  {
-    id: '5',
-    name: 'Мёд цветочный',
-    description: 'Натуральный мёд с разнотравья',
-    image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&q=80',
-    price: 650,
-    unit: '500 г',
-    farm: 'Пасека "Медовый рай"',
-    farmLogo: '🐝',
-    location: 'Рязань, 180 км',
-    rating: 5.0,
-    reviewCount: 45,
-    organic: true,
-    delivery: '3-4 дня',
-    inStock: true,
-    category: 'honey',
-  },
-  {
-    id: '6',
-    name: 'Творог домашний',
-    description: 'Мягкий творог 9% жирности',
-    image: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400&q=80',
-    price: 280,
-    unit: '400 г',
-    farm: 'Ферма "Зелёная долина"',
-    farmLogo: '🏡',
-    location: 'МО, 45 км',
-    rating: 4.8,
-    reviewCount: 123,
-    organic: true,
-    delivery: 'Завтра',
-    inStock: true,
-    category: 'dairy',
-  },
-  {
-    id: '7',
-    name: 'Куриная грудка',
-    description: 'Охлаждённая, от кур свободного выгула',
-    image: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=400&q=80',
-    price: 420,
-    unit: 'кг',
-    farm: 'Хозяйство Ивановых',
-    farmLogo: '🐄',
-    location: 'Тула, 120 км',
-    rating: 4.6,
-    reviewCount: 89,
-    organic: false,
-    delivery: '2-3 дня',
-    inStock: true,
-    category: 'meat',
-  },
-  {
-    id: '8',
-    name: 'Хлеб деревенский',
-    description: 'На закваске, бездрожжевой',
-    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&q=80',
-    price: 150,
-    unit: 'шт',
-    farm: 'Ферма "Зелёная долина"',
-    farmLogo: '🏡',
-    location: 'МО, 45 км',
-    rating: 4.9,
-    reviewCount: 78,
-    organic: true,
-    delivery: 'Завтра',
-    inStock: true,
-    category: 'bread',
-  },
-];
-
 export default function FarmProductsPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -236,7 +71,7 @@ export default function FarmProductsPage() {
   const filteredProducts = farmProducts.filter((product) => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          product.farm.toLowerCase().includes(searchQuery.toLowerCase());
+                          product.farm.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -246,7 +81,9 @@ export default function FarmProductsPage() {
     );
   };
 
-  const handleAddToCart = (product: FarmProduct) => {
+  const handleAddToCart = (product: FarmProduct, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     toast({
       title: 'Добавлено в корзину',
       description: product.name,
@@ -377,7 +214,7 @@ export default function FarmProductsPage() {
               }`}
             >
               <span>{cat.emoji}</span>
-              <span className="text-sm font-medium">{cat.name}</span>
+              <span className="text-sm font-medium">{cat.label}</span>
             </button>
           ))}
         </div>
@@ -388,13 +225,14 @@ export default function FarmProductsPage() {
         <h3 className="font-bold text-lg mb-3">
           {selectedCategory === 'all' 
             ? 'Все продукты' 
-            : categories.find(c => c.id === selectedCategory)?.name}
+            : categories.find(c => c.id === selectedCategory)?.label}
         </h3>
         <div className="grid grid-cols-2 gap-3">
           {filteredProducts.map((product) => (
-            <div 
+            <Link 
               key={product.id}
-              className="bg-card rounded-xl border border-border overflow-hidden"
+              to={`/farm-product/${product.id}`}
+              className="bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors"
             >
               <div className="relative aspect-square">
                 <img 
@@ -403,7 +241,7 @@ export default function FarmProductsPage() {
                   className="w-full h-full object-cover"
                 />
                 <button
-                  onClick={() => toggleFavorite(product.id)}
+                  onClick={(e) => { e.preventDefault(); toggleFavorite(product.id); }}
                   className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm"
                 >
                   <Heart 
@@ -414,9 +252,12 @@ export default function FarmProductsPage() {
                     }`}
                   />
                 </button>
-                {product.organic && (
-                  <Badge className="absolute top-2 left-2 bg-primary text-xs">
-                    <Leaf className="h-3 w-3 mr-1" /> Эко
+                <Badge className="absolute top-2 left-2 bg-primary text-xs">
+                  <Leaf className="h-3 w-3 mr-1" /> Эко
+                </Badge>
+                {product.oldPrice && (
+                  <Badge className="absolute bottom-2 left-2 bg-destructive text-xs">
+                    -{Math.round((1 - product.price / product.oldPrice) * 100)}%
                   </Badge>
                 )}
               </div>
@@ -428,24 +269,26 @@ export default function FarmProductsPage() {
                 </div>
                 <h4 className="font-semibold text-sm line-clamp-2 mb-1">{product.name}</h4>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                  <span>{product.farmLogo}</span>
-                  <span className="truncate">{product.farm}</span>
+                  <Leaf className="h-3 w-3" />
+                  <span className="truncate">{product.farm.name}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-bold text-primary">{product.price} ₽</p>
-                    <p className="text-xs text-muted-foreground">/{product.unit}</p>
+                    {product.oldPrice && (
+                      <p className="text-xs text-muted-foreground line-through">{product.oldPrice} ₽</p>
+                    )}
                   </div>
                   <Button 
                     size="icon" 
                     className="rounded-xl h-9 w-9"
-                    onClick={() => handleAddToCart(product)}
+                    onClick={(e) => handleAddToCart(product, e)}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
