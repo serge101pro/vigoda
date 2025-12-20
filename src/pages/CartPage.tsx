@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/stores/useAppStore';
 import { ProductCard } from '@/components/products/ProductCard';
+import { AggregatedIngredientsSection } from '@/components/cart/AggregatedIngredientsSection';
+import { RecipeRecommendations } from '@/components/cart/RecipeRecommendations';
 
 const strategies = [
   {
@@ -175,6 +177,12 @@ export default function CartPage() {
           </div>
         )}
       </section>
+
+      {/* Aggregated Ingredients */}
+      <AggregatedIngredientsSection />
+
+      {/* Recipe Recommendations */}
+      <RecipeRecommendations />
 
       {/* Cart Items */}
       <section className="px-4 pt-4 space-y-3">

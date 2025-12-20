@@ -11,10 +11,17 @@ interface UserHeaderProps {
 }
 
 const planLabels = {
-  free: 'Бесплатная',
-  solo: 'Solo',
-  family: 'Family',
-  corp: 'Корп'
+  free: 'Выгода',
+  solo: 'Персона',
+  family: 'Семья',
+  corp: 'Бизнес'
+};
+
+const planColors = {
+  free: 'bg-gray-500 text-white',
+  solo: 'bg-green-500 text-white',
+  family: 'bg-purple-500 text-white',
+  corp: 'bg-orange-500 text-white'
 };
 
 export function UserHeader({ name, email, avatarUrl, plan = 'free', onEditProfile }: UserHeaderProps) {
@@ -46,8 +53,7 @@ export function UserHeader({ name, email, avatarUrl, plan = 'free', onEditProfil
       <p className="text-muted-foreground text-sm">{email}</p>
       
       <Badge 
-        variant={plan === 'free' ? 'secondary' : 'default'}
-        className={`mt-2 ${plan !== 'free' ? 'bg-primary text-primary-foreground' : ''}`}
+        className={`mt-2 ${planColors[plan]}`}
       >
         {planLabels[plan]}
       </Badge>
