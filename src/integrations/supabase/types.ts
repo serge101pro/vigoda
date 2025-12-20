@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      coop_cart_items: {
+        Row: {
+          added_by: string
+          cart_id: string
+          created_at: string
+          id: string
+          product_id: string | null
+          product_image: string | null
+          product_name: string
+          quantity: number
+          spending_category:
+            | Database["public"]["Enums"]["spending_category"]
+            | null
+          unit_price: number
+        }
+        Insert: {
+          added_by: string
+          cart_id: string
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_image?: string | null
+          product_name: string
+          quantity?: number
+          spending_category?:
+            | Database["public"]["Enums"]["spending_category"]
+            | null
+          unit_price: number
+        }
+        Update: {
+          added_by?: string
+          cart_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_image?: string | null
+          product_name?: string
+          quantity?: number
+          spending_category?:
+            | Database["public"]["Enums"]["spending_category"]
+            | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coop_cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "coop_carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coop_cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coop_carts: {
+        Row: {
+          auto_order_time: string
+          created_at: string
+          deadline_time: string
+          delivery_address: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          auto_order_time?: string
+          created_at?: string
+          deadline_time?: string
+          delivery_address?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          auto_order_time?: string
+          created_at?: string
+          deadline_time?: string
+          delivery_address?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coop_carts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string
@@ -184,6 +288,251 @@ export type Database = {
           total_amount?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      org_balance_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          order_id: string | null
+          organization_id: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          organization_id: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          organization_id?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_balance_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_balance_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_balances: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_balances_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string | null
+          id: string
+          invoice_number: string
+          organization_id: string
+          paid_at: string | null
+          pdf_url: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          organization_id: string
+          paid_at?: string | null
+          pdf_url?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          organization_id?: string
+          paid_at?: string | null
+          pdf_url?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_members: {
+        Row: {
+          created_at: string
+          current_month_spent: number | null
+          id: string
+          is_active: boolean | null
+          monthly_limit: number | null
+          organization_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_month_spent?: number | null
+          id?: string
+          is_active?: boolean | null
+          monthly_limit?: number | null
+          organization_id: string
+          role?: Database["public"]["Enums"]["org_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_month_spent?: number | null
+          id?: string
+          is_active?: boolean | null
+          monthly_limit?: number | null
+          organization_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_upd_documents: {
+        Row: {
+          created_at: string
+          document_number: string
+          id: string
+          organization_id: string
+          pdf_url: string | null
+          period_end: string
+          period_start: string
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string
+          document_number: string
+          id?: string
+          organization_id: string
+          pdf_url?: string | null
+          period_end: string
+          period_start: string
+          total_amount: number
+        }
+        Update: {
+          created_at?: string
+          document_number?: string
+          id?: string
+          organization_id?: string
+          pdf_url?: string | null
+          period_end?: string
+          period_start?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_upd_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          inn: string | null
+          kpp: string | null
+          legal_address: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          inn?: string | null
+          kpp?: string | null
+          legal_address?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          inn?: string | null
+          kpp?: string | null
+          legal_address?: string | null
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -539,9 +888,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_org_id: { Args: { _user_id: string }; Returns: string }
+      has_org_role: {
+        Args: {
+          _org_id: string
+          _role: Database["public"]["Enums"]["org_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_org_member: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      org_role: "admin" | "manager" | "employee"
+      spending_category:
+        | "lunch"
+        | "corporate_event"
+        | "office_kitchen"
+        | "other"
       subscription_plan: "free" | "solo" | "family" | "corp"
     }
     CompositeTypes: {
@@ -670,6 +1037,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      org_role: ["admin", "manager", "employee"],
+      spending_category: [
+        "lunch",
+        "corporate_event",
+        "office_kitchen",
+        "other",
+      ],
       subscription_plan: ["free", "solo", "family", "corp"],
     },
   },

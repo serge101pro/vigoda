@@ -55,6 +55,11 @@ import FarmDetailPage from "@/pages/FarmDetailPage";
 import PromosPage from "@/pages/PromosPage";
 import PaymentPage from "@/pages/PaymentPage";
 import NearestStoresPage from "@/pages/NearestStoresPage";
+import BusinessLandingPage from "@/pages/BusinessLandingPage";
+import OrganizationDashboardPage from "@/pages/organization/OrganizationDashboardPage";
+import OrganizationAnalyticsPage from "@/pages/organization/OrganizationAnalyticsPage";
+import OrganizationDocumentsPage from "@/pages/organization/OrganizationDocumentsPage";
+import CoopCartPage from "@/pages/organization/CoopCartPage";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +107,11 @@ function AppRoutes() {
           <Route path="/social-recipes" element={<SocialRecipesPage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/nearest-stores" element={<NearestStoresPage />} />
+          <Route path="/business" element={<BusinessLandingPage />} />
+          <Route path="/organization" element={<OrganizationDashboardPage />} />
+          <Route path="/organization/analytics" element={<OrganizationAnalyticsPage />} />
+          <Route path="/organization/documents" element={<OrganizationDocumentsPage />} />
+          <Route path="/organization/coop-cart" element={<CoopCartPage />} />
           <Route path="/profile/addresses" element={<AddressesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/affiliate" element={<AffiliatePage />} />
