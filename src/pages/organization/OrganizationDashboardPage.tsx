@@ -266,6 +266,21 @@ export default function OrganizationDashboardPage() {
             </div>
           </Link>
 
+          <Link to="/organization/approvals">
+            <div className="flex items-center justify-between p-4 bg-card rounded-xl border border-border hover:border-primary/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/10 rounded-lg">
+                  <AlertCircle className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="font-medium">Согласование</p>
+                  <p className="text-xs text-muted-foreground">Заявки на одобрение</p>
+                </div>
+              </div>
+              <Badge variant="secondary" className="bg-amber-500/10 text-amber-500">2 новых</Badge>
+            </div>
+          </Link>
+
           <Link to="/organization/orders">
             <div className="flex items-center justify-between p-4 bg-card rounded-xl border border-border hover:border-primary/50 transition-colors">
               <div className="flex items-center gap-3">
