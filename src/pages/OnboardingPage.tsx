@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/stores/useAppStore';
-import { ShoppingBag, BarChart3, ChefHat, ArrowRight } from 'lucide-react';
+import { ShoppingBag, BarChart3, ChefHat, Building2, ArrowRight } from 'lucide-react';
 import heroImage from '@/assets/hero-groceries.jpg';
 
 const slides = [
@@ -23,6 +23,12 @@ const slides = [
     title: 'Готовьте вкусно',
     description: 'Рецепты с автоматическим добавлением ингредиентов в список покупок',
     color: 'bg-primary-light',
+  },
+  {
+    icon: Building2,
+    title: 'Для бизнеса',
+    description: 'Кормите команду вкусно и без лишних бумаг. Один счет в конце месяца с закрывающими документами.',
+    color: 'bg-accent-light',
   },
 ];
 

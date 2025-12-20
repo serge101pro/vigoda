@@ -160,6 +160,7 @@ export function useOrganization() {
   const isManager = membership?.role === 'manager';
   const isEmployee = membership?.role === 'employee';
   const hasOrgAccess = !!organization;
+  const isB2BUser = !!organization;
 
   const addToCoopCart = async (item: Omit<CoopCartItem, 'id' | 'cart_id' | 'created_at' | 'added_by'>) => {
     if (!user || !coopCart) return false;
@@ -237,6 +238,7 @@ export function useOrganization() {
     isManager,
     isEmployee,
     hasOrgAccess,
+    isB2BUser,
     addToCoopCart,
     removeFromCoopCart,
     getRemainingLimit,

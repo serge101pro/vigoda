@@ -15,6 +15,7 @@ import { CategoryChipsCarousel } from '@/components/home/CategoryChipsCarousel';
 import { HeaderAvatar } from '@/components/home/HeaderAvatar';
 import { AddressDropdown } from '@/components/home/AddressDropdown';
 import { LanguageSelector } from '@/components/home/LanguageSelector';
+import { BusinessWidget } from '@/components/home/BusinessWidget';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Switch } from '@/components/ui/switch';
 import { mockProducts, mockRecipes } from '@/data/mockData';
@@ -307,6 +308,11 @@ export default function HomePage() {
             </div>
           </Link>
         </div>
+      </section>
+
+      {/* Business Widget */}
+      <section className="px-4 pt-6">
+        <BusinessWidget />
       </section>
 
       {/* Для питомцев */}
