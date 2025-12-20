@@ -41,9 +41,12 @@ import ReadyMealsPage from "@/pages/ReadyMealsPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
 import MealPlanDetailPage from "@/pages/MealPlanDetailPage";
 import CateringPage from "@/pages/CateringPage";
+import CateringDetailPage from "@/pages/CateringDetailPage";
 import FarmProductsPage from "@/pages/FarmProductsPage";
 import FamilyPlanningPage from "@/pages/FamilyPlanningPage";
 import SocialRecipesPage from "@/pages/SocialRecipesPage";
+import PromoDetailPage from "@/pages/PromoDetailPage";
+import ReadyMealDetailPage from "@/pages/ReadyMealDetailPage";
 
 const queryClient = new QueryClient();
 
