@@ -42,7 +42,7 @@ export function CateringCarousel({ offers, rows = 1 }: CateringCarouselProps) {
           {rowOffers.map((offer) => (
             <Link
               key={offer.id}
-              to={`/catering?offer=${offer.id}`}
+              to={`/catering/${offer.id}`}
               className="flex-shrink-0 w-64 bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/30 transition-colors"
             >
               <div className="relative h-36">

@@ -74,7 +74,10 @@ function AppRoutes() {
           <Route path="/ready-meals" element={<ReadyMealsPage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/meal-plan/:id" element={<MealPlanDetailPage />} />
+          <Route path="/ready-meal/:id" element={<ReadyMealDetailPage />} />
           <Route path="/catering" element={<CateringPage />} />
+          <Route path="/catering/:id" element={<CateringDetailPage />} />
+          <Route path="/promo/:id" element={<PromoDetailPage />} />
           <Route path="/farm-products" element={<FarmProductsPage />} />
           <Route path="/family" element={<FamilyPlanningPage />} />
           <Route path="/social-recipes" element={<SocialRecipesPage />} />

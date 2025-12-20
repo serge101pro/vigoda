@@ -16,6 +16,7 @@ import { AddressDropdown } from '@/components/home/AddressDropdown';
 import { LanguageSelector } from '@/components/home/LanguageSelector';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { mockProducts, mockRecipes } from '@/data/mockData';
+import { homeCateringOffers, officeCateringOffers, themedCateringOffers } from '@/data/cateringData';
 import heroImage from '@/assets/hero-groceries.jpg';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -50,17 +51,10 @@ const mealPlans = [
   { id: '4', name: 'Вегетарианский', image: mockProducts[0]?.image || '', days: 7, mealsPerDay: 4, caloriesPerDay: 1600, price: 5990, pricePerDay: 856, rating: 4.6 },
 ];
 
-const cateringOffers = [
-  { id: '1', title: 'Семейный ужин', description: 'Уютный ужин на дому для всей семьи', image: mockProducts[3]?.image || '', category: 'home' as const, priceFrom: 2500, guestsMin: 4, guestsMax: 8 },
-  { id: '2', title: 'Бизнес-ланч', description: 'Деловые обеды с доставкой в офис', image: mockProducts[10]?.image || '', category: 'office' as const, priceFrom: 450, guestsMin: 10, guestsMax: 50 },
-  { id: '3', title: 'День рождения', description: 'Праздничное меню для особого дня', image: mockProducts[5]?.image || '', category: 'themed' as const, priceFrom: 3500, guestsMin: 8, guestsMax: 30 },
-  { id: '4', title: 'Корпоратив', description: 'Фуршет и банкет для компании', image: mockProducts[6]?.image || '', category: 'office' as const, priceFrom: 800, guestsMin: 20, guestsMax: 100 },
-  { id: '5', title: 'Детский праздник', description: 'Весёлое меню для малышей', image: mockProducts[13]?.image || '', category: 'themed' as const, priceFrom: 1500, guestsMin: 6, guestsMax: 20 },
-  { id: '6', title: 'Романтический ужин', description: 'Изысканный ужин на двоих', image: mockProducts[6]?.image || '', category: 'home' as const, priceFrom: 3000, guestsMin: 2, guestsMax: 2 },
-  { id: '7', title: 'Пикник на природе', description: 'Готовые сеты для пикника', image: mockProducts[0]?.image || '', category: 'themed' as const, priceFrom: 1800, guestsMin: 4, guestsMax: 12 },
-  { id: '8', title: 'Кофе-брейк', description: 'Перерыв на кофе с угощениями', image: mockProducts[4]?.image || '', category: 'office' as const, priceFrom: 250, guestsMin: 10, guestsMax: 100 },
-  { id: '9', title: 'Свадебный банкет', description: 'Праздничное меню для свадьбы', image: mockProducts[7]?.image || '', category: 'themed' as const, priceFrom: 5000, guestsMin: 30, guestsMax: 200 },
-];
+// Combine catering offers for different rows
+const cateringHomeOffers = homeCateringOffers.map(o => ({ ...o, category: 'home' as const }));
+const cateringOfficeOffers = officeCateringOffers.map(o => ({ ...o, category: 'office' as const }));
+const cateringThemedOffers = themedCateringOffers.map(o => ({ ...o, category: 'themed' as const }));
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -266,10 +260,24 @@ export default function HomePage() {
         </Link>
       </section>
 
-      {/* Catering - 2.16 (3 rows carousel) */}
+      {/* Catering - 3 rows by category */}
       <section className="pt-6 pb-8">
-        <SectionHeader title="Кейтеринг" linkText="Все" linkTo="/catering" />
-        <CateringCarousel offers={cateringOffers} rows={3} />
+        <CollapsibleSection title="Кейтеринг" linkText="Все" linkTo="/catering" initialExpanded={true}>
+          <div className="space-y-4">
+            <div>
+              <p className="px-4 text-sm font-medium text-muted-foreground mb-2">🏠 На дом</p>
+              <CateringCarousel offers={cateringHomeOffers} rows={1} />
+            </div>
+            <div>
+              <p className="px-4 text-sm font-medium text-muted-foreground mb-2">🏢 В офис</p>
+              <CateringCarousel offers={cateringOfficeOffers} rows={1} />
+            </div>
+            <div>
+              <p className="px-4 text-sm font-medium text-muted-foreground mb-2">🎉 Тематические</p>
+              <CateringCarousel offers={cateringThemedOffers} rows={1} />
+            </div>
+          </div>
+        </CollapsibleSection>
       </section>
     </div>
   );
