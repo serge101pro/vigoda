@@ -20,10 +20,11 @@ import householdImage from '@/assets/catalog/household.jpg';
 import accessoriesImage from '@/assets/catalog/accessories.jpg';
 
 const catalogSections = [
-  { id: 'products', label: 'Продукты', emoji: '🛒', image: productsImage },
-  { id: 'beauty', label: 'Косметика', emoji: '💄', image: beautyImage },
-  { id: 'household', label: 'Бытовая химия', emoji: '🧹', image: householdImage },
-  { id: 'accessories', label: 'Хоз. мелочи', emoji: '🧰', image: accessoriesImage },
+  { id: 'products', label: 'Продукты', emoji: '🛒', image: productsImage, color: 'bg-green-500/10' },
+  { id: 'beauty', label: 'Косметика', emoji: '💄', image: beautyImage, color: 'bg-pink-500/10' },
+  { id: 'perfume', label: 'Парфюмерия', emoji: '🌸', image: beautyImage, color: 'bg-purple-500/10' },
+  { id: 'household', label: 'Бытовая химия', emoji: '🧹', image: householdImage, color: 'bg-blue-500/10' },
+  { id: 'accessories', label: 'Хоз. мелочи', emoji: '🧰', image: accessoriesImage, color: 'bg-orange-500/10' },
 ];
 
 export default function CatalogPage() {
@@ -100,7 +101,7 @@ export default function CatalogPage() {
             </Button>
           </div>
 
-          {/* Section Tabs */}
+          {/* Section Chips - Same style as home page categories */}
           <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
             {catalogSections.map((s) => (
               <button
@@ -109,13 +110,13 @@ export default function CatalogPage() {
                   setActiveSection(s.id);
                   setActiveCategory('all');
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all whitespace-nowrap border ${
                   activeSection === s.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                    : `${s.color} border-transparent hover:border-primary/30`
                 }`}
               >
-                <span>{s.emoji}</span>
+                <span className="text-lg">{s.emoji}</span>
                 <span>{s.label}</span>
               </button>
             ))}
