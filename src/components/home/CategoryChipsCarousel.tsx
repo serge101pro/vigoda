@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,11 @@ interface CategoryChipsCarouselProps {
 
 export function CategoryChipsCarousel({ initialExpanded = true }: CategoryChipsCarouselProps) {
   const [isExpanded, setIsExpanded] = useState(initialExpanded);
+
+  // Sync with prop changes (for global collapse toggle)
+  useEffect(() => {
+    setIsExpanded(initialExpanded);
+  }, [initialExpanded]);
 
   // Split categories into 2 rows for carousel
   const row1 = productCategories.slice(0, 12);
