@@ -6,21 +6,26 @@ import { useAppStore, Product, Recipe } from '@/stores/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Users, Package, ChefHat, Utensils } from 'lucide-react';
 
+interface MealPlanData {
+  id: string;
+  name: string;
+  price: number;
+  pricePerDay: number;
+  image: string;
+  days: number;
+  mealsPerDay: number;
+  supplierKitPrice?: number;
+  diyPrice?: number;
+  ingredients?: { name: string; amount: string }[];
+}
+
 interface AddToCartDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   type: 'product' | 'recipe' | 'meal-plan';
   product?: Product;
   recipe?: Recipe;
-  mealPlan?: {
-    id: string;
-    name: string;
-    price: number;
-    pricePerDay: number;
-    image: string;
-    days: number;
-    mealsPerDay: number;
-  };
+  mealPlan?: MealPlanData;
 }
 
 export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mealPlan }: AddToCartDialogProps) {
@@ -28,6 +33,7 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
   const { addToCart, addRecipeIngredientsToCart, addMealPlanToCart } = useAppStore();
   
   const [servings, setServings] = useState(recipe?.servings || 2);
+  const [mealPlanServings, setMealPlanServings] = useState(2);
   const [mealPlanVariant, setMealPlanVariant] = useState<'ready' | 'supplier-kit' | 'diy'>('ready');
   const [quantity, setQuantity] = useState(product?.minQuantity || 1);
 
@@ -52,7 +58,12 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
 
   const handleAddMealPlan = () => {
     if (mealPlan) {
-      addMealPlanToCart(mealPlan, mealPlanVariant);
+      // Pass servings info through the meal plan with adjusted pricing
+      const adjustedMealPlan = {
+        ...mealPlan,
+        price: calculateMealPlanPrice(mealPlanVariant, mealPlanServings),
+      };
+      addMealPlanToCart(adjustedMealPlan, mealPlanVariant);
       const variantLabels = {
         'ready': 'Готовый рацион',
         'supplier-kit': 'Набор ингредиентов от поставщика',
@@ -60,9 +71,26 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
       };
       toast({ 
         title: 'Добавлено в корзину', 
-        description: `${mealPlan.name}: ${variantLabels[mealPlanVariant]}` 
+        description: `${mealPlan.name} на ${mealPlanServings} чел.: ${variantLabels[mealPlanVariant]}` 
       });
       onOpenChange(false);
+    }
+  };
+
+  const calculateMealPlanPrice = (variant: 'ready' | 'supplier-kit' | 'diy', servingsCount: number) => {
+    if (!mealPlan) return 0;
+    const basePrice = mealPlan.price;
+    const multiplier = servingsCount / 2; // Base price is for 2 people
+    
+    switch (variant) {
+      case 'ready':
+        return Math.round(basePrice * multiplier);
+      case 'supplier-kit':
+        return Math.round(basePrice * 0.6 * multiplier);
+      case 'diy':
+        return Math.round(basePrice * 0.4 * multiplier);
+      default:
+        return basePrice * multiplier;
     }
   };
 
@@ -180,6 +208,10 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
   }
 
   if (type === 'meal-plan' && mealPlan) {
+    const readyPrice = calculateMealPlanPrice('ready', mealPlanServings);
+    const supplierKitPrice = calculateMealPlanPrice('supplier-kit', mealPlanServings);
+    const diyPrice = calculateMealPlanPrice('diy', mealPlanServings);
+
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md">
@@ -197,6 +229,25 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
               </div>
             </div>
 
+            {/* Servings selector */}
+            <div className="bg-primary/10 border border-primary/20 rounded-xl p-3">
+              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                На сколько человек?
+              </label>
+              <div className="flex items-center gap-4">
+                <Slider
+                  value={[mealPlanServings]}
+                  onValueChange={([value]) => setMealPlanServings(value)}
+                  min={1}
+                  max={8}
+                  step={1}
+                  className="flex-1"
+                />
+                <span className="w-10 text-center font-bold text-lg">{mealPlanServings}</span>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <button
                 onClick={() => setMealPlanVariant('ready')}
@@ -211,7 +262,7 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
                   <div className="flex-1">
                     <p className="font-semibold">Готовый рацион</p>
                     <p className="text-sm text-muted-foreground">Готовые блюда с доставкой</p>
-                    <p className="text-primary font-bold mt-1">{mealPlan.price} ₽</p>
+                    <p className="text-primary font-bold mt-1">{readyPrice.toLocaleString()} ₽</p>
                   </div>
                 </div>
               </button>
@@ -228,8 +279,8 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
                   <Package className="h-5 w-5 text-orange-500 mt-0.5" />
                   <div className="flex-1">
                     <p className="font-semibold">Набор ингредиентов от поставщика</p>
-                    <p className="text-sm text-muted-foreground">Расфасованные ингредиенты для самостоятельного приготовления</p>
-                    <p className="text-orange-500 font-bold mt-1">{Math.round(mealPlan.price * 0.6)} ₽</p>
+                    <p className="text-sm text-muted-foreground">Расфасовка на {mealPlanServings} чел., цены поставщика</p>
+                    <p className="text-orange-500 font-bold mt-1">{supplierKitPrice.toLocaleString()} ₽</p>
                   </div>
                 </div>
               </button>
@@ -246,12 +297,16 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
                   <ShoppingCart className="h-5 w-5 text-green-500 mt-0.5" />
                   <div className="flex-1">
                     <p className="font-semibold">Купить ингредиенты самостоятельно</p>
-                    <p className="text-sm text-muted-foreground">Оптимизированный список для покупки в магазине</p>
-                    <p className="text-green-500 font-bold mt-1">от {Math.round(mealPlan.price * 0.4)} ₽</p>
+                    <p className="text-sm text-muted-foreground">Оптимизированный список с учётом мин. фасовки</p>
+                    <p className="text-green-500 font-bold mt-1">от {diyPrice.toLocaleString()} ₽</p>
                   </div>
                 </div>
               </button>
             </div>
+
+            <p className="text-xs text-muted-foreground">
+              При выборе самостоятельной покупки ингредиенты объединяются с другими рецептами в корзине для максимальной экономии
+            </p>
 
             <Button variant="hero" className="w-full" onClick={handleAddMealPlan}>
               <ShoppingCart className="h-4 w-4 mr-2" />

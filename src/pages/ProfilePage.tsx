@@ -19,7 +19,8 @@ import {
   Utensils,
   Leaf,
   Loader2,
-  User
+  User,
+  Film
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import { ProfileMenuItem } from '@/components/profile/ProfileMenuItem';
 import { SubscriptionCard } from '@/components/profile/SubscriptionCard';
 import { PeriodModal } from '@/components/profile/PeriodModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAppStore } from '@/stores/useAppStore';
 
 const planLabels = {
   free: 'Бесплатная',
@@ -128,7 +130,20 @@ export default function ProfilePage() {
               </Link>
               <h1 className="text-xl font-bold text-foreground">Профиль</h1>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  useAppStore.getState().setHasSeenOnboarding(false);
+                  window.location.href = '/onboarding';
+                }}
+                title="Показать онбординг"
+              >
+                <Film className="h-5 w-5" />
+              </Button>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
@@ -149,6 +164,17 @@ export default function ProfilePage() {
       </div>
 
       <div className="px-4 pb-6 space-y-6">
+        {/* Stats - moved above Subscription */}
+        <section>
+          <h2 className="text-lg font-bold text-foreground mb-3">Статистика</h2>
+          <ProfileStats
+            savings={Number(profile?.total_savings) || 0}
+            listsCreated={lists.length}
+            recipesPublished={0}
+            awardsEarned={profile?.bonus_points || 0}
+          />
+        </section>
+
         {/* Subscription Preview */}
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -214,17 +240,6 @@ export default function ProfilePage() {
               />
             ))}
           </div>
-        </section>
-
-        {/* Stats */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-3">Статистика</h2>
-          <ProfileStats
-            savings={Number(profile?.total_savings) || 0}
-            listsCreated={lists.length}
-            recipesPublished={0}
-            awardsEarned={profile?.bonus_points || 0}
-          />
         </section>
 
         {/* Logout */}
