@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Star, Clock, MapPin, Globe, Percent, Package, Truck, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Star, Clock, Percent, Package, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { stores } from '@/data/storesData';
@@ -115,19 +115,6 @@ export default function StoreDetailPage() {
               <p className="text-sm text-muted-foreground">{store.deliveryInfo}</p>
             </div>
           </div>
-          <a 
-            href={store.website} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="bg-card rounded-xl p-4 border border-border flex items-center gap-3"
-          >
-            <Globe className="h-5 w-5 text-primary" />
-            <div className="flex-1">
-              <p className="font-medium text-foreground">Сайт</p>
-              <p className="text-sm text-muted-foreground">{store.website}</p>
-            </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </a>
         </div>
 
         {/* Categories */}

@@ -1,8 +1,6 @@
 import { X, Star, Flame, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface Period {
@@ -39,13 +37,11 @@ const familyPeriods: Period[] = [
 
 export function PeriodModal({ open, onClose, planType, onSelect }: PeriodModalProps) {
   const periods = planType === 'solo' ? soloPeriods : familyPeriods;
-  const [selected, setSelected] = useState<number | null>(null);
+  const navigate = useNavigate();
 
-  const handlePayment = () => {
-    if (selected !== null) {
-      window.location.href = `/payment?plan=${planType}&months=${periods[selected].months}&amount=${periods[selected].total}`;
-      onClose();
-    }
+  const handlePeriodSelect = (period: Period) => {
+    onClose();
+    navigate(`/payment?plan=${planType}&months=${period.months}&amount=${period.total}`);
   };
 
   const getBadge = (badge?: 'promo' | 'popular' | 'best') => {
@@ -76,16 +72,14 @@ export function PeriodModal({ open, onClose, planType, onSelect }: PeriodModalPr
         </DialogHeader>
 
         <div className="space-y-3 mt-4">
-          {periods.map((period, idx) => (
+          {periods.map((period) => (
             <button
               key={period.months}
-              onClick={() => setSelected(idx)}
-              className={`relative w-full text-left rounded-2xl p-4 border-2 transition-all ${
-                selected === idx
-                  ? 'border-primary bg-primary-light'
-                  : period.badge === 'popular' || period.badge === 'best'
-                    ? 'border-primary/30 bg-primary-light/30'
-                    : 'border-border bg-card hover:border-primary/50'
+              onClick={() => handlePeriodSelect(period)}
+              className={`relative w-full text-left rounded-2xl p-4 border-2 transition-all hover:border-primary ${
+                period.badge === 'popular' || period.badge === 'best'
+                  ? 'border-primary/30 bg-primary-light/30'
+                  : 'border-border bg-card hover:border-primary/50'
               }`}
             >
               {period.badge && (
@@ -123,16 +117,6 @@ export function PeriodModal({ open, onClose, planType, onSelect }: PeriodModalPr
             14 дней money-back гарантия
           </span>
         </div>
-
-        <Button 
-          variant="hero" 
-          size="lg" 
-          className="w-full mt-4"
-          disabled={selected === null}
-          onClick={handlePayment}
-        >
-          Оплатить {selected !== null ? `${periods[selected].total} ₽` : ''}
-        </Button>
       </DialogContent>
     </Dialog>
   );
