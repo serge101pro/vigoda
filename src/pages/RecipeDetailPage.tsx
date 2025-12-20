@@ -9,7 +9,16 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
 import { toast } from '@/hooks/use-toast';
+import { useAppStore } from '@/stores/useAppStore';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface Comment {
   id: string;
@@ -119,6 +128,7 @@ const initialComments: Comment[] = [
 
 export default function RecipeDetailPage() {
   const { id } = useParams();
+  const { addRecipeIngredientsToCart } = useAppStore();
   const [isLiked, setIsLiked] = useState(recipeDetail.isLiked);
   const [isSaved, setIsSaved] = useState(recipeDetail.isSaved);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -127,6 +137,8 @@ export default function RecipeDetailPage() {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
   const [showAllIngredients, setShowAllIngredients] = useState(false);
+  const [servingsDialogOpen, setServingsDialogOpen] = useState(false);
+  const [servings, setServings] = useState(recipeDetail.servings);
 
   const toggleLike = () => {
     setIsLiked(!isLiked);
@@ -187,7 +199,33 @@ export default function RecipeDetailPage() {
     toast({ title: 'Ссылка скопирована!' });
   };
 
-  const displayedIngredients = showAllIngredients 
+  const handleAddIngredients = () => {
+    setServingsDialogOpen(true);
+  };
+
+  const confirmAddIngredients = () => {
+    const recipe = {
+      id: recipeDetail.id,
+      name: recipeDetail.title,
+      image: recipeDetail.imageUrl,
+      servings: recipeDetail.servings,
+      time: recipeDetail.time,
+      calories: recipeDetail.calories,
+      ingredients: recipeDetail.ingredients.map(ing => ({
+        name: ing.name,
+        amount: ing.amount,
+        productId: undefined,
+      })),
+    };
+    addRecipeIngredientsToCart(recipe, servings);
+    toast({
+      title: 'Ингредиенты добавлены в корзину',
+      description: `${recipeDetail.title} на ${servings} ${servings === 1 ? 'порцию' : 'порций'}`,
+    });
+    setServingsDialogOpen(false);
+  };
+
+  const displayedIngredients = showAllIngredients
     ? recipeDetail.ingredients 
     : recipeDetail.ingredients.slice(0, 4);
 
@@ -336,10 +374,60 @@ export default function RecipeDetailPage() {
             </Button>
           )}
 
-          <Button variant="hero" size="lg" className="w-full mt-4">
+          <Button variant="hero" size="lg" className="w-full mt-4" onClick={handleAddIngredients}>
             Добавить все в корзину
           </Button>
         </div>
+
+        {/* Servings Dialog */}
+        <Dialog open={servingsDialogOpen} onOpenChange={setServingsDialogOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Добавить ингредиенты</DialogTitle>
+              <DialogDescription>{recipeDetail.title}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <img src={recipeDetail.imageUrl} alt={recipeDetail.title} className="w-20 h-20 rounded-xl object-cover" />
+                <div className="flex-1">
+                  <p className="font-semibold">{recipeDetail.title}</p>
+                  <p className="text-sm text-muted-foreground">{recipeDetail.ingredients.length} ингредиентов</p>
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  На сколько человек?
+                </label>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    value={[servings]}
+                    onValueChange={([value]) => setServings(value)}
+                    min={1}
+                    max={12}
+                    step={1}
+                    className="flex-1"
+                  />
+                  <span className="w-8 text-center font-bold">{servings}</span>
+                </div>
+              </div>
+              
+              <div className="bg-muted rounded-xl p-3">
+                <p className="text-sm text-muted-foreground mb-1">
+                  Ингредиенты будут рассчитаны на {servings} {servings === 1 ? 'порцию' : 'порций'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Совпадающие ингредиенты автоматически объединятся с другими рецептами
+                </p>
+              </div>
+              
+              <Button variant="hero" className="w-full" onClick={confirmAddIngredients}>
+                Добавить ингредиенты
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Steps */}
         <div className="bg-card rounded-2xl p-5 shadow-md border border-border">

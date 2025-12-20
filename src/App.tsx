@@ -54,6 +54,7 @@ import FarmsPage from "@/pages/FarmsPage";
 import FarmDetailPage from "@/pages/FarmDetailPage";
 import PromosPage from "@/pages/PromosPage";
 import PaymentPage from "@/pages/PaymentPage";
+import NearestStoresPage from "@/pages/NearestStoresPage";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,7 @@ function AppRoutes() {
           <Route path="/family" element={<FamilyPlanningPage />} />
           <Route path="/social-recipes" element={<SocialRecipesPage />} />
           <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/nearest-stores" element={<NearestStoresPage />} />
           <Route path="/profile/addresses" element={<AddressesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/affiliate" element={<AffiliatePage />} />

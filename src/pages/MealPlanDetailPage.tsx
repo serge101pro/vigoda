@@ -1,31 +1,61 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Share2, Star, Clock, Flame, Users, Calendar, ThermometerSnowflake, ShoppingCart, Check, ChefHat } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Star, Clock, Flame, Users, Calendar, ThermometerSnowflake, ShoppingCart, Check, ChefHat, Package, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { extendedMealPlans } from '@/data/mealPlansData';
+import { useAppStore } from '@/stores/useAppStore';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 export default function MealPlanDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { addMealPlanToCart } = useAppStore();
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<'3' | '7' | '14'>('7');
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
+  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [mealPlanVariant, setMealPlanVariant] = useState<'ready' | 'supplier-kit' | 'diy'>('ready');
+  const [peopleCount, setPeopleCount] = useState(1);
 
   // Find meal plan by id or use first one
   const mealPlan = extendedMealPlans.find(p => p.id === id) || extendedMealPlans[0];
   
   const priceMultiplier = { '3': 0.5, '7': 1, '14': 1.8 };
-  const finalPrice = Math.round(mealPlan.price * priceMultiplier[selectedDuration]);
+  const variantPriceMultiplier = { 'ready': 1, 'supplier-kit': 0.6, 'diy': 0.4 };
+  const finalPrice = Math.round(mealPlan.price * priceMultiplier[selectedDuration] * variantPriceMultiplier[mealPlanVariant] * peopleCount);
 
   const handleOrder = () => {
+    setOrderDialogOpen(true);
+  };
+
+  const confirmOrder = () => {
+    addMealPlanToCart({
+      id: mealPlan.id,
+      name: mealPlan.name,
+      price: finalPrice,
+      image: mealPlan.image,
+    }, mealPlanVariant);
+    const variantLabels = {
+      'ready': 'Готовый рацион',
+      'supplier-kit': 'Набор ингредиентов',
+      'diy': 'Ингредиенты самостоятельно',
+    };
     toast({
-      title: 'Заказ оформлен!',
-      description: `Рацион "${mealPlan.name}" на ${selectedDuration} дней`,
+      title: 'Добавлено в корзину!',
+      description: `${mealPlan.name}: ${variantLabels[mealPlanVariant]}`,
     });
+    setOrderDialogOpen(false);
   };
 
   const handleShare = () => {
