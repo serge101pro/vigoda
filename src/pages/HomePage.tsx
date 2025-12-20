@@ -20,6 +20,8 @@ import { Switch } from '@/components/ui/switch';
 import { mockProducts, mockRecipes } from '@/data/mockData';
 import { homeCateringOffers, officeCateringOffers, themedCateringOffers } from '@/data/cateringData';
 import { farmProducts } from '@/data/farmData';
+import { petProducts, popularPetProducts } from '@/data/petData';
+import { PetProductCarousel } from '@/components/home/PetProductCarousel';
 import heroImage from '@/assets/hero-groceries.jpg';
 import mealPlanBalanced from '@/assets/meals/meal-plan-balanced.jpg';
 import mealPlanDiet from '@/assets/meals/meal-plan-diet.jpg';
@@ -286,7 +288,7 @@ export default function HomePage() {
       </section>
 
       {/* Магазины и Фермы */}
-      <section className="px-4 pt-6 pb-8">
+      <section className="px-4 pt-6">
         <div className="grid grid-cols-2 gap-3">
           <Link to="/stores" className="block">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
@@ -305,6 +307,20 @@ export default function HomePage() {
             </div>
           </Link>
         </div>
+      </section>
+
+      {/* Для питомцев */}
+      <section className="pt-6">
+        <CollapsibleSection title="Для питомцев" linkText="Все" linkTo="/catalog/pets" initialExpanded={!allSectionsCollapsed}>
+          <PetProductCarousel products={petProducts.slice(0, 8)} rows={1} />
+        </CollapsibleSection>
+      </section>
+
+      {/* Популярное для питомцев */}
+      <section className="pt-6 pb-8">
+        <CollapsibleSection title="Популярное для питомцев" linkText="Все" linkTo="/catalog/pets" initialExpanded={!allSectionsCollapsed}>
+          <PetProductCarousel products={popularPetProducts} rows={1} />
+        </CollapsibleSection>
       </section>
     </div>
   );
