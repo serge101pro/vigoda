@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, CreditCard, Smartphone, Check, Lock, Shield } from 'lucide-react';
+import { ArrowLeft, CreditCard, Smartphone, Check, Lock, Shield, Building2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useOrganization } from '@/hooks/useOrganization';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentMethod {
   id: string;
   name: string;
   icon: string;
-  type: 'sbp' | 'card' | 'wallet' | 'bank-app';
+  type: 'sbp' | 'card' | 'wallet' | 'bank-app' | 'invoice';
+  b2bOnly?: boolean;
 }
 
 const paymentMethods: PaymentMethod[] = [
@@ -22,6 +25,7 @@ const paymentMethods: PaymentMethod[] = [
   { id: 'yandex-pay', name: 'Yandex Pay', icon: '🟡', type: 'wallet' },
   { id: 'sber-pay', name: 'SberPay', icon: '🟢', type: 'wallet' },
   { id: 'yoomoney', name: 'ЮMoney', icon: '🟣', type: 'wallet' },
+  { id: 'invoice', name: 'Выставить счёт', icon: '📄', type: 'invoice', b2bOnly: true },
 ];
 
 const bankApps = [
@@ -39,6 +43,7 @@ export default function PaymentPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const { organization, isB2BUser } = useOrganization();
   
   const plan = searchParams.get('plan') || 'solo';
   const months = searchParams.get('months') || '1';
@@ -48,12 +53,19 @@ export default function PaymentPage() {
   const [showCardForm, setShowCardForm] = useState(false);
   const [showSmsVerification, setShowSmsVerification] = useState(false);
   const [showBankApps, setShowBankApps] = useState(false);
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
   const [saveCard, setSaveCard] = useState(true);
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [smsCode, setSmsCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+
+  // Filter payment methods based on B2B status
+  const availablePaymentMethods = paymentMethods.filter(
+    method => !method.b2bOnly || isB2BUser
+  );
 
   const handleMethodSelect = (methodId: string) => {
     setSelectedMethod(methodId);
@@ -63,9 +75,53 @@ export default function PaymentPage() {
       setShowCardForm(true);
     } else if (methodId === 'sbp') {
       setShowBankApps(true);
+    } else if (methodId === 'invoice') {
+      setShowInvoiceDialog(true);
     } else {
-      // Simulate wallet payment
       processPayment();
+    }
+  };
+
+  const handleGenerateInvoice = async () => {
+    if (!organization) {
+      toast({ title: 'Ошибка', description: 'Организация не найдена', variant: 'destructive' });
+      return;
+    }
+
+    setIsGeneratingInvoice(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-pdf', {
+        body: {
+          type: 'invoice',
+          organizationId: organization.id,
+          amount: parseInt(amount),
+        },
+      });
+
+      if (error) throw error;
+
+      // Download the PDF
+      const link = document.createElement('a');
+      link.href = data.document.pdf_url;
+      link.download = `invoice-${data.document.invoice_number}.pdf`;
+      link.click();
+
+      toast({ 
+        title: 'Счёт сформирован!',
+        description: `Счёт № ${data.document.invoice_number} готов к оплате`,
+      });
+      
+      setShowInvoiceDialog(false);
+      navigate('/organization/documents');
+    } catch (error: any) {
+      console.error('Error generating invoice:', error);
+      toast({ 
+        title: 'Ошибка формирования счёта', 
+        description: error.message,
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsGeneratingInvoice(false);
     }
   };
 
@@ -171,7 +227,7 @@ export default function PaymentPage() {
         <div>
           <h2 className="font-semibold mb-3">Способ оплаты</h2>
           <div className="space-y-2">
-            {paymentMethods.map((method) => (
+            {availablePaymentMethods.map((method) => (
               <button
                 key={method.id}
                 onClick={() => handleMethodSelect(method.id)}
@@ -179,12 +235,17 @@ export default function PaymentPage() {
                   selectedMethod === method.id
                     ? 'border-primary bg-primary/5'
                     : 'border-border bg-card hover:border-primary/50'
-                }`}
+                } ${method.b2bOnly ? 'ring-2 ring-accent/30' : ''}`}
               >
                 <span className="text-2xl">{method.icon}</span>
-                <span className="font-medium">{method.name}</span>
+                <div className="text-left flex-1">
+                  <span className="font-medium">{method.name}</span>
+                  {method.b2bOnly && (
+                    <p className="text-xs text-accent">Для корпоративных клиентов</p>
+                  )}
+                </div>
                 {selectedMethod === method.id && (
-                  <Check className="h-5 w-5 text-primary ml-auto" />
+                  <Check className="h-5 w-5 text-primary" />
                 )}
               </button>
             ))}
@@ -311,6 +372,57 @@ export default function PaymentPage() {
               Отправить код повторно
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invoice Dialog */}
+      <Dialog open={showInvoiceDialog} onOpenChange={setShowInvoiceDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Выставление счёта
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-muted rounded-xl p-4 space-y-2">
+              <p className="text-sm text-muted-foreground">Организация</p>
+              <p className="font-semibold">{organization?.name || 'Не указано'}</p>
+              <p className="text-sm text-muted-foreground">ИНН: {organization?.inn || 'Не указано'}</p>
+            </div>
+            
+            <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Сумма счёта</span>
+                <span className="text-xl font-bold text-primary">{amount} ₽</span>
+              </div>
+            </div>
+
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>• Счёт будет сформирован в формате PDF</p>
+              <p>• Срок оплаты: 14 дней</p>
+              <p>• Закрывающие документы (УПД) — в конце месяца</p>
+            </div>
+
+            <Button 
+              onClick={handleGenerateInvoice} 
+              className="w-full" 
+              variant="hero"
+              disabled={isGeneratingInvoice}
+            >
+              {isGeneratingInvoice ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Формируем счёт...
+                </>
+              ) : (
+                <>
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Сформировать счёт
+                </>
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 

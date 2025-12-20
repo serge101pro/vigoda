@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ArrowLeft, Trash2, ShoppingBag, Zap, Clock, Scale, MapPin, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Trash2, ShoppingBag, Zap, Clock, Scale, MapPin, ChevronRight, Tag, Percent } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/stores/useAppStore';
 import { ProductCard } from '@/components/products/ProductCard';
 
@@ -29,20 +30,61 @@ const strategies = [
   },
 ];
 
+// Types that support store optimization strategies
+const STORE_PRODUCT_TYPES = ['product'];
+
 export default function CartPage() {
   const { cart, cartStrategy, setCartStrategy, clearCart, updateQuantity } = useAppStore();
   const [showStrategySelector, setShowStrategySelector] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
 
-  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const oldTotal = cart.reduce(
-    (sum, item) => sum + (item.product.oldPrice || item.product.price) * item.quantity,
-    0
+  // Separate cart items by type
+  const storeProducts = cart.filter(item => STORE_PRODUCT_TYPES.includes(item.type));
+  const otherItems = cart.filter(item => !STORE_PRODUCT_TYPES.includes(item.type));
+
+  // Calculate store products total (strategies apply)
+  const storeProductsSubtotal = storeProducts.reduce(
+    (sum, item) => sum + (item.product?.price || 0) * item.quantity, 0
   );
-  const savings = oldTotal - subtotal;
-  const strategySavings = Math.round(subtotal * (cartStrategy === 'savings' ? 0.3 : cartStrategy === 'time' ? 0.1 : 0.2));
-  const finalTotal = subtotal - strategySavings;
+  const storeProductsOldTotal = storeProducts.reduce(
+    (sum, item) => sum + ((item.product?.oldPrice || item.product?.price || 0) * item.quantity), 0
+  );
+  const storeProductsSavings = storeProductsOldTotal - storeProductsSubtotal;
+  
+  // Strategy savings only apply to store products
+  const strategySavingsPercent = cartStrategy === 'savings' ? 0.3 : cartStrategy === 'time' ? 0.1 : 0.2;
+  const strategySavings = Math.round(storeProductsSubtotal * strategySavingsPercent);
+
+  // Calculate other items total (no strategy, but may have discounts)
+  const otherItemsSubtotal = otherItems.reduce(
+    (sum, item) => sum + (item.product?.price || 0) * item.quantity, 0
+  );
+  const otherItemsOldTotal = otherItems.reduce(
+    (sum, item) => sum + ((item.product?.oldPrice || item.product?.price || 0) * item.quantity), 0
+  );
+  const otherItemsSavings = otherItemsOldTotal - otherItemsSubtotal;
+
+  // Promo code discount (applies to entire cart)
+  const promoDiscount = appliedPromo ? Math.round((storeProductsSubtotal + otherItemsSubtotal) * (appliedPromo.discount / 100)) : 0;
+
+  // Total calculations
+  const totalSubtotal = storeProductsSubtotal + otherItemsSubtotal;
+  const totalSavings = storeProductsSavings + otherItemsSavings;
+  const finalTotal = totalSubtotal - strategySavings - promoDiscount;
 
   const currentStrategy = strategies.find((s) => s.id === cartStrategy)!;
+
+  const handleApplyPromo = () => {
+    // Simple promo code validation (mock)
+    if (promoCode.toUpperCase() === 'СКИДКА10') {
+      setAppliedPromo({ code: promoCode.toUpperCase(), discount: 10 });
+    } else if (promoCode.toUpperCase() === 'НОВЫЙ20') {
+      setAppliedPromo({ code: promoCode.toUpperCase(), discount: 20 });
+    } else {
+      setAppliedPromo(null);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -136,9 +178,27 @@ export default function CartPage() {
 
       {/* Cart Items */}
       <section className="px-4 pt-4 space-y-3">
-        {cart.map((item) => (
-          <ProductCard key={item.product.id} product={item.product} variant="horizontal" />
+        {cart.map((item) => item.product && (
+          <ProductCard key={item.id} product={item.product} variant="horizontal" />
         ))}
+      </section>
+
+      {/* Promo Code */}
+      <section className="px-4 pt-4">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Промокод"
+            value={promoCode}
+            onChange={(e) => setPromoCode(e.target.value)}
+            className="flex-1"
+          />
+          <Button variant="outline" onClick={handleApplyPromo}>
+            <Tag className="h-4 w-4" />
+          </Button>
+        </div>
+        {appliedPromo && (
+          <p className="text-sm text-primary mt-2">Промокод {appliedPromo.code} применён: -{appliedPromo.discount}%</p>
+        )}
       </section>
 
       {/* Summary */}
@@ -146,18 +206,26 @@ export default function CartPage() {
         <div className="bg-muted rounded-2xl p-4 space-y-3">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Подытог</span>
-            <span className="font-semibold">{subtotal} ₽</span>
+            <span className="font-semibold">{totalSubtotal} ₽</span>
           </div>
-          {savings > 0 && (
+          {totalSavings > 0 && (
             <div className="flex justify-between text-primary">
-              <span>Скидки</span>
-              <span className="font-semibold">-{savings} ₽</span>
+              <span>Скидки на товары</span>
+              <span className="font-semibold">-{totalSavings} ₽</span>
             </div>
           )}
-          <div className="flex justify-between text-accent">
-            <span>Экономия ({currentStrategy.label})</span>
-            <span className="font-semibold">-{strategySavings} ₽</span>
-          </div>
+          {storeProducts.length > 0 && (
+            <div className="flex justify-between text-accent">
+              <span>Экономия ({currentStrategy.label})</span>
+              <span className="font-semibold">-{strategySavings} ₽</span>
+            </div>
+          )}
+          {promoDiscount > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Промокод</span>
+              <span className="font-semibold">-{promoDiscount} ₽</span>
+            </div>
+          )}
           <div className="pt-3 border-t border-border flex justify-between">
             <span className="text-lg font-bold">Итого</span>
             <span className="text-lg font-bold">{finalTotal} ₽</span>
