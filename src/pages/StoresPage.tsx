@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin, Clock, Percent, Package, ChevronRight, Search } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Clock, Percent, Package, ChevronRight, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,11 +9,21 @@ import { stores, storeCategories } from '@/data/storesData';
 export default function StoresPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState<'rating' | 'discount' | 'products'>('rating');
 
-  const filteredStores = stores.filter(store => {
-    const matchesSearch = store.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
-  });
+  const filteredStores = stores
+    .filter(store => {
+      const matchesSearch = store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           store.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || store.categories?.includes(selectedCategory);
+      return matchesSearch && (selectedCategory === 'all' || matchesCategory);
+    })
+    .sort((a, b) => {
+      if (sortBy === 'rating') return b.rating - a.rating;
+      if (sortBy === 'discount') return b.averageDiscount - a.averageDiscount;
+      if (sortBy === 'products') return b.productsCount - a.productsCount;
+      return 0;
+    });
 
   return (
     <div className="page-container">
@@ -56,6 +66,37 @@ export default function StoresPage() {
           ))}
         </div>
 
+        {/* Sort Options */}
+        <div className="flex gap-2">
+          <Button
+            variant={sortBy === 'rating' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setSortBy('rating')}
+            className="text-xs"
+          >
+            <Star className="h-3 w-3 mr-1" />
+            По рейтингу
+          </Button>
+          <Button
+            variant={sortBy === 'discount' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setSortBy('discount')}
+            className="text-xs"
+          >
+            <Percent className="h-3 w-3 mr-1" />
+            По скидкам
+          </Button>
+          <Button
+            variant={sortBy === 'products' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setSortBy('products')}
+            className="text-xs"
+          >
+            <Package className="h-3 w-3 mr-1" />
+            По товарам
+          </Button>
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-primary/10 rounded-xl p-3 text-center">
@@ -71,6 +112,11 @@ export default function StoresPage() {
             <p className="text-xs text-muted-foreground">Скидки</p>
           </div>
         </div>
+
+        {/* Results count */}
+        <p className="text-sm text-muted-foreground">
+          Найдено: {filteredStores.length} магазинов
+        </p>
 
         {/* Stores List */}
         <div className="space-y-4">
@@ -122,6 +168,18 @@ export default function StoresPage() {
             </Link>
           ))}
         </div>
+
+        {filteredStores.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Магазины не найдены</p>
+            <Button variant="outline" className="mt-4" onClick={() => {
+              setSearchQuery('');
+              setSelectedCategory('all');
+            }}>
+              Сбросить фильтры
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

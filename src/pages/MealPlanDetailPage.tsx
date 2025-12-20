@@ -1,98 +1,11 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, Share2, Star, Clock, Flame, Users, Calendar, ThermometerSnowflake, ShoppingCart, Check, ChefHat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-
-interface MealItem {
-  time: string;
-  name: string;
-  calories: number;
-  image: string;
-}
-
-interface DayMenu {
-  day: string;
-  meals: MealItem[];
-  totalCalories: number;
-}
-
-const mockMealPlan = {
-  id: '1',
-  name: 'Сбалансированный рацион "Здоровье"',
-  description: 'Полноценное питание на неделю с оптимальным балансом белков, жиров и углеводов. Подходит для поддержания веса и здорового образа жизни.',
-  image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
-  images: [
-    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
-    'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
-    'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
-  ],
-  rating: 4.9,
-  reviewCount: 342,
-  duration: '7 дней',
-  mealsPerDay: 5,
-  caloriesPerDay: 1800,
-  price: 8990,
-  pricePerDay: 1284,
-  tags: ['Сбалансированное', 'Похудение', 'Без глютена'],
-  chef: {
-    name: 'Шеф Михаил Орлов',
-    avatar: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=100&q=80',
-  },
-  nutrition: {
-    calories: 1800,
-    protein: 90,
-    fat: 60,
-    carbs: 180,
-  },
-  storageConditions: 'Хранить при температуре от +2°C до +6°C',
-  shelfLife: '5 суток с момента приготовления',
-  deliveryInfo: 'Доставка 2 раза в неделю: понедельник и четверг',
-};
-
-const weekMenu: DayMenu[] = [
-  {
-    day: 'Понедельник',
-    totalCalories: 1820,
-    meals: [
-      { time: 'Завтрак', name: 'Овсянка с ягодами и орехами', calories: 380, image: 'https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=200&q=80' },
-      { time: 'Перекус', name: 'Греческий йогурт с мёдом', calories: 150, image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=200&q=80' },
-      { time: 'Обед', name: 'Куриная грудка с киноа', calories: 520, image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&q=80' },
-      { time: 'Перекус', name: 'Фруктовый салат', calories: 180, image: 'https://images.unsplash.com/photo-1564093497595-593b96d80180?w=200&q=80' },
-      { time: 'Ужин', name: 'Лосось с овощами гриль', calories: 590, image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=200&q=80' },
-    ],
-  },
-  {
-    day: 'Вторник',
-    totalCalories: 1780,
-    meals: [
-      { time: 'Завтрак', name: 'Омлет со шпинатом', calories: 350, image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=200&q=80' },
-      { time: 'Перекус', name: 'Смузи с бананом', calories: 180, image: 'https://images.unsplash.com/photo-1638176066666-ffb2f013c7dd?w=200&q=80' },
-      { time: 'Обед', name: 'Паста с морепродуктами', calories: 480, image: 'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=200&q=80' },
-      { time: 'Перекус', name: 'Орехи и сухофрукты', calories: 200, image: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=200&q=80' },
-      { time: 'Ужин', name: 'Индейка с брокколи', calories: 570, image: 'https://images.unsplash.com/photo-1606728035253-49e8a23146de?w=200&q=80' },
-    ],
-  },
-  {
-    day: 'Среда',
-    totalCalories: 1850,
-    meals: [
-      { time: 'Завтрак', name: 'Творожная запеканка', calories: 400, image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=200&q=80' },
-      { time: 'Перекус', name: 'Зелёный смузи', calories: 160, image: 'https://images.unsplash.com/photo-1610970881699-44a5587cabec?w=200&q=80' },
-      { time: 'Обед', name: 'Говядина с гречкой', calories: 550, image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&q=80' },
-      { time: 'Перекус', name: 'Хумус с овощами', calories: 170, image: 'https://images.unsplash.com/photo-1577805947697-89e18249d767?w=200&q=80' },
-      { time: 'Ужин', name: 'Рыбные котлеты с салатом', calories: 570, image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=200&q=80' },
-    ],
-  },
-];
-
-const similarPlans = [
-  { id: '2', name: 'Рацион "Энергия"', image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&q=80', price: 7990, calories: 2200 },
-  { id: '3', name: 'Детокс-программа', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80', price: 6990, calories: 1500 },
-  { id: '4', name: 'Спортивный рацион', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=400&q=80', price: 9990, calories: 2500 },
-];
+import { extendedMealPlans } from '@/data/mealPlansData';
 
 export default function MealPlanDetailPage() {
   const { id } = useParams();
@@ -100,16 +13,18 @@ export default function MealPlanDetailPage() {
   const { toast } = useToast();
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<'3' | '7' | '14'>('7');
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [expandedDay, setExpandedDay] = useState<string | null>('Понедельник');
+  const [expandedDay, setExpandedDay] = useState<number | null>(1);
 
+  // Find meal plan by id or use first one
+  const mealPlan = extendedMealPlans.find(p => p.id === id) || extendedMealPlans[0];
+  
   const priceMultiplier = { '3': 0.5, '7': 1, '14': 1.8 };
-  const finalPrice = Math.round(mockMealPlan.price * priceMultiplier[selectedDuration]);
+  const finalPrice = Math.round(mealPlan.price * priceMultiplier[selectedDuration]);
 
   const handleOrder = () => {
     toast({
       title: 'Заказ оформлен!',
-      description: `Рацион "${mockMealPlan.name}" на ${selectedDuration} дней`,
+      description: `Рацион "${mealPlan.name}" на ${selectedDuration} дней`,
     });
   };
 
@@ -117,6 +32,9 @@ export default function MealPlanDetailPage() {
     navigator.clipboard.writeText(window.location.href);
     toast({ title: 'Ссылка скопирована!' });
   };
+
+  // Get similar plans (excluding current)
+  const similarPlans = extendedMealPlans.filter(p => p.id !== mealPlan.id).slice(0, 3);
 
   return (
     <div className="page-container pb-32">
@@ -145,54 +63,49 @@ export default function MealPlanDetailPage() {
       <section className="relative">
         <div className="aspect-video bg-muted">
           <img 
-            src={mockMealPlan.images[selectedImage]} 
-            alt={mockMealPlan.name}
+            src={mealPlan.image} 
+            alt={mealPlan.name}
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-          {mockMealPlan.images.map((img, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedImage(idx)}
-              className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
-                selectedImage === idx ? 'border-primary' : 'border-background'
-              }`}
-            >
-              <img src={img} alt="" className="w-full h-full object-cover" />
-            </button>
-          ))}
-        </div>
+        {mealPlan.discount && (
+          <Badge className="absolute top-4 left-4 bg-accent text-accent-foreground">
+            -{mealPlan.discount}%
+          </Badge>
+        )}
+        {mealPlan.isPopular && (
+          <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground">
+            🔥 Популярный
+          </Badge>
+        )}
       </section>
 
       {/* Plan Info */}
       <section className="p-4">
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          {mockMealPlan.tags.map((tag) => (
+          {mealPlan.tags.map((tag) => (
             <Badge key={tag} variant="secondary">{tag}</Badge>
           ))}
         </div>
         <div className="flex items-center gap-2 mb-2">
           <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-          <span className="text-sm font-medium">{mockMealPlan.rating}</span>
-          <span className="text-sm text-muted-foreground">({mockMealPlan.reviewCount} отзывов)</span>
+          <span className="text-sm font-medium">{mealPlan.rating}</span>
+          <span className="text-sm text-muted-foreground">({mealPlan.reviewCount} отзывов)</span>
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-2">{mockMealPlan.name}</h2>
-        <p className="text-muted-foreground mb-4">{mockMealPlan.description}</p>
+        <h2 className="text-xl font-bold text-foreground mb-2">{mealPlan.name}</h2>
+        <p className="text-muted-foreground mb-4">{mealPlan.description}</p>
 
-        {/* Chef Info */}
-        <div className="flex items-center gap-3 mb-4 p-3 bg-muted rounded-xl">
-          <img 
-            src={mockMealPlan.chef.avatar} 
-            alt={mockMealPlan.chef.name}
-            className="w-12 h-12 rounded-full object-cover"
-          />
-          <div>
-            <p className="font-semibold">{mockMealPlan.chef.name}</p>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <ChefHat className="h-4 w-4" /> Автор рациона
-            </p>
-          </div>
+        {/* Benefits */}
+        <div className="bg-green-500/10 rounded-xl p-4 mb-4 border border-green-500/20">
+          <h4 className="font-semibold mb-2 text-green-700 dark:text-green-400">✓ Преимущества</h4>
+          <ul className="space-y-1">
+            {mealPlan.benefits.map((benefit, idx) => (
+              <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
+                <Check className="h-4 w-4 text-green-500 mt-0.5" />
+                {benefit}
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Quick Stats */}
@@ -200,17 +113,17 @@ export default function MealPlanDetailPage() {
           <div className="bg-card rounded-xl p-3 text-center border border-border">
             <Calendar className="h-5 w-5 mx-auto mb-1 text-primary" />
             <p className="text-xs text-muted-foreground">Дней</p>
-            <p className="font-bold">{mockMealPlan.duration}</p>
+            <p className="font-bold">{mealPlan.days}</p>
           </div>
           <div className="bg-card rounded-xl p-3 text-center border border-border">
             <Flame className="h-5 w-5 mx-auto mb-1 text-accent" />
             <p className="text-xs text-muted-foreground">Ккал/день</p>
-            <p className="font-bold">{mockMealPlan.caloriesPerDay}</p>
+            <p className="font-bold">{mealPlan.caloriesPerDay}</p>
           </div>
           <div className="bg-card rounded-xl p-3 text-center border border-border">
             <Clock className="h-5 w-5 mx-auto mb-1 text-blue-500" />
             <p className="text-xs text-muted-foreground">Приёмов</p>
-            <p className="font-bold">{mockMealPlan.mealsPerDay}</p>
+            <p className="font-bold">{mealPlan.mealsPerDay}</p>
           </div>
           <div className="bg-card rounded-xl p-3 text-center border border-border">
             <Users className="h-5 w-5 mx-auto mb-1 text-purple-500" />
@@ -235,7 +148,7 @@ export default function MealPlanDetailPage() {
               >
                 <p className="font-bold">{dur} дней</p>
                 <p className="text-sm text-muted-foreground">
-                  {Math.round(mockMealPlan.price * priceMultiplier[dur])} ₽
+                  {Math.round(mealPlan.price * priceMultiplier[dur])} ₽
                 </p>
               </button>
             ))}
@@ -246,23 +159,26 @@ export default function MealPlanDetailPage() {
       {/* Tabs */}
       <section className="px-4 mb-6">
         <Tabs defaultValue="menu" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 bg-muted rounded-xl">
+          <TabsList className="w-full grid grid-cols-4 bg-muted rounded-xl">
             <TabsTrigger value="menu">Меню</TabsTrigger>
             <TabsTrigger value="nutrition">КБЖУ</TabsTrigger>
+            <TabsTrigger value="reviews">Отзывы</TabsTrigger>
             <TabsTrigger value="info">Инфо</TabsTrigger>
           </TabsList>
 
           <TabsContent value="menu" className="mt-4">
             <div className="space-y-3">
-              {weekMenu.map((day) => (
+              {mealPlan.dailyMenu.map((day) => (
                 <div key={day.day} className="bg-card rounded-xl border border-border overflow-hidden">
                   <button
                     onClick={() => setExpandedDay(expandedDay === day.day ? null : day.day)}
                     className="w-full p-4 flex items-center justify-between"
                   >
                     <div>
-                      <p className="font-semibold">{day.day}</p>
-                      <p className="text-sm text-muted-foreground">{day.meals.length} приёмов • {day.totalCalories} ккал</p>
+                      <p className="font-semibold">{day.dayName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {day.meals.length} приёмов • {day.totalCalories} ккал
+                      </p>
                     </div>
                     <div className={`transition-transform ${expandedDay === day.day ? 'rotate-180' : ''}`}>
                       ▼
@@ -271,19 +187,34 @@ export default function MealPlanDetailPage() {
                   {expandedDay === day.day && (
                     <div className="border-t border-border p-4 space-y-3">
                       {day.meals.map((meal, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                          <img 
-                            src={meal.image} 
-                            alt={meal.name}
-                            className="w-16 h-16 rounded-lg object-cover"
-                          />
+                        <div key={idx} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-lg">
+                            {meal.time === '08:00' || meal.time === '07:00' ? '🍳' : 
+                             meal.time === '13:00' || meal.time === '12:00' ? '🍲' :
+                             meal.time === '19:00' ? '🥗' : '🍎'}
+                          </div>
                           <div className="flex-1">
                             <p className="text-xs text-primary font-medium">{meal.time}</p>
-                            <p className="font-medium">{meal.name}</p>
-                            <p className="text-sm text-muted-foreground">{meal.calories} ккал</p>
+                            <p className="font-medium text-sm">{meal.name}</p>
+                            <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                              <span>{meal.calories} ккал</span>
+                              <span>Б: {meal.protein}г</span>
+                              <span>Ж: {meal.fat}г</span>
+                              <span>У: {meal.carbs}г</span>
+                            </div>
                           </div>
                         </div>
                       ))}
+                      {/* Day totals */}
+                      <div className="pt-2 border-t border-border flex justify-between text-sm">
+                        <span className="text-muted-foreground">Итого за день:</span>
+                        <div className="flex gap-3 font-medium">
+                          <span>{day.totalCalories} ккал</span>
+                          <span>Б: {day.totalProtein}г</span>
+                          <span>Ж: {day.totalFat}г</span>
+                          <span>У: {day.totalCarbs}г</span>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -296,22 +227,81 @@ export default function MealPlanDetailPage() {
               <h4 className="font-semibold mb-4">Среднее значение в день</h4>
               <div className="grid grid-cols-4 gap-4 text-center">
                 <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-primary">{mockMealPlan.nutrition.calories}</p>
+                  <p className="text-2xl font-bold text-primary">{mealPlan.caloriesPerDay}</p>
                   <p className="text-xs text-muted-foreground">ккал</p>
                 </div>
                 <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-foreground">{mockMealPlan.nutrition.protein}</p>
+                  <p className="text-2xl font-bold text-foreground">{mealPlan.proteinPerDay}</p>
                   <p className="text-xs text-muted-foreground">белки, г</p>
                 </div>
                 <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-foreground">{mockMealPlan.nutrition.fat}</p>
+                  <p className="text-2xl font-bold text-foreground">{mealPlan.fatPerDay}</p>
                   <p className="text-xs text-muted-foreground">жиры, г</p>
                 </div>
                 <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-foreground">{mockMealPlan.nutrition.carbs}</p>
+                  <p className="text-2xl font-bold text-foreground">{mealPlan.carbsPerDay}</p>
                   <p className="text-xs text-muted-foreground">углеводы, г</p>
                 </div>
               </div>
+            </div>
+
+            {/* What's included */}
+            <div className="mt-4 bg-blue-500/10 rounded-xl p-4 border border-blue-500/20">
+              <h4 className="font-semibold mb-2 text-blue-700 dark:text-blue-400">📦 Что входит</h4>
+              <ul className="space-y-1">
+                {mealPlan.includes.map((item, idx) => (
+                  <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
+                    <Check className="h-4 w-4 text-blue-500 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contraindications */}
+            {mealPlan.contraindications.length > 0 && (
+              <div className="mt-4 bg-amber-500/10 rounded-xl p-4 border border-amber-500/20">
+                <h4 className="font-semibold mb-2 text-amber-700 dark:text-amber-400">⚠️ Противопоказания</h4>
+                <ul className="space-y-1">
+                  {mealPlan.contraindications.map((item, idx) => (
+                    <li key={idx} className="text-sm text-muted-foreground">• {item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="reviews" className="mt-4">
+            <div className="space-y-4">
+              {mealPlan.reviews.map((review) => (
+                <div key={review.id} className="bg-card rounded-xl p-4 border border-border">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl">
+                      {review.avatar}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold">{review.author}</p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`h-3 w-3 ${i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-muted'}`} 
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{review.date}</span>
+                      </div>
+                    </div>
+                    {review.weightLost && (
+                      <Badge className="bg-green-500 text-white">
+                        -{review.weightLost} кг
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{review.text}</p>
+                </div>
+              ))}
             </div>
           </TabsContent>
 
@@ -323,7 +313,7 @@ export default function MealPlanDetailPage() {
                 </div>
                 <div>
                   <p className="font-semibold">Условия хранения</p>
-                  <p className="text-sm text-muted-foreground">{mockMealPlan.storageConditions}</p>
+                  <p className="text-sm text-muted-foreground">Хранить при температуре от +2°C до +6°C</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -332,7 +322,7 @@ export default function MealPlanDetailPage() {
                 </div>
                 <div>
                   <p className="font-semibold">Срок годности</p>
-                  <p className="text-sm text-muted-foreground">{mockMealPlan.shelfLife}</p>
+                  <p className="text-sm text-muted-foreground">5 суток с момента приготовления</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -341,7 +331,7 @@ export default function MealPlanDetailPage() {
                 </div>
                 <div>
                   <p className="font-semibold">Доставка</p>
-                  <p className="text-sm text-muted-foreground">{mockMealPlan.deliveryInfo}</p>
+                  <p className="text-sm text-muted-foreground">Доставка 2 раза в неделю: понедельник и четверг</p>
                 </div>
               </div>
             </div>
@@ -354,34 +344,32 @@ export default function MealPlanDetailPage() {
         <h3 className="font-bold text-lg mb-3">Похожие рационы</h3>
         <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
           {similarPlans.map((plan) => (
-            <div 
+            <Link 
               key={plan.id}
-              className="flex-shrink-0 w-44 bg-card rounded-xl border border-border overflow-hidden"
+              to={`/meal-plan/${plan.id}`}
+              className="flex-shrink-0 w-44 bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors"
             >
               <div className="aspect-video bg-muted">
                 <img src={plan.image} alt={plan.name} className="w-full h-full object-cover" />
               </div>
               <div className="p-3">
                 <p className="text-sm font-medium line-clamp-2 mb-1">{plan.name}</p>
-                <p className="text-xs text-muted-foreground mb-1">{plan.calories} ккал/день</p>
-                <p className="font-bold text-primary">{plan.price} ₽</p>
+                <p className="text-xs text-muted-foreground mb-1">{plan.caloriesPerDay} ккал/день</p>
+                <p className="text-sm font-bold text-primary">{plan.price} ₽</p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
 
       {/* Fixed Bottom Bar */}
-      <div className="fixed bottom-20 left-0 right-0 bg-background border-t border-border p-4 z-30">
-        <div className="flex items-center justify-between gap-4">
+      <div className="fixed bottom-16 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t border-border p-4">
+        <div className="flex items-center justify-between max-w-lg mx-auto">
           <div>
             <p className="text-sm text-muted-foreground">Итого за {selectedDuration} дней</p>
-            <p className="text-2xl font-bold text-primary">{finalPrice} ₽</p>
+            <p className="text-2xl font-bold text-foreground">{finalPrice} ₽</p>
           </div>
-          <Button 
-            className="flex-1 h-12 rounded-xl text-base max-w-[200px]"
-            onClick={handleOrder}
-          >
+          <Button variant="hero" size="lg" onClick={handleOrder}>
             <ShoppingCart className="h-5 w-5 mr-2" />
             Заказать
           </Button>

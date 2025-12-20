@@ -40,7 +40,7 @@ export function MealCarousel({ meals, rows = 1 }: MealCarouselProps) {
           {rowMeals.map((meal) => (
             <Link
               key={meal.id}
-              to={`/ready-meals?meal=${meal.id}`}
+              to={`/ready-meal/${meal.id}`}
               className="flex-shrink-0 w-56 bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/30 transition-colors"
             >
               <div className="relative h-32">

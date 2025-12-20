@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin, Leaf, Award, ChevronRight, Search } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Leaf, Award, ChevronRight, Search, Filter, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +34,7 @@ const farms: Farm[] = [
     name: 'Ферма "Солнечная долина"',
     location: 'Московская область, Дмитровский район',
     description: 'Семейная ферма с традициями',
-    fullDescription: 'Семейная ферма "Солнечная долина" работает с 2005 года. Мы специализируемся на производстве натуральных молочных продуктов и яиц от кур свободного выгула. Все наши животные содержатся в комфортных условиях и питаются только натуральными кормами.',
+    fullDescription: 'Семейная ферма "Солнечная долина" работает с 2005 года.',
     image: '🏡',
     logo: '🌻',
     rating: 4.9,
@@ -43,18 +43,14 @@ const farms: Farm[] = [
     certified: true,
     specialties: ['Яйца', 'Молоко', 'Сметана', 'Творог'],
     features: ['Эко-сертификат', 'Доставка от фермы', 'Экскурсии', 'Свободный выгул'],
-    reviews: [
-      { author: 'Мария К.', rating: 5, text: 'Потрясающее качество продуктов! Яйца с ярким желтком, молоко как из детства.', date: '18.12.2024' },
-      { author: 'Алексей П.', rating: 5, text: 'Заказываю регулярно. Дети обожают их творог!', date: '15.12.2024' },
-      { author: 'Елена С.', rating: 5, text: 'Были на экскурсии — чистота идеальная. Теперь только у них покупаем.', date: '12.12.2024' },
-    ],
+    reviews: [],
   },
   {
     id: 'white-dews',
     name: 'Ферма "Белые росы"',
     location: 'Тверская область',
     description: 'Премиальные молочные продукты',
-    fullDescription: 'Ферма "Белые росы" — это современное производство премиальных молочных продуктов. Наши коровы пасутся на экологически чистых лугах Тверской области. Мы используем только традиционные технологии производства без консервантов и добавок.',
+    fullDescription: 'Ферма "Белые росы" — это современное производство премиальных молочных продуктов.',
     image: '🐄',
     logo: '💧',
     rating: 4.8,
@@ -63,18 +59,14 @@ const farms: Farm[] = [
     certified: true,
     specialties: ['Молоко', 'Масло', 'Сыр', 'Кефир'],
     features: ['Пастбищное содержание', 'Без консервантов', 'Ручная работа', 'Традиционные рецепты'],
-    reviews: [
-      { author: 'Ольга М.', rating: 5, text: 'Их масло — лучшее, что я пробовала! Настоящий деревенский вкус.', date: '17.12.2024' },
-      { author: 'Дмитрий В.', rating: 5, text: 'Качество молока на высоте. Дети пьют с удовольствием.', date: '14.12.2024' },
-      { author: 'Анна Л.', rating: 4, text: 'Отличные продукты, только доставка иногда задерживается.', date: '10.12.2024' },
-    ],
+    reviews: [],
   },
   {
     id: 'alpine-cheese',
     name: 'Сыроварня "Альпийская"',
     location: 'Краснодарский край',
     description: 'Ремесленные сыры ручной работы',
-    fullDescription: 'Сыроварня "Альпийская" производит ремесленные сыры по европейским технологиям. Наши сыровары прошли обучение в Швейцарии и Италии. Мы используем только молоко от коров свободного выпаса с горных пастбищ Краснодарского края.',
+    fullDescription: 'Сыроварня "Альпийская" производит ремесленные сыры по европейским технологиям.',
     image: '🧀',
     logo: '🏔️',
     rating: 4.9,
@@ -83,18 +75,14 @@ const farms: Farm[] = [
     certified: true,
     specialties: ['Твёрдые сыры', 'Мягкие сыры', 'Рикотта', 'Моцарелла'],
     features: ['Швейцарские технологии', 'Выдержка в погребах', 'Медали выставок', 'Дегустации'],
-    reviews: [
-      { author: 'Игорь Н.', rating: 5, text: 'Сыр выдержки 6 месяцев — шедевр! Как в Италии.', date: '19.12.2024' },
-      { author: 'Светлана К.', rating: 5, text: 'Были на дегустации — теперь постоянные клиенты!', date: '16.12.2024' },
-      { author: 'Павел Д.', rating: 5, text: 'Качество европейское, цены российские. Рекомендую!', date: '13.12.2024' },
-    ],
+    reviews: [],
   },
   {
     id: 'golden-hive',
     name: 'Пасека "Золотой улей"',
     location: 'Башкортостан',
     description: 'Натуральный башкирский мёд',
-    fullDescription: 'Пасека "Золотой улей" — это более 500 пчелиных семей в экологически чистых районах Башкирии. Наш мёд собирается с заповедных лугов и лесов. Мы не используем сахарный сироп и химические добавки. Только чистый мёд!',
+    fullDescription: 'Пасека "Золотой улей" — это более 500 пчелиных семей в экологически чистых районах Башкирии.',
     image: '🍯',
     logo: '🐝',
     rating: 4.9,
@@ -103,18 +91,14 @@ const farms: Farm[] = [
     certified: true,
     specialties: ['Липовый мёд', 'Гречишный мёд', 'Цветочный мёд', 'Прополис'],
     features: ['Заповедные луга', 'Без пестицидов', 'Сырой мёд', 'Призёр конкурсов'],
-    reviews: [
-      { author: 'Татьяна В.', rating: 5, text: 'Настоящий башкирский мёд! Аромат божественный.', date: '18.12.2024' },
-      { author: 'Сергей М.', rating: 5, text: 'Покупаю каждый год. Лучший мёд для здоровья.', date: '14.12.2024' },
-      { author: 'Наталья П.', rating: 5, text: 'Вся семья лечится их мёдом. Спасибо!', date: '11.12.2024' },
-    ],
+    reviews: [],
   },
   {
     id: 'cockerel',
     name: 'Ферма "Петушок"',
     location: 'Рязанская область',
     description: 'Домашняя птица без антибиотиков',
-    fullDescription: 'Ферма "Петушок" специализируется на выращивании домашней птицы без антибиотиков и гормонов роста. Наши куры и утки содержатся в свободных условиях с доступом к свежему воздуху и натуральным кормам.',
+    fullDescription: 'Ферма "Петушок" специализируется на выращивании домашней птицы без антибиотиков.',
     image: '🐓',
     logo: '🌾',
     rating: 4.8,
@@ -123,21 +107,50 @@ const farms: Farm[] = [
     certified: true,
     specialties: ['Курица', 'Утка', 'Индейка', 'Яйца'],
     features: ['Без антибиотиков', 'Свободный выгул', 'Натуральные корма', 'Охлаждённое мясо'],
-    reviews: [
-      { author: 'Елена Р.', rating: 5, text: 'Бульон из их курицы — золотой! Вкус как у бабушки.', date: '17.12.2024' },
-      { author: 'Андрей К.', rating: 5, text: 'Наконец-то настоящая домашняя курица!', date: '13.12.2024' },
-      { author: 'Ирина С.', rating: 4, text: 'Отличное мясо, но цены выше магазинных.', date: '09.12.2024' },
-    ],
+    reviews: [],
   },
+];
+
+const specialtyCategories = [
+  { id: 'all', label: 'Все', emoji: '🌿' },
+  { id: 'dairy', label: 'Молочное', emoji: '🥛' },
+  { id: 'eggs', label: 'Яйца', emoji: '🥚' },
+  { id: 'meat', label: 'Мясо', emoji: '🥩' },
+  { id: 'honey', label: 'Мёд', emoji: '🍯' },
+  { id: 'cheese', label: 'Сыры', emoji: '🧀' },
+  { id: 'vegetables', label: 'Овощи', emoji: '🥬' },
+];
+
+const regionFilters = [
+  { id: 'all', label: 'Все регионы' },
+  { id: 'moscow', label: 'Москва и область' },
+  { id: 'tver', label: 'Тверская область' },
+  { id: 'krasnodar', label: 'Краснодарский край' },
+  { id: 'bashkortostan', label: 'Башкортостан' },
+  { id: 'ryazan', label: 'Рязанская область' },
 ];
 
 export default function FarmsPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedRegion, setSelectedRegion] = useState('all');
+  const [sortBy, setSortBy] = useState<'rating' | 'reviews' | 'products'>('rating');
+  const [onlyCertified, setOnlyCertified] = useState(false);
 
-  const filteredFarms = farms.filter(farm =>
-    farm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    farm.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredFarms = farms
+    .filter(farm => {
+      const matchesSearch = farm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           farm.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           farm.specialties.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesCertified = !onlyCertified || farm.certified;
+      return matchesSearch && matchesCertified;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'rating') return b.rating - a.rating;
+      if (sortBy === 'reviews') return b.reviewCount - a.reviewCount;
+      if (sortBy === 'products') return b.productsCount - a.productsCount;
+      return 0;
+    });
 
   return (
     <div className="page-container">
@@ -158,11 +171,56 @@ export default function FarmsPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
-            placeholder="Найти ферму..."
+            placeholder="Найти ферму или продукт..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
+        </div>
+
+        {/* Categories */}
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+          {specialtyCategories.map((cat) => (
+            <Button
+              key={cat.id}
+              variant={selectedCategory === cat.id ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedCategory(cat.id)}
+              className="whitespace-nowrap"
+            >
+              {cat.emoji} {cat.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Filters Row */}
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant={onlyCertified ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setOnlyCertified(!onlyCertified)}
+            className="text-xs"
+          >
+            <Award className="h-3 w-3 mr-1" />
+            Сертифицированные
+          </Button>
+          <Button
+            variant={sortBy === 'rating' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setSortBy('rating')}
+            className="text-xs"
+          >
+            <Star className="h-3 w-3 mr-1" />
+            По рейтингу
+          </Button>
+          <Button
+            variant={sortBy === 'reviews' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setSortBy('reviews')}
+            className="text-xs"
+          >
+            💬 По отзывам
+          </Button>
         </div>
 
         {/* Banner */}
@@ -191,6 +249,11 @@ export default function FarmsPage() {
             <p className="text-xs text-muted-foreground">100% Эко</p>
           </div>
         </div>
+
+        {/* Results count */}
+        <p className="text-sm text-muted-foreground">
+          Найдено: {filteredFarms.length} ферм
+        </p>
 
         {/* Farms List */}
         <div className="space-y-4">
@@ -250,6 +313,19 @@ export default function FarmsPage() {
             </Link>
           ))}
         </div>
+
+        {filteredFarms.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Фермы не найдены</p>
+            <Button variant="outline" className="mt-4" onClick={() => {
+              setSearchQuery('');
+              setSelectedCategory('all');
+              setOnlyCertified(false);
+            }}>
+              Сбросить фильтры
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
