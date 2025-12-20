@@ -168,28 +168,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Banner: Скидки дня + Expand/Collapse Toggle */}
+      {/* Banner: Скидки дня */}
       <section className="px-4 pt-4">
-        <div className="flex gap-3">
-          <Link to="/catalog?filter=sale" className="flex-1">
-            <PromoBanner
-              title="Скидки дня"
-              subtitle="До 50% на популярные товары!"
-              buttonText="Смотреть"
-              buttonLink="/catalog?filter=sale"
-              image={heroImage}
-              variant="primary"
-            />
-          </Link>
-          <div className="flex flex-col justify-center items-center bg-card border border-border rounded-2xl px-3 py-2 min-w-[100px]">
-            <span className="text-xs text-muted-foreground mb-2 text-center">
-              {allSectionsCollapsed ? 'Развернуть' : 'Свернуть'} все
-            </span>
-            <Switch
-              checked={!allSectionsCollapsed}
-              onCheckedChange={(checked) => setAllSectionsCollapsed(!checked)}
-            />
-          </div>
+        <Link to="/catalog?filter=sale">
+          <PromoBanner
+            title="Скидки дня"
+            subtitle="До 50% на популярные товары!"
+            buttonText="Смотреть"
+            buttonLink="/catalog?filter=sale"
+            image={heroImage}
+            variant="primary"
+          />
+        </Link>
+        
+        {/* Compact Expand/Collapse Toggle */}
+        <div className="flex items-center justify-end gap-2 mt-2">
+          <span className="text-xs text-muted-foreground">
+            {allSectionsCollapsed ? 'Развернуть' : 'Свернуть'} все
+          </span>
+          <Switch
+            checked={!allSectionsCollapsed}
+            onCheckedChange={(checked) => setAllSectionsCollapsed(!checked)}
+          />
         </div>
       </section>
 

@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { ArrowLeft, Search, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeft, Search, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CategoryChip } from '@/components/ui/CategoryChip';
 import { ProductCard } from '@/components/products/ProductCard';
 import { 
   mockProducts, 
@@ -32,6 +31,7 @@ export default function CatalogPage() {
   const [activeSection, setActiveSection] = useState(section || 'products');
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCategoriesExpanded, setIsCategoriesExpanded] = useState(true);
 
   // Get products and categories based on active section
   const getProductsForSection = () => {
@@ -101,64 +101,71 @@ export default function CatalogPage() {
             </Button>
           </div>
 
-          {/* Section Chips - Same style as home page categories */}
-          <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
-            {catalogSections.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => {
-                  setActiveSection(s.id);
-                  setActiveCategory('all');
-                }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all whitespace-nowrap border ${
-                  activeSection === s.id
-                    ? 'bg-primary text-primary-foreground border-primary shadow-md'
-                    : `${s.color} border-transparent hover:border-primary/30`
-                }`}
-              >
-                <span className="text-lg">{s.emoji}</span>
-                <span>{s.label}</span>
-              </button>
-            ))}
-          </div>
         </div>
       </header>
 
-      {/* Section Banner */}
-      <section className="px-4 pt-4">
-        <div className="relative h-32 rounded-2xl overflow-hidden">
-          <img 
-            src={catalogSections.find(s => s.id === activeSection)?.image}
-            alt={catalogSections.find(s => s.id === activeSection)?.label}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/80 to-transparent flex items-center p-4">
-            <div>
-              <span className="text-3xl mb-2 block">
-                {catalogSections.find(s => s.id === activeSection)?.emoji}
-              </span>
-              <h2 className="text-xl font-bold text-foreground">
-                {catalogSections.find(s => s.id === activeSection)?.label}
-              </h2>
+      {/* Main Categories Section - styled like HomePage */}
+      <section className="pt-4 space-y-3">
+        {/* Header with collapse toggle */}
+        <div className="flex items-center justify-between px-4">
+          <h2 className="text-lg font-bold text-foreground">Категории</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsCategoriesExpanded(!isCategoriesExpanded)}
+            className="h-8 w-8 p-0"
+          >
+            {isCategoriesExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+
+        {/* Collapsible content */}
+        {isCategoriesExpanded && (
+          <div className="space-y-2">
+            {/* Main Catalog Sections Row */}
+            <div className="flex gap-2 overflow-x-auto px-4 pb-2 hide-scrollbar">
+              {catalogSections.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    setActiveSection(s.id);
+                    setActiveCategory('all');
+                  }}
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 bg-card border rounded-xl transition-all ${
+                    activeSection === s.id
+                      ? 'border-primary bg-primary/10 shadow-md'
+                      : 'border-border hover:border-primary/50 hover:bg-muted'
+                  }`}
+                >
+                  <span className="text-lg">{s.emoji}</span>
+                  <span className="text-sm font-medium text-foreground whitespace-nowrap">{s.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Subcategories Row */}
+            <div className="flex gap-2 overflow-x-auto px-4 pb-2 hide-scrollbar">
+              {currentCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 bg-card border rounded-xl transition-all ${
+                    activeCategory === cat.id
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50 hover:bg-muted'
+                  }`}
+                >
+                  <span className="text-lg">{cat.emoji}</span>
+                  <span className="text-sm font-medium text-foreground whitespace-nowrap">{cat.label}</span>
+                </button>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Categories */}
-      <section className="pt-4">
-        <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
-          {currentCategories.map((cat) => (
-            <CategoryChip
-              key={cat.id}
-              emoji={cat.emoji}
-              label={cat.label}
-              color={cat.color}
-              isActive={activeCategory === cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-            />
-          ))}
-        </div>
+        )}
       </section>
 
       {/* Products Grid */}
