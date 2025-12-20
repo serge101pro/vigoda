@@ -1,4 +1,4 @@
-import { useState, ReactNode } from 'react';
+import { useState, useRef, useEffect, ReactNode } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -19,6 +19,27 @@ export function CollapsibleSection({
   initialExpanded = true 
 }: CollapsibleSectionProps) {
   const [isExpanded, setIsExpanded] = useState(initialExpanded);
+  const [height, setHeight] = useState<number | 'auto'>('auto');
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      if (isExpanded) {
+        const scrollHeight = contentRef.current.scrollHeight;
+        setHeight(scrollHeight);
+        // After transition, set to auto for dynamic content
+        const timer = setTimeout(() => setHeight('auto'), 300);
+        return () => clearTimeout(timer);
+      } else {
+        // First set current height, then animate to 0
+        const scrollHeight = contentRef.current.scrollHeight;
+        setHeight(scrollHeight);
+        requestAnimationFrame(() => {
+          setHeight(0);
+        });
+      }
+    }
+  }, [isExpanded]);
 
   return (
     <div className="space-y-3">
@@ -34,22 +55,24 @@ export function CollapsibleSection({
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 transition-transform duration-300"
           >
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
+            <ChevronDown 
+              className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} 
+            />
           </Button>
         </div>
       </div>
 
-      {isExpanded && (
-        <div className="animate-fade-in">
-          {children}
-        </div>
-      )}
+      <div
+        ref={contentRef}
+        style={{ height: height === 'auto' ? 'auto' : `${height}px` }}
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          isExpanded ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        {children}
+      </div>
     </div>
   );
 }
