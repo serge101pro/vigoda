@@ -1,16 +1,38 @@
-import { useState } from 'react';
-import { ArrowLeft, Search, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ArrowLeft, Search, SlidersHorizontal, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/products/ProductCard';
 import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { 
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Slider } from '@/components/ui/slider';
+import { 
   mockProducts, 
   categories, 
-  cosmeticsProducts, 
   cosmeticsCategories,
-  householdProducts,
   householdCategories 
 } from '@/data/mockData';
+import { 
+  perfumeCategories, 
+  perfumeProducts,
+  extendedHouseholdCategories,
+  extendedHouseholdProducts,
+  accessoriesCategories,
+  accessoriesProducts
+} from '@/data/extendedMockData';
+import { petCategories, petProducts } from '@/data/petData';
 
 // Import local images
 import productsImage from '@/assets/catalog/products.jpg';
@@ -24,7 +46,10 @@ const catalogSections = [
   { id: 'perfume', label: 'Парфюмерия', emoji: '🌸', image: beautyImage, color: 'bg-purple-500/10' },
   { id: 'household', label: 'Бытовая химия', emoji: '🧹', image: householdImage, color: 'bg-blue-500/10' },
   { id: 'accessories', label: 'Хоз. мелочи', emoji: '🧰', image: accessoriesImage, color: 'bg-orange-500/10' },
+  { id: 'pets', label: 'Для питомцев', emoji: '🐾', image: accessoriesImage, color: 'bg-amber-500/10' },
 ];
+
+type SortOption = 'popular' | 'price-asc' | 'price-desc' | 'rating';
 
 export default function CatalogPage() {
   const { section } = useParams();
@@ -32,15 +57,24 @@ export default function CatalogPage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isCategoriesExpanded, setIsCategoriesExpanded] = useState(true);
+  const [sortBy, setSortBy] = useState<SortOption>('popular');
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 30000]);
+  const [minRating, setMinRating] = useState(0);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Get products and categories based on active section
   const getProductsForSection = () => {
     switch (activeSection) {
       case 'beauty':
-        return cosmeticsProducts;
+        return mockProducts; // Use cosmetics data
+      case 'perfume':
+        return perfumeProducts;
       case 'household':
+        return extendedHouseholdProducts;
       case 'accessories':
-        return householdProducts;
+        return accessoriesProducts;
+      case 'pets':
+        return petProducts;
       default:
         return mockProducts;
     }
@@ -50,9 +84,14 @@ export default function CatalogPage() {
     switch (activeSection) {
       case 'beauty':
         return cosmeticsCategories;
+      case 'perfume':
+        return perfumeCategories;
       case 'household':
+        return extendedHouseholdCategories;
       case 'accessories':
-        return householdCategories;
+        return accessoriesCategories;
+      case 'pets':
+        return petCategories;
       default:
         return categories;
     }
@@ -61,16 +100,62 @@ export default function CatalogPage() {
   const currentProducts = getProductsForSection();
   const currentCategories = getCategoriesForSection();
 
-  const filteredProducts =
-    activeCategory === 'all'
-      ? currentProducts
-      : currentProducts.filter((p) => p.category === activeCategory);
+  // Calculate max price for current products
+  const maxPrice = useMemo(() => {
+    return Math.max(...currentProducts.map(p => p.price), 30000);
+  }, [currentProducts]);
 
-  const searchFilteredProducts = searchQuery
-    ? filteredProducts.filter((p) =>
+  // Filter and sort products
+  const filteredAndSortedProducts = useMemo(() => {
+    let result = [...currentProducts];
+
+    // Filter by category
+    if (activeCategory !== 'all') {
+      result = result.filter(p => p.category === activeCategory);
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      result = result.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : filteredProducts;
+      );
+    }
+
+    // Filter by price range
+    result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+
+    // Filter by rating
+    if (minRating > 0) {
+      result = result.filter(p => (p.rating || 0) >= minRating);
+    }
+
+    // Sort
+    switch (sortBy) {
+      case 'price-asc':
+        result.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        result.sort((a, b) => b.price - a.price);
+        break;
+      case 'rating':
+        result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      case 'popular':
+      default:
+        result.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+        break;
+    }
+
+    return result;
+  }, [currentProducts, activeCategory, searchQuery, priceRange, minRating, sortBy]);
+
+  const resetFilters = () => {
+    setPriceRange([0, maxPrice]);
+    setMinRating(0);
+    setIsFilterOpen(false);
+  };
+
+  const hasActiveFilters = priceRange[0] > 0 || priceRange[1] < maxPrice || minRating > 0;
 
   return (
     <div className="page-container">
@@ -96,11 +181,84 @@ export default function CatalogPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-search pr-12"
             />
-            <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2">
-              <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-            </Button>
+            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <SheetTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 ${hasActiveFilters ? 'text-primary' : ''}`}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {hasActiveFilters && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Фильтры</SheetTitle>
+                </SheetHeader>
+                <div className="py-6 space-y-6">
+                  {/* Price Range */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-3 block">
+                      Цена: {priceRange[0]} ₽ — {priceRange[1]} ₽
+                    </label>
+                    <Slider
+                      value={priceRange}
+                      onValueChange={(value) => setPriceRange(value as [number, number])}
+                      min={0}
+                      max={maxPrice}
+                      step={100}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  {/* Rating */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-3 block">
+                      Минимальный рейтинг
+                    </label>
+                    <div className="flex gap-2">
+                      {[0, 3, 4, 4.5].map((rating) => (
+                        <Button
+                          key={rating}
+                          variant={minRating === rating ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setMinRating(rating)}
+                        >
+                          {rating === 0 ? 'Все' : `${rating}+`}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Reset */}
+                  {hasActiveFilters && (
+                    <Button variant="outline" className="w-full" onClick={resetFilters}>
+                      <X className="h-4 w-4 mr-2" />
+                      Сбросить фильтры
+                    </Button>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
 
+          {/* Sort */}
+          <div className="flex items-center gap-2">
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+              <SelectTrigger className="w-full h-9">
+                <SelectValue placeholder="Сортировка" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="popular">По популярности</SelectItem>
+                <SelectItem value="price-asc">Сначала дешёвые</SelectItem>
+                <SelectItem value="price-desc">Сначала дорогие</SelectItem>
+                <SelectItem value="rating">По рейтингу</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </header>
 
@@ -171,17 +329,17 @@ export default function CatalogPage() {
       {/* Products Grid */}
       <section className="px-4 pt-4 pb-8">
         <p className="text-sm text-muted-foreground mb-4">
-          Найдено: {searchFilteredProducts.length} товаров
+          Найдено: {filteredAndSortedProducts.length} товаров
         </p>
         <div className="grid grid-cols-2 gap-3">
-          {searchFilteredProducts.map((product, index) => (
+          {filteredAndSortedProducts.map((product, index) => (
             <div key={product.id} className={`stagger-${(index % 5) + 1}`}>
               <ProductCard product={product} />
             </div>
           ))}
         </div>
 
-        {searchFilteredProducts.length === 0 && (
+        {filteredAndSortedProducts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-lg font-semibold text-foreground mb-2">
               Ничего не найдено
@@ -189,6 +347,11 @@ export default function CatalogPage() {
             <p className="text-muted-foreground">
               Попробуйте изменить параметры поиска
             </p>
+            {hasActiveFilters && (
+              <Button variant="outline" className="mt-4" onClick={resetFilters}>
+                Сбросить фильтры
+              </Button>
+            )}
           </div>
         )}
       </section>
