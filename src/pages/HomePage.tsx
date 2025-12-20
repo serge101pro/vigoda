@@ -25,8 +25,12 @@ import mealPlanBalanced from '@/assets/meals/meal-plan-balanced.jpg';
 import mealPlanDiet from '@/assets/meals/meal-plan-diet.jpg';
 import mealPlanMuscle from '@/assets/meals/meal-plan-muscle.jpg';
 import mealPlanVegan from '@/assets/meals/meal-plan-vegan.jpg';
-import chickenQuinoa from '@/assets/meals/chicken-quinoa.jpg';
-import salmonTeriyaki from '@/assets/meals/salmon-teriyaki.jpg';
+import chickenQuinoaHd from '@/assets/meals/chicken-quinoa-hd.jpg';
+import salmonTeriyakiHd from '@/assets/meals/salmon-teriyaki-hd.jpg';
+import greekSaladHd from '@/assets/meals/greek-salad-hd.jpg';
+import borschtHd from '@/assets/meals/borscht-hd.jpg';
+import carbonaraHd from '@/assets/meals/carbonara-hd.jpg';
+import oatmealBerriesHd from '@/assets/meals/oatmeal-berries-hd.jpg';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -39,12 +43,12 @@ const currentMonth = monthNames[new Date().getMonth()];
 const saleProducts = mockProducts.filter(p => p.badge === 'sale' || p.badge === 'hot');
 
 const readyMeals = [
-  { id: '1', name: 'Куриная грудка с киноа', image: chickenQuinoa, weight: 350, calories: 420, protein: 38, price: 449, oldPrice: 549, rating: 4.8 },
-  { id: '2', name: 'Лосось терияки с рисом', image: salmonTeriyaki, weight: 380, calories: 520, protein: 32, price: 649, rating: 4.9 },
-  { id: '3', name: 'Греческий салат с фетой', image: mockProducts[0]?.image || '', weight: 250, calories: 280, protein: 8, price: 349, oldPrice: 399, rating: 4.6 },
-  { id: '4', name: 'Борщ со сметаной', image: mockProducts[12]?.image || '', weight: 400, calories: 320, protein: 18, price: 299, rating: 4.7 },
-  { id: '5', name: 'Паста Карбонара', image: mockProducts[10]?.image || '', weight: 320, calories: 580, protein: 22, price: 399, rating: 4.8 },
-  { id: '6', name: 'Овсянка с ягодами', image: mockProducts[13]?.image || '', weight: 280, calories: 340, protein: 12, price: 249, rating: 4.5 },
+  { id: '1', name: 'Куриная грудка с киноа', image: chickenQuinoaHd, weight: 350, calories: 420, protein: 38, price: 449, oldPrice: 549, rating: 4.8 },
+  { id: '2', name: 'Лосось терияки с рисом', image: salmonTeriyakiHd, weight: 380, calories: 520, protein: 32, price: 649, rating: 4.9 },
+  { id: '3', name: 'Греческий салат с фетой', image: greekSaladHd, weight: 250, calories: 280, protein: 8, price: 349, oldPrice: 399, rating: 4.6 },
+  { id: '4', name: 'Борщ со сметаной', image: borschtHd, weight: 400, calories: 320, protein: 18, price: 299, rating: 4.7 },
+  { id: '5', name: 'Паста Карбонара', image: carbonaraHd, weight: 320, calories: 580, protein: 22, price: 399, rating: 4.8 },
+  { id: '6', name: 'Овсянка с ягодами', image: oatmealBerriesHd, weight: 280, calories: 340, protein: 12, price: 249, rating: 4.5 },
 ];
 
 const mealPlans = [
@@ -223,7 +227,7 @@ export default function HomePage() {
             subtitle="Экономьте время на готовку!"
             buttonText="Подробнее"
             buttonLink="/ready-meals"
-            image={chickenQuinoa}
+            image={chickenQuinoaHd}
             variant="accent"
           />
         </Link>
