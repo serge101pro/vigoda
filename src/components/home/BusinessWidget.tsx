@@ -44,14 +44,14 @@ export function BusinessWidget({ hasOrganization, organizationName, balance }: B
 
   // User is not part of organization - show promotional widget
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-4 text-white">
+    <div className="bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-300 dark:to-slate-400 rounded-2xl p-4">
       <div className="flex items-start gap-3 mb-4">
-        <div className="p-2 bg-white/10 rounded-xl">
-          <Building2 className="h-6 w-6" />
+        <div className="p-2 bg-slate-400/30 rounded-xl">
+          <Building2 className="h-6 w-6 text-slate-800" />
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-lg">Для бизнеса</h3>
-          <p className="text-sm text-white/80">
+          <h3 className="font-bold text-lg text-slate-900">Для бизнеса</h3>
+          <p className="text-sm text-slate-700">
             Кормите команду вкусно и без лишних бумаг
           </p>
         </div>
@@ -59,33 +59,33 @@ export function BusinessWidget({ hasOrganization, organizationName, balance }: B
 
       <div className="space-y-2 mb-4">
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-            <span className="text-green-400">✓</span>
+          <div className="w-5 h-5 rounded-full bg-green-600/20 flex items-center justify-center">
+            <span className="text-green-700">✓</span>
           </div>
-          <span className="text-white/90">Один счёт в конце месяца</span>
+          <span className="text-slate-800">Один счёт в конце месяца</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-            <span className="text-green-400">✓</span>
+          <div className="w-5 h-5 rounded-full bg-green-600/20 flex items-center justify-center">
+            <span className="text-green-700">✓</span>
           </div>
-          <span className="text-white/90">Закрывающие документы в ЭДО</span>
+          <span className="text-slate-800">Закрывающие документы в ЭДО</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-            <span className="text-green-400">✓</span>
+          <div className="w-5 h-5 rounded-full bg-green-600/20 flex items-center justify-center">
+            <span className="text-green-700">✓</span>
           </div>
-          <span className="text-white/90">2% кэшбэк на корпоративный баланс</span>
+          <span className="text-slate-800">2% кэшбэк на корпоративный баланс</span>
         </div>
       </div>
 
       <div className="flex gap-2">
         <Link to="/business" className="flex-1">
-          <Button variant="secondary" size="sm" className="w-full">
+          <Button size="sm" className="w-full bg-slate-800 text-white hover:bg-slate-900">
             Подробнее
           </Button>
         </Link>
         <Link to="/business/demo" className="flex-1">
-          <Button variant="outline" size="sm" className="w-full border-white/30 text-white hover:bg-white/10">
+          <Button size="sm" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
             Демо-доступ
           </Button>
         </Link>
