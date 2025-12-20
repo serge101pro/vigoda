@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Heart, ChefHat, ChevronRight, Store, Tractor } from 'lucide-react';
+import { Search, Heart, ChefHat, ChevronRight, Store, Tractor, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { PromoBanner } from '@/components/ui/PromoBanner';
@@ -16,14 +16,22 @@ import { HeaderAvatar } from '@/components/home/HeaderAvatar';
 import { AddressDropdown } from '@/components/home/AddressDropdown';
 import { LanguageSelector } from '@/components/home/LanguageSelector';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Switch } from '@/components/ui/switch';
 import { mockProducts, mockRecipes } from '@/data/mockData';
 import { homeCateringOffers, officeCateringOffers, themedCateringOffers } from '@/data/cateringData';
 import { farmProducts } from '@/data/farmData';
 import heroImage from '@/assets/hero-groceries.jpg';
+import mealPlanBalanced from '@/assets/meals/meal-plan-balanced.jpg';
+import mealPlanDiet from '@/assets/meals/meal-plan-diet.jpg';
+import mealPlanMuscle from '@/assets/meals/meal-plan-muscle.jpg';
+import mealPlanVegan from '@/assets/meals/meal-plan-vegan.jpg';
+import chickenQuinoa from '@/assets/meals/chicken-quinoa.jpg';
+import salmonTeriyaki from '@/assets/meals/salmon-teriyaki.jpg';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAppStore } from '@/stores/useAppStore';
 
 const monthNames = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
 const currentMonth = monthNames[new Date().getMonth()];
@@ -31,8 +39,8 @@ const currentMonth = monthNames[new Date().getMonth()];
 const saleProducts = mockProducts.filter(p => p.badge === 'sale' || p.badge === 'hot');
 
 const readyMeals = [
-  { id: '1', name: 'Куриная грудка с киноа', image: mockProducts[3]?.image || '', weight: 350, calories: 420, protein: 38, price: 449, oldPrice: 549, rating: 4.8 },
-  { id: '2', name: 'Лосось терияки с рисом', image: mockProducts[6]?.image || '', weight: 380, calories: 520, protein: 32, price: 649, rating: 4.9 },
+  { id: '1', name: 'Куриная грудка с киноа', image: chickenQuinoa, weight: 350, calories: 420, protein: 38, price: 449, oldPrice: 549, rating: 4.8 },
+  { id: '2', name: 'Лосось терияки с рисом', image: salmonTeriyaki, weight: 380, calories: 520, protein: 32, price: 649, rating: 4.9 },
   { id: '3', name: 'Греческий салат с фетой', image: mockProducts[0]?.image || '', weight: 250, calories: 280, protein: 8, price: 349, oldPrice: 399, rating: 4.6 },
   { id: '4', name: 'Борщ со сметаной', image: mockProducts[12]?.image || '', weight: 400, calories: 320, protein: 18, price: 299, rating: 4.7 },
   { id: '5', name: 'Паста Карбонара', image: mockProducts[10]?.image || '', weight: 320, calories: 580, protein: 22, price: 399, rating: 4.8 },
@@ -40,10 +48,10 @@ const readyMeals = [
 ];
 
 const mealPlans = [
-  { id: '1', name: 'Сбалансированное питание', image: mockProducts[11]?.image || '', days: 7, mealsPerDay: 5, caloriesPerDay: 1800, price: 6990, pricePerDay: 999, discount: 15, rating: 4.9, isPopular: true },
-  { id: '2', name: 'Похудение без голода', image: mockProducts[1]?.image || '', days: 14, mealsPerDay: 5, caloriesPerDay: 1400, price: 11990, pricePerDay: 857, discount: 20, rating: 4.8 },
-  { id: '3', name: 'Набор массы', image: mockProducts[12]?.image || '', days: 7, mealsPerDay: 6, caloriesPerDay: 2800, price: 8990, pricePerDay: 1284, rating: 4.7 },
-  { id: '4', name: 'Вегетарианский', image: mockProducts[0]?.image || '', days: 7, mealsPerDay: 4, caloriesPerDay: 1600, price: 5990, pricePerDay: 856, rating: 4.6 },
+  { id: '1', name: 'Сбалансированное питание', image: mealPlanBalanced, days: 7, mealsPerDay: 5, caloriesPerDay: 1800, price: 6990, pricePerDay: 999, discount: 15, rating: 4.9, isPopular: true },
+  { id: '2', name: 'Похудение без голода', image: mealPlanDiet, days: 14, mealsPerDay: 5, caloriesPerDay: 1400, price: 11990, pricePerDay: 857, discount: 20, rating: 4.8 },
+  { id: '3', name: 'Набор массы', image: mealPlanMuscle, days: 7, mealsPerDay: 6, caloriesPerDay: 2800, price: 8990, pricePerDay: 1284, rating: 4.7 },
+  { id: '4', name: 'Вегетарианский', image: mealPlanVegan, days: 7, mealsPerDay: 4, caloriesPerDay: 1600, price: 5990, pricePerDay: 856, rating: 4.6 },
 ];
 
 // Combine catering offers for different rows
@@ -56,6 +64,7 @@ export default function HomePage() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { hasPaidPlan } = useSubscription();
+  const { allSectionsCollapsed, setAllSectionsCollapsed } = useAppStore();
 
   const savings = profile?.total_savings || 2450;
   const bonusPoints = profile?.bonus_points || 1280;
@@ -66,44 +75,33 @@ export default function HomePage() {
 
   return (
     <div className="page-container">
-      {/* Header - 2.2 */}
+      {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
-            {/* Left: Avatar + Address */}
             <div className="flex items-center gap-3">
-              {/* 2.2.1 Avatar */}
               <HeaderAvatar />
-              
-              {/* 2.2.2 Address Dropdown */}
               <AddressDropdown />
             </div>
-            
-            {/* Right: Favorites, Language, Theme */}
             <div className="flex items-center gap-1">
-              {/* 2.2.3 Favorites icon */}
               <Link to="/favorites">
                 <Button variant="ghost" size="icon" className="rounded-full w-10 h-10">
                   <Heart className="h-5 w-5" />
                 </Button>
               </Link>
-              
-              {/* 2.2.4 Language selector */}
               <LanguageSelector />
-              
-              {/* 2.2.5 Theme toggle */}
               <ThemeToggle />
             </div>
           </div>
         </div>
       </header>
 
-      {/* Promo Banner Carousel - 2.2 (после шапки) */}
+      {/* Promo Banner Carousel */}
       <section className="px-4 pt-4">
         <PromoBannerCarousel />
       </section>
 
-      {/* Search with voice input - 2.3 */}
+      {/* Search with voice input */}
       <section className="px-4 pt-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -121,10 +119,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Cards Row - Экономия, Бонусы, Рецепты - 2.3, 2.4, 2.5 */}
+      {/* Stats Cards Row */}
       <section className="px-4 pt-4">
         <div className="grid grid-cols-3 gap-2">
-          {/* Ваша экономия */}
           <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-3 border border-primary/20">
             <div className="flex items-center gap-1.5 mb-1">
               <span className="text-base">💰</span>
@@ -139,7 +136,6 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Ваши бонусы */}
           <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-2xl p-3 border border-border">
             <div className="flex items-center gap-1.5 mb-1">
               <span className="text-base">⭐</span>
@@ -154,7 +150,6 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Ваши рецепты */}
           <Link to="/profile/recipes" className="bg-card rounded-2xl p-3 border border-border hover:border-primary/30 transition-colors">
             <div className="flex items-center gap-1.5 mb-1">
               <ChefHat className="h-4 w-4 text-primary" />
@@ -169,42 +164,53 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Banner: Скидки дня - 2.7 */}
+      {/* Banner: Скидки дня + Expand/Collapse Toggle */}
       <section className="px-4 pt-4">
-        <Link to="/catalog?filter=sale">
-          <PromoBanner
-            title="Скидки дня"
-            subtitle="До 50% на популярные товары!"
-            buttonText="Смотреть"
-            buttonLink="/catalog?filter=sale"
-            image={heroImage}
-            variant="primary"
-          />
-        </Link>
+        <div className="flex gap-3">
+          <Link to="/catalog?filter=sale" className="flex-1">
+            <PromoBanner
+              title="Скидки дня"
+              subtitle="До 50% на популярные товары!"
+              buttonText="Смотреть"
+              buttonLink="/catalog?filter=sale"
+              image={heroImage}
+              variant="primary"
+            />
+          </Link>
+          <div className="flex flex-col justify-center items-center bg-card border border-border rounded-2xl px-3 py-2 min-w-[100px]">
+            <span className="text-xs text-muted-foreground mb-2 text-center">
+              {allSectionsCollapsed ? 'Развернуть' : 'Свернуть'} все
+            </span>
+            <Switch
+              checked={!allSectionsCollapsed}
+              onCheckedChange={(checked) => setAllSectionsCollapsed(!checked)}
+            />
+          </div>
+        </div>
       </section>
 
-      {/* Categories - 2.8, 2.9 */}
+      {/* Categories */}
       <section className="pt-6">
-        <CategoryChipsCarousel initialExpanded={true} />
+        <CategoryChipsCarousel initialExpanded={!allSectionsCollapsed} />
       </section>
 
-      {/* Popular Products - 1 row, collapsible */}
+      {/* Popular Products */}
       <section className="pt-6">
-        <CollapsibleSection title="Популярные товары" linkText="Все" linkTo="/catalog" initialExpanded={true}>
+        <CollapsibleSection title="Популярные товары" linkText="Все" linkTo="/catalog" initialExpanded={!allSectionsCollapsed}>
           <ProductCarousel products={mockProducts.slice(0, 12)} rows={1} />
         </CollapsibleSection>
       </section>
 
-      {/* Farm Products - 1 row, collapsible */}
+      {/* Farm Products */}
       <section className="pt-6">
-        <CollapsibleSection title="Фермерские/Эко продукты" linkText="Все" linkTo="/farm-products" initialExpanded={true}>
+        <CollapsibleSection title="Фермерские/Эко продукты" linkText="Все" linkTo="/farm-products" initialExpanded={!allSectionsCollapsed}>
           <FarmProductCarousel products={farmProducts} rows={1} />
         </CollapsibleSection>
       </section>
 
-      {/* Sale Products - 1 row, collapsible */}
+      {/* Sale Products */}
       <section className="pt-6">
-        <CollapsibleSection title="Акции" linkText="Все" linkTo="/promos" initialExpanded={true}>
+        <CollapsibleSection title="Акции" linkText="Все" linkTo="/promos" initialExpanded={!allSectionsCollapsed}>
           <ProductCarousel products={[...saleProducts, ...mockProducts.slice(0, 4)]} rows={1} />
         </CollapsibleSection>
       </section>
@@ -217,27 +223,47 @@ export default function HomePage() {
             subtitle="Экономьте время на готовку!"
             buttonText="Подробнее"
             buttonLink="/ready-meals"
-            image={mockRecipes[1]?.image || heroImage}
+            image={chickenQuinoa}
             variant="accent"
           />
         </Link>
       </section>
 
-      {/* Popular Meals - 1 row, collapsible */}
+      {/* Popular Meals */}
       <section className="pt-6">
-        <CollapsibleSection title="Популярные блюда" linkText="Все" linkTo="/ready-meals?tab=meals" initialExpanded={true}>
+        <CollapsibleSection title="Популярные блюда" linkText="Все" linkTo="/ready-meals?tab=meals" initialExpanded={!allSectionsCollapsed}>
           <MealCarousel meals={readyMeals} rows={1} />
         </CollapsibleSection>
       </section>
 
-      {/* Meal Plans - 1 row, collapsible */}
+      {/* Meal Plans */}
       <section className="pt-6">
-        <CollapsibleSection title="Готовые рационы" linkText="Все" linkTo="/ready-meals?tab=plans" initialExpanded={true}>
+        <CollapsibleSection title="Готовые рационы" linkText="Все" linkTo="/ready-meals?tab=plans" initialExpanded={!allSectionsCollapsed}>
           <MealPlanCarousel plans={mealPlans} rows={1} />
         </CollapsibleSection>
       </section>
 
-      {/* Banner: Клуб Кулинаров - 2.15 */}
+      {/* Catering - Moved after Meal Plans */}
+      <section className="pt-6">
+        <CollapsibleSection title="Кейтеринг" linkText="Все" linkTo="/catering" initialExpanded={!allSectionsCollapsed}>
+          <div className="space-y-4">
+            <div>
+              <p className="px-4 text-sm font-medium text-muted-foreground mb-2">🏠 На дом</p>
+              <CateringCarousel offers={cateringHomeOffers} rows={1} />
+            </div>
+            <div>
+              <p className="px-4 text-sm font-medium text-muted-foreground mb-2">🏢 В офис</p>
+              <CateringCarousel offers={cateringOfficeOffers} rows={1} />
+            </div>
+            <div>
+              <p className="px-4 text-sm font-medium text-muted-foreground mb-2">🎉 Тематические</p>
+              <CateringCarousel offers={cateringThemedOffers} rows={1} />
+            </div>
+          </div>
+        </CollapsibleSection>
+      </section>
+
+      {/* Banner: Клуб Кулинаров */}
       <section className="px-4 pt-6">
         <Link to="/social-recipes">
           <div className="relative rounded-2xl overflow-hidden">
@@ -256,7 +282,7 @@ export default function HomePage() {
       </section>
 
       {/* Магазины и Фермы */}
-      <section className="px-4 pt-6">
+      <section className="px-4 pt-6 pb-8">
         <div className="grid grid-cols-2 gap-3">
           <Link to="/stores" className="block">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
@@ -275,26 +301,6 @@ export default function HomePage() {
             </div>
           </Link>
         </div>
-      </section>
-
-      {/* Catering - 3 rows by category */}
-      <section className="pt-6 pb-8">
-        <CollapsibleSection title="Кейтеринг" linkText="Все" linkTo="/catering" initialExpanded={true}>
-          <div className="space-y-4">
-            <div>
-              <p className="px-4 text-sm font-medium text-muted-foreground mb-2">🏠 На дом</p>
-              <CateringCarousel offers={cateringHomeOffers} rows={1} />
-            </div>
-            <div>
-              <p className="px-4 text-sm font-medium text-muted-foreground mb-2">🏢 В офис</p>
-              <CateringCarousel offers={cateringOfficeOffers} rows={1} />
-            </div>
-            <div>
-              <p className="px-4 text-sm font-medium text-muted-foreground mb-2">🎉 Тематические</p>
-              <CateringCarousel offers={cateringThemedOffers} rows={1} />
-            </div>
-          </div>
-        </CollapsibleSection>
       </section>
     </div>
   );

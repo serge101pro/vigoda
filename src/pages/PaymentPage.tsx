@@ -209,6 +209,25 @@ export default function PaymentPage() {
             ))}
           </div>
         </div>
+
+        {/* Pay Button */}
+        <div className="pb-24">
+          <Button 
+            variant="hero" 
+            size="xl" 
+            className="w-full"
+            onClick={() => {
+              if (!selectedMethod) {
+                toast({ title: 'Выберите способ оплаты', variant: 'destructive' });
+                return;
+              }
+              processPayment();
+            }}
+            disabled={!selectedMethod}
+          >
+            Оплатить {amount} ₽
+          </Button>
+        </div>
       </div>
 
       {/* Card Form Dialog */}
