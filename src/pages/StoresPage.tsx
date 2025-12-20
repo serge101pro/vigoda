@@ -1,0 +1,128 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, Star, MapPin, Clock, Percent, Package, ChevronRight, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { stores, storeCategories } from '@/data/storesData';
+
+export default function StoresPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const filteredStores = stores.filter(store => {
+    const matchesSearch = store.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  });
+
+  return (
+    <div className="page-container">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <Link to="/">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <h1 className="text-xl font-bold text-foreground">Магазины</h1>
+        </div>
+      </header>
+
+      <div className="px-4 py-4 space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Найти магазин..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Categories */}
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+          {storeCategories.map((cat) => (
+            <Button
+              key={cat.id}
+              variant={selectedCategory === cat.id ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedCategory(cat.id)}
+              className="whitespace-nowrap"
+            >
+              {cat.emoji} {cat.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-primary/10 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-primary">{stores.length}</p>
+            <p className="text-xs text-muted-foreground">Сетей</p>
+          </div>
+          <div className="bg-accent/10 rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-accent-foreground">50000+</p>
+            <p className="text-xs text-muted-foreground">Товаров</p>
+          </div>
+          <div className="bg-muted rounded-xl p-3 text-center">
+            <p className="text-2xl font-bold text-foreground">До 50%</p>
+            <p className="text-xs text-muted-foreground">Скидки</p>
+          </div>
+        </div>
+
+        {/* Stores List */}
+        <div className="space-y-4">
+          {filteredStores.map((store) => (
+            <Link
+              key={store.id}
+              to={`/store/${store.id}`}
+              className="block bg-card rounded-2xl border border-border hover:border-primary/50 transition-colors overflow-hidden"
+            >
+              <div className="p-4">
+                <div className="flex items-center gap-4">
+                  {/* Logo */}
+                  <div className={`w-16 h-16 rounded-2xl ${store.color} flex items-center justify-center text-3xl`}>
+                    {store.logo}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg text-foreground">{store.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">{store.description}</p>
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        {store.rating}
+                      </span>
+                      <span className="flex items-center gap-1 text-primary">
+                        <Percent className="h-4 w-4" />
+                        до {store.averageDiscount}%
+                      </span>
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Package className="h-4 w-4" />
+                        {store.productsCount.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
+
+                {/* Features */}
+                <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border">
+                  {store.features.slice(0, 3).map((feature, i) => (
+                    <Badge key={i} variant="secondary" className="text-xs">
+                      {feature}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
