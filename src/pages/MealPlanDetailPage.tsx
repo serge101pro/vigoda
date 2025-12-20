@@ -158,7 +158,23 @@ export default function MealPlanDetailPage() {
           <div className="bg-card rounded-xl p-3 text-center border border-border">
             <Users className="h-5 w-5 mx-auto mb-1 text-purple-500" />
             <p className="text-xs text-muted-foreground">Персон</p>
-            <p className="font-bold">1</p>
+            <p className="font-bold">{peopleCount}</p>
+          </div>
+        </div>
+
+        {/* People Count Selection */}
+        <div className="mb-4">
+          <h3 className="font-semibold mb-2">Количество персон</h3>
+          <div className="flex items-center gap-2">
+            <Slider
+              value={[peopleCount]}
+              onValueChange={(v) => setPeopleCount(v[0])}
+              min={1}
+              max={8}
+              step={1}
+              className="flex-1"
+            />
+            <span className="w-8 text-center font-bold">{peopleCount}</span>
           </div>
         </div>
 
@@ -197,6 +213,13 @@ export default function MealPlanDetailPage() {
           </TabsList>
 
           <TabsContent value="menu" className="mt-4">
+            {peopleCount > 1 && (
+              <div className="mb-3 bg-blue-500/10 rounded-xl p-3 border border-blue-500/20">
+                <p className="text-sm text-blue-700 dark:text-blue-400">
+                  Расчёт на <span className="font-bold">{peopleCount} персон</span>
+                </p>
+              </div>
+            )}
             <div className="space-y-3">
               {mealPlan.dailyMenu.map((day) => (
                 <div key={day.day} className="bg-card rounded-xl border border-border overflow-hidden">
@@ -207,7 +230,7 @@ export default function MealPlanDetailPage() {
                     <div>
                       <p className="font-semibold">{day.dayName}</p>
                       <p className="text-sm text-muted-foreground">
-                        {day.meals.length} приёмов • {day.totalCalories} ккал
+                        {day.meals.length} приёмов • {day.totalCalories * peopleCount} ккал
                       </p>
                     </div>
                     <div className={`transition-transform ${expandedDay === day.day ? 'rotate-180' : ''}`}>
@@ -227,22 +250,22 @@ export default function MealPlanDetailPage() {
                             <p className="text-xs text-primary font-medium">{meal.time}</p>
                             <p className="font-medium text-sm">{meal.name}</p>
                             <div className="flex gap-3 text-xs text-muted-foreground mt-1">
-                              <span>{meal.calories} ккал</span>
-                              <span>Б: {meal.protein}г</span>
-                              <span>Ж: {meal.fat}г</span>
-                              <span>У: {meal.carbs}г</span>
+                              <span>{meal.calories * peopleCount} ккал</span>
+                              <span>Б: {meal.protein * peopleCount}г</span>
+                              <span>Ж: {meal.fat * peopleCount}г</span>
+                              <span>У: {meal.carbs * peopleCount}г</span>
                             </div>
                           </div>
                         </div>
                       ))}
                       {/* Day totals */}
                       <div className="pt-2 border-t border-border flex justify-between text-sm">
-                        <span className="text-muted-foreground">Итого за день:</span>
+                        <span className="text-muted-foreground">Итого за день ({peopleCount} чел.):</span>
                         <div className="flex gap-3 font-medium">
-                          <span>{day.totalCalories} ккал</span>
-                          <span>Б: {day.totalProtein}г</span>
-                          <span>Ж: {day.totalFat}г</span>
-                          <span>У: {day.totalCarbs}г</span>
+                          <span>{day.totalCalories * peopleCount} ккал</span>
+                          <span>Б: {day.totalProtein * peopleCount}г</span>
+                          <span>Ж: {day.totalFat * peopleCount}г</span>
+                          <span>У: {day.totalCarbs * peopleCount}г</span>
                         </div>
                       </div>
                     </div>
@@ -254,25 +277,41 @@ export default function MealPlanDetailPage() {
 
           <TabsContent value="nutrition" className="mt-4">
             <div className="bg-card rounded-xl p-4 border border-border">
-              <h4 className="font-semibold mb-4">Среднее значение в день</h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-semibold">Значения в день на {peopleCount} чел.</h4>
+                <Badge variant="secondary">{peopleCount} персон</Badge>
+              </div>
               <div className="grid grid-cols-4 gap-4 text-center">
                 <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-primary">{mealPlan.caloriesPerDay}</p>
+                  <p className="text-2xl font-bold text-primary">{mealPlan.caloriesPerDay * peopleCount}</p>
                   <p className="text-xs text-muted-foreground">ккал</p>
                 </div>
                 <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-foreground">{mealPlan.proteinPerDay}</p>
+                  <p className="text-2xl font-bold text-foreground">{mealPlan.proteinPerDay * peopleCount}</p>
                   <p className="text-xs text-muted-foreground">белки, г</p>
                 </div>
                 <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-foreground">{mealPlan.fatPerDay}</p>
+                  <p className="text-2xl font-bold text-foreground">{mealPlan.fatPerDay * peopleCount}</p>
                   <p className="text-xs text-muted-foreground">жиры, г</p>
                 </div>
                 <div className="bg-muted rounded-xl p-3">
-                  <p className="text-2xl font-bold text-foreground">{mealPlan.carbsPerDay}</p>
+                  <p className="text-2xl font-bold text-foreground">{mealPlan.carbsPerDay * peopleCount}</p>
                   <p className="text-xs text-muted-foreground">углеводы, г</p>
                 </div>
               </div>
+              
+              {/* Per person breakdown if more than 1 */}
+              {peopleCount > 1 && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground mb-2">На 1 человека:</p>
+                  <div className="flex justify-between text-sm">
+                    <span>{mealPlan.caloriesPerDay} ккал</span>
+                    <span>Б: {mealPlan.proteinPerDay}г</span>
+                    <span>Ж: {mealPlan.fatPerDay}г</span>
+                    <span>У: {mealPlan.carbsPerDay}г</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* What's included */}

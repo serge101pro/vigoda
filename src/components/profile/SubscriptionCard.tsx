@@ -20,7 +20,7 @@ interface PlanDetail {
 
 const planDetails: Record<'free' | 'solo' | 'family' | 'corp', PlanDetail> = {
   free: {
-    name: 'Бесплатная',
+    name: 'Выгода',
     price: 'Бесплатно',
     features: [
       'До 3 активных списков',
@@ -30,7 +30,7 @@ const planDetails: Record<'free' | 'solo' | 'family' | 'corp', PlanDetail> = {
     ]
   },
   solo: {
-    name: 'Премиум Solo',
+    name: 'Персона',
     price: 'от 299₽',
     priceLabel: '/месяц',
     features: [
@@ -43,28 +43,29 @@ const planDetails: Record<'free' | 'solo' | 'family' | 'corp', PlanDetail> = {
     ]
   },
   family: {
-    name: 'Премиум Family',
+    name: 'Семья',
     price: 'от 399₽',
     priceLabel: '/месяц',
     features: [
       'До 5 участников',
-      'Всё из Solo +',
+      'Всё из Персона +',
       'Real-time синхронизация',
       'Семейный бюджет',
       'Meal planning'
-    ]
+    ],
+    note: 'Далее 59₽/чел/мес'
   },
   corp: {
-    name: 'Премиум Корп',
+    name: 'Бизнес',
     price: '99₽',
     priceLabel: '/участник/месяц',
     features: [
-      'Неограниченно участников',
-      'Всё из Family +',
+      'От 1 участника',
+      'Всё из Семья +',
       'Корп. отчёты',
       'API доступ'
     ],
-    note: 'Только годовые контракты'
+    note: 'Корпоративный тариф'
   }
 };
 
