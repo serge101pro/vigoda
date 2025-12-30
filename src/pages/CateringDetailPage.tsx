@@ -97,9 +97,12 @@ export default function CateringDetailPage() {
     addCateringToCart({
       id: offer.id,
       name: offer.title,
+      image: offer.image,
       pricePerPerson: basePricePerPerson,
       guestCount,
       depositPercent: 30,
+      totalPrice,
+      services: serviceOptions,
     });
     toast({
       title: 'Добавлено в корзину!',

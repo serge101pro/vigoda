@@ -32,6 +32,13 @@ export interface Recipe {
 // Base cart item type
 export type CartItemType = 'product' | 'recipe-ingredients' | 'meal-plan' | 'meal-plan-ingredients' | 'meal-plan-diy' | 'farm-product' | 'catering';
 
+export interface CateringService {
+  id: string;
+  name: string;
+  pricePerPerson: number;
+  included: boolean;
+}
+
 export interface CartItem {
   id: string;
   type: CartItemType;
@@ -45,8 +52,11 @@ export interface CartItem {
   // For catering
   cateringId?: string;
   cateringName?: string;
+  cateringImage?: string;
   guestCount?: number;
   depositAmount?: number;
+  totalPrice?: number;
+  services?: CateringService[];
   // For farm products
   farmId?: string;
   farmName?: string;
@@ -77,7 +87,7 @@ interface AppState {
   addRecipeIngredientsToCart: (recipe: Recipe, servings: number) => void;
   addMealPlanToCart: (mealPlan: { id: string; name: string; price: number; image: string }, variant: 'ready' | 'supplier-kit' | 'diy') => void;
   addFarmProductToCart: (product: Product, farmId: string, farmName: string, quantity?: number) => void;
-  addCateringToCart: (catering: { id: string; name: string; pricePerPerson: number; guestCount: number; depositPercent: number }) => void;
+  addCateringToCart: (catering: { id: string; name: string; image: string; pricePerPerson: number; guestCount: number; depositPercent: number; totalPrice: number; services: CateringService[] }) => void;
   removeFromCart: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -242,21 +252,24 @@ export const useAppStore = create<AppState>()(
 
       addCateringToCart: (catering) => {
         const cart = get().cart;
-        const depositAmount = Math.round(catering.pricePerPerson * catering.guestCount * (catering.depositPercent / 100));
+        const depositAmount = Math.round(catering.totalPrice * (catering.depositPercent / 100));
         
         const newItem: CartItem = {
           id: `catering-${catering.id}-${Date.now()}`,
           type: 'catering',
           cateringId: catering.id,
           cateringName: catering.name,
+          cateringImage: catering.image,
           guestCount: catering.guestCount,
           depositAmount,
+          totalPrice: catering.totalPrice,
+          services: catering.services,
           quantity: 1,
           product: {
             id: catering.id,
             name: catering.name,
             category: 'catering',
-            image: '',
+            image: catering.image,
             price: depositAmount,
             unit: 'заказ',
             rating: 4.8,
