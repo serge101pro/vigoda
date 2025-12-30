@@ -55,6 +55,7 @@ import FarmDetailPage from "@/pages/FarmDetailPage";
 import PromosPage from "@/pages/PromosPage";
 import PaymentPage from "@/pages/PaymentPage";
 import NearestStoresPage from "@/pages/NearestStoresPage";
+import ShoppingRoutePage from "@/pages/ShoppingRoutePage";
 import BusinessLandingPage from "@/pages/BusinessLandingPage";
 import OrganizationDashboardPage from "@/pages/organization/OrganizationDashboardPage";
 import OrganizationAnalyticsPage from "@/pages/organization/OrganizationAnalyticsPage";
@@ -110,6 +111,7 @@ function AppRoutes() {
           <Route path="/social-recipes" element={<SocialRecipesPage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/nearest-stores" element={<NearestStoresPage />} />
+          <Route path="/shopping-route" element={<ShoppingRoutePage />} />
           <Route path="/business" element={<BusinessLandingPage />} />
           <Route path="/organization" element={<OrganizationDashboardPage />} />
           <Route path="/organization/analytics" element={<OrganizationAnalyticsPage />} />
