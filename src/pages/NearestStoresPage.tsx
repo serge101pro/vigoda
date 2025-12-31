@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Navigation, Phone, Clock, Star, Loader2, MapPin } from 'lucide-react';
+import { ArrowLeft, Navigation, Phone, Clock, Star, Loader2, MapPin, Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { VigodaMap } from '@/components/map/VigodaMap';
+import { StoreFilters, StoreType, isStoreOpen, getClosingHour, getStoreType } from '@/components/stores/StoreFilters';
+import { useProximityNotifications } from '@/hooks/useProximityNotifications';
 import { toast } from 'sonner';
 
 interface StoreLocation {
@@ -19,6 +21,7 @@ interface StoreLocation {
   workingHours: string;
   phone: string;
   rating: number;
+  type: StoreType;
 }
 
 // Mock store locations near user
@@ -36,6 +39,7 @@ const mockStoreLocations: StoreLocation[] = [
     workingHours: '08:00 - 23:00',
     phone: '+7 (800) 555-55-05',
     rating: 4.2,
+    type: 'grocery',
   },
   {
     id: 'magnit-1',
@@ -50,6 +54,7 @@ const mockStoreLocations: StoreLocation[] = [
     workingHours: '08:00 - 22:00',
     phone: '+7 (800) 200-90-02',
     rating: 4.1,
+    type: 'grocery',
   },
   {
     id: 'vkusvill-1',
@@ -64,6 +69,7 @@ const mockStoreLocations: StoreLocation[] = [
     workingHours: '08:00 - 22:00',
     phone: '+7 (495) 663-86-02',
     rating: 4.7,
+    type: 'farm',
   },
   {
     id: 'perekrestok-1',
@@ -78,6 +84,7 @@ const mockStoreLocations: StoreLocation[] = [
     workingHours: '08:00 - 23:00',
     phone: '+7 (800) 200-95-55',
     rating: 4.5,
+    type: 'grocery',
   },
   {
     id: 'lenta-1',
@@ -92,6 +99,7 @@ const mockStoreLocations: StoreLocation[] = [
     workingHours: '08:00 - 23:00',
     phone: '+7 (800) 700-41-11',
     rating: 4.3,
+    type: 'hypermarket',
   },
   {
     id: 'auchan-1',
@@ -106,6 +114,22 @@ const mockStoreLocations: StoreLocation[] = [
     workingHours: '08:00 - 23:00',
     phone: '+7 (495) 933-23-23',
     rating: 4.2,
+    type: 'hypermarket',
+  },
+  {
+    id: 'svetofor-1',
+    name: 'Светофор',
+    logo: '🚦',
+    color: 'bg-yellow-500',
+    address: 'ул. Народная, 12',
+    distance: '1.8 км',
+    distanceMeters: 1800,
+    lat: 55.7500,
+    lng: 37.6350,
+    workingHours: '09:00 - 21:00',
+    phone: '+7 (800) 100-10-10',
+    rating: 3.9,
+    type: 'discount',
   },
 ];
 
@@ -115,6 +139,37 @@ export default function NearestStoresPage() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [stores, setStores] = useState(mockStoreLocations);
+  
+  // Filters state
+  const [selectedTypes, setSelectedTypes] = useState<StoreType[]>(['all']);
+  const [onlyOpenNow, setOnlyOpenNow] = useState(false);
+  const [openUntilHour, setOpenUntilHour] = useState<number | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  // Proximity notifications
+  const proximityStores = useMemo(() => 
+    stores.map(s => ({ id: s.id, name: s.name, lat: s.lat, lng: s.lng })),
+    [stores]
+  );
+  
+  const { permissionGranted, requestPermission } = useProximityNotifications({
+    enabled: notificationsEnabled,
+    radiusMeters: 200,
+    stores: proximityStores,
+  });
+
+  const toggleNotifications = async () => {
+    if (!notificationsEnabled) {
+      const granted = await requestPermission();
+      if (granted) {
+        setNotificationsEnabled(true);
+        toast.success('Уведомления включены');
+      }
+    } else {
+      setNotificationsEnabled(false);
+      toast.info('Уведомления отключены');
+    }
+  };
 
   // Get user geolocation
   useEffect(() => {
@@ -163,7 +218,29 @@ export default function NearestStoresPage() {
     return R * c;
   };
 
-  const sortedStores = [...stores].sort((a, b) => a.distanceMeters - b.distanceMeters);
+  // Filter stores based on selected filters
+  const filteredStores = useMemo(() => {
+    return stores.filter(store => {
+      // Type filter
+      if (!selectedTypes.includes('all') && !selectedTypes.includes(store.type)) {
+        return false;
+      }
+      // Open now filter
+      if (onlyOpenNow && !isStoreOpen(store.workingHours)) {
+        return false;
+      }
+      // Open until filter
+      if (openUntilHour !== null) {
+        const closingHour = getClosingHour(store.workingHours);
+        if (closingHour !== null && closingHour < openUntilHour) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [stores, selectedTypes, onlyOpenNow, openUntilHour]);
+
+  const sortedStores = [...filteredStores].sort((a, b) => a.distanceMeters - b.distanceMeters);
 
   // Convert stores to map markers
   const mapMarkers = sortedStores.map(store => ({
@@ -185,11 +262,30 @@ export default function NearestStoresPage() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <h1 className="font-bold text-lg">Ближайшие магазины</h1>
-          <div className="w-10" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleNotifications}
+            className={notificationsEnabled ? 'text-primary' : ''}
+          >
+            {notificationsEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+          </Button>
         </div>
       </header>
 
       <Breadcrumbs />
+
+      {/* Filters */}
+      <div className="px-4 py-3">
+        <StoreFilters
+          selectedTypes={selectedTypes}
+          onTypesChange={setSelectedTypes}
+          onlyOpenNow={onlyOpenNow}
+          onOnlyOpenNowChange={setOnlyOpenNow}
+          openUntilHour={openUntilHour}
+          onOpenUntilHourChange={setOpenUntilHour}
+        />
+      </div>
 
       {/* Map Container */}
       <div className="relative">

@@ -409,9 +409,11 @@ export default function CartPage() {
             </Button>
           </Link>
         )}
-        <Button variant="hero" size="xl" className="w-full">
-          Оформить заказ • {finalTotal.toLocaleString()} ₽
-        </Button>
+        <Link to="/checkout" className="block">
+          <Button variant="hero" size="xl" className="w-full">
+            Оформить заказ • {finalTotal.toLocaleString()} ₽
+          </Button>
+        </Link>
       </div>
     </div>
   );
