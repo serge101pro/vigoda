@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { VigodaMap } from '@/components/map/VigodaMap';
+import { RouteNavigation } from '@/components/map/RouteNavigation';
 import { useAppStore } from '@/stores/useAppStore';
 import { stores } from '@/data/storesData';
 import { searchAddress, calculateOptimalRoute, calculateDistance, calculateWalkingTime } from '@/services/nominatimService';
