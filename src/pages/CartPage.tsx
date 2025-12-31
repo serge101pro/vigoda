@@ -400,10 +400,17 @@ export default function CartPage() {
       </section>
 
       {/* Fixed Bottom */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-background/95 backdrop-blur-lg border-t border-border">
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-background/95 backdrop-blur-lg border-t border-border space-y-2">
+        {storeProducts.length > 0 && (
+          <Link to="/shopping-route" className="block">
+            <Button variant="outline" size="lg" className="w-full border-primary text-primary hover:bg-primary/10">
+              <MapPin className="h-5 w-5 mr-2" />
+              Построить маршрут по магазинам
+            </Button>
+          </Link>
+        )}
         <Button variant="hero" size="xl" className="w-full">
-          <MapPin className="h-5 w-5 mr-2" />
-          Построить маршрут и купить
+          Оформить заказ • {finalTotal.toLocaleString()} ₽
         </Button>
       </div>
     </div>
