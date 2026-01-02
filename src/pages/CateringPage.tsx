@@ -211,7 +211,8 @@ export default function CateringPage() {
             {privatePackages.map((pkg) => (
               <div 
                 key={pkg.id}
-                className="bg-card rounded-2xl border border-border overflow-hidden"
+                className="bg-card rounded-2xl border border-border overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => navigate(`/catering/home-${pkg.id}`)}
               >
                 <div className="relative h-40">
                   <img src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
@@ -234,8 +235,8 @@ export default function CateringPage() {
                       <p className="text-sm text-muted-foreground">{pkg.minGuests}-{pkg.maxGuests} гостей</p>
                       <p className="text-lg font-bold text-primary">от {pkg.priceFrom.toLocaleString()} ₽</p>
                     </div>
-                    <Button onClick={() => handleOrderClick(pkg.name)}>
-                      Заказать
+                    <Button onClick={(e) => { e.stopPropagation(); navigate(`/catering/home-${pkg.id}`); }}>
+                      Подробнее
                     </Button>
                   </div>
                 </div>
@@ -248,7 +249,8 @@ export default function CateringPage() {
             {corporatePackages.map((pkg) => (
               <div 
                 key={pkg.id}
-                className="bg-card rounded-2xl border border-border overflow-hidden"
+                className="bg-card rounded-2xl border border-border overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => navigate(`/catering/office-${pkg.id}`)}
               >
                 <div className="relative h-40">
                   <img src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
@@ -271,8 +273,8 @@ export default function CateringPage() {
                       <p className="text-sm text-muted-foreground">{pkg.minGuests}-{pkg.maxGuests} человек</p>
                       <p className="text-lg font-bold text-primary">от {pkg.priceFrom.toLocaleString()} ₽</p>
                     </div>
-                    <Button onClick={() => handleOrderClick(pkg.name)}>
-                      Заказать
+                    <Button onClick={(e) => { e.stopPropagation(); navigate(`/catering/office-${pkg.id}`); }}>
+                      Подробнее
                     </Button>
                   </div>
                 </div>
@@ -286,7 +288,7 @@ export default function CateringPage() {
               {themeEvents.map((event) => (
                 <button
                   key={event.id}
-                  onClick={() => handleOrderClick(event.name)}
+                  onClick={() => navigate(`/catering/themed-${event.id}`)}
                   className="bg-card rounded-xl border border-border overflow-hidden text-left hover:border-primary/50 transition-all"
                 >
                   <div className="relative h-24">
