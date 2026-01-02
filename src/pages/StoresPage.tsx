@@ -1,15 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Star, MapPin, Clock, Percent, Package, ChevronRight, Search, Filter } from 'lucide-react';
+import { ArrowLeft, Star, MapPin, Clock, Percent, Package, ChevronRight, Search, Filter, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { stores, storeCategories } from '@/data/storesData';
+import { VigodaMap } from '@/components/map/VigodaMap';
+import { StoreFilters } from '@/components/stores/StoreFilters';
+
+// Mock store coordinates
+const storeCoordinates: Record<string, { lat: number; lng: number }> = {
+  'pyaterochka': { lat: 55.7558, lng: 37.6173 },
+  'magnit': { lat: 55.7580, lng: 37.6210 },
+  'perekrestok': { lat: 55.7520, lng: 37.6120 },
+  'lenta': { lat: 55.7480, lng: 37.6300 },
+  'vkusvill': { lat: 55.7600, lng: 37.6080 },
+  'auchan': { lat: 55.7650, lng: 37.5950 },
+  'svetofor': { lat: 55.7450, lng: 37.6400 },
+  'metro': { lat: 55.7700, lng: 37.5800 },
+};
+
+// Mock preferred stores (would come from user profile)
+const preferredStoreIds = ['pyaterochka', 'vkusvill', 'perekrestok'];
 
 export default function StoresPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState<'rating' | 'discount' | 'products'>('rating');
+  const [userLocation, setUserLocation] = useState({ lat: 55.7558, lng: 37.6173 });
+  const [showFilters, setShowFilters] = useState(false);
+  const [storeTypeFilter, setStoreTypeFilter] = useState<string[]>([]);
+  const [openNowOnly, setOpenNowOnly] = useState(false);
 
   const filteredStores = stores
     .filter(store => {
@@ -24,6 +45,38 @@ export default function StoresPage() {
       if (sortBy === 'products') return b.productsCount - a.productsCount;
       return 0;
     });
+
+  // Get user geolocation
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => console.log('Geolocation not available')
+      );
+    }
+  }, []);
+
+  // Map markers with preference highlighting
+  const mapMarkers = useMemo(() => {
+    return filteredStores.map(store => {
+      const coords = storeCoordinates[store.id] || { lat: 55.76, lng: 37.62 };
+      const isPreferred = preferredStoreIds.includes(store.id);
+      return {
+        id: store.id,
+        lat: coords.lat,
+        lng: coords.lng,
+        color: isPreferred ? 'bg-primary' : store.color,
+        icon: store.logo,
+        label: store.name,
+        onClick: () => {},
+      };
+    });
+  }, [filteredStores]);
 
   return (
     <div className="page-container">
@@ -95,6 +148,39 @@ export default function StoresPage() {
             <Package className="h-3 w-3 mr-1" />
             По товарам
           </Button>
+        </div>
+
+        {/* Map */}
+        <div className="relative">
+          <VigodaMap
+            center={userLocation}
+            zoom={13}
+            markers={mapMarkers}
+            userLocation={userLocation}
+            style={{ width: '100%', height: '250px', borderRadius: '0.75rem' }}
+          />
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="absolute bottom-3 right-3"
+            onClick={() => {
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                  setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                });
+              }
+            }}
+          >
+            <Navigation className="h-4 w-4 mr-1" />
+            Моё место
+          </Button>
+          <div className="absolute top-3 left-3 flex gap-1">
+            {preferredStoreIds.length > 0 && (
+              <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
+                ⭐ {preferredStoreIds.length} избранных
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Stats */}

@@ -39,6 +39,8 @@ export default function ShoppingRoutePage() {
   const [searchResults, setSearchResults] = useState<{ lat: number; lng: number; displayName: string }[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedStore, setSelectedStore] = useState<StoreWithProducts | null>(null);
+  const [transportMode, setTransportMode] = useState<'walking' | 'driving'>('walking');
+  const [currentStep, setCurrentStep] = useState(0);
 
   // Group store products from cart
   const storeProducts = useMemo(() => {
@@ -227,9 +229,34 @@ export default function ShoppingRoutePage() {
         />
       </div>
 
-      {/* Route Summary */}
+      {/* RouteNavigation Component */}
       {routeData.stores.length > 0 && (
         <div className="px-4 py-4">
+          <RouteNavigation
+            stores={routeData.stores.map((sp) => ({
+              store: {
+                id: sp.store.id,
+                name: sp.store.name,
+                logo: sp.store.logo,
+                color: sp.store.color,
+              },
+              lat: sp.lat,
+              lng: sp.lng,
+              products: sp.products,
+              totalPrice: sp.totalPrice,
+            }))}
+            userLocation={userLocation}
+            transportMode={transportMode}
+            onTransportModeChange={setTransportMode}
+            currentStepIndex={currentStep}
+            onStepChange={setCurrentStep}
+          />
+        </div>
+      )}
+
+      {/* Route Summary */}
+      {routeData.stores.length > 0 && (
+        <div className="px-4 py-2">
           <div className="bg-primary/10 rounded-xl p-4">
             <div className="flex items-center gap-3 mb-3">
               <Route className="h-5 w-5 text-primary" />
@@ -245,8 +272,12 @@ export default function ShoppingRoutePage() {
                 <div className="text-xs text-muted-foreground">расстояние</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-primary">~{routeData.totalTime} мин</div>
-                <div className="text-xs text-muted-foreground">пешком</div>
+                <div className="text-2xl font-bold text-primary">
+                  ~{transportMode === 'walking' ? routeData.totalTime : Math.round(routeData.totalTime / 4)} мин
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {transportMode === 'walking' ? 'пешком' : 'на машине'}
+                </div>
               </div>
             </div>
           </div>

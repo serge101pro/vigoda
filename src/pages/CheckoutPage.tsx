@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Truck, ShoppingBag, Clock, CreditCard, Wallet, Info, Check, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, MapPin, Truck, ShoppingBag, Clock, CreditCard, Wallet, Info, Check, AlertCircle, ChevronDown, Home, Briefcase, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,17 @@ import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { useAppStore } from '@/stores/useAppStore';
 import { stores } from '@/data/storesData';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+
+// Saved addresses interface
+interface SavedAddress {
+  id: string;
+  type: 'home' | 'work' | 'other';
+  label: string;
+  address: string;
+  details?: string;
+}
 
 interface StoreDeliveryInfo {
   storeId: string;
@@ -49,6 +60,62 @@ export default function CheckoutPage() {
   const [floor, setFloor] = useState('');
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('asap');
+  const [selectedDate, setSelectedDate] = useState<string>('today');
+
+  // Time slots
+  const timeSlots = [
+    { id: 'asap', label: 'Ближайшее время', description: '30-60 минут' },
+    { id: '10-12', label: '10:00 - 12:00', description: 'Утро' },
+    { id: '12-14', label: '12:00 - 14:00', description: 'Обед' },
+    { id: '14-16', label: '14:00 - 16:00', description: 'День' },
+    { id: '16-18', label: '16:00 - 18:00', description: 'Вечер' },
+    { id: '18-20', label: '18:00 - 20:00', description: 'Вечер' },
+    { id: '20-22', label: '20:00 - 22:00', description: 'Поздний вечер' },
+  ];
+
+  const deliveryDates = [
+    { id: 'today', label: 'Сегодня' },
+    { id: 'tomorrow', label: 'Завтра' },
+    { id: 'day-after', label: 'Послезавтра' },
+  ];
+
+  // Saved addresses (mock - would come from profile/Supabase)
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([
+    { id: '1', type: 'home', label: 'Дом', address: 'ул. Пушкина, д. 10, кв. 25', details: 'Подъезд 2, этаж 5' },
+    { id: '2', type: 'work', label: 'Работа', address: 'БЦ Москва-Сити, Башня Федерация', details: 'Офис 4512' },
+  ]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [showAddressSelector, setShowAddressSelector] = useState(false);
+  const { user } = useAuth();
+
+  // Select saved address
+  const handleSelectSavedAddress = (addr: SavedAddress) => {
+    setSelectedAddressId(addr.id);
+    setAddress(addr.address);
+    if (addr.details) {
+      const parts = addr.details.split(',').map(p => p.trim());
+      // Try to parse apartment, entrance, floor from details
+      parts.forEach(part => {
+        if (part.toLowerCase().includes('кв') || part.toLowerCase().includes('офис')) {
+          setApartment(part.replace(/[^\d]/g, '') || part);
+        }
+        if (part.toLowerCase().includes('подъезд') || part.toLowerCase().includes('парадная')) {
+          setEntrance(part.replace(/[^\d]/g, ''));
+        }
+        if (part.toLowerCase().includes('этаж')) {
+          setFloor(part.replace(/[^\d]/g, ''));
+        }
+      });
+    }
+    setShowAddressSelector(false);
+  };
+
+  const addressIcons: Record<string, React.ElementType> = {
+    home: Home,
+    work: Briefcase,
+    other: MapPin,
+  };
 
   // Group products by store and calculate delivery eligibility
   const storeDeliveryInfo = useMemo<StoreDeliveryInfo[]>(() => {
@@ -274,14 +341,78 @@ export default function CheckoutPage() {
       {/* Delivery Address */}
       {deliveryMethod === 'delivery' && (
         <section className="px-4 py-4">
-          <h2 className="font-bold text-lg mb-3">Адрес доставки</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-lg">Адрес доставки</h2>
+            {user && (
+              <Link to="/addresses" className="text-sm text-primary hover:underline">
+                Мои адреса
+              </Link>
+            )}
+          </div>
+
+          {/* Saved addresses */}
+          {savedAddresses.length > 0 && (
+            <div className="mb-3">
+              <button
+                onClick={() => setShowAddressSelector(!showAddressSelector)}
+                className="w-full flex items-center justify-between p-3 bg-muted rounded-xl"
+              >
+                <span className="text-sm font-medium">
+                  {selectedAddressId 
+                    ? savedAddresses.find(a => a.id === selectedAddressId)?.label 
+                    : 'Выбрать из сохранённых'}
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${showAddressSelector ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {showAddressSelector && (
+                <div className="mt-2 space-y-2 animate-fade-in">
+                  {savedAddresses.map((addr) => {
+                    const Icon = addressIcons[addr.type] || MapPin;
+                    return (
+                      <button
+                        key={addr.id}
+                        onClick={() => handleSelectSavedAddress(addr)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors ${
+                          selectedAddressId === addr.id 
+                            ? 'border-primary bg-primary/5' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          selectedAddressId === addr.id ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                        }`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">{addr.label}</p>
+                          <p className="text-xs text-muted-foreground truncate">{addr.address}</p>
+                        </div>
+                        {selectedAddressId === addr.id && (
+                          <Check className="h-5 w-5 text-primary" />
+                        )}
+                      </button>
+                    );
+                  })}
+                  <Link
+                    to="/addresses"
+                    className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-border hover:border-primary/50 text-sm text-muted-foreground"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Добавить новый адрес
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-3">
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Улица, дом"
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                onChange={(e) => { setAddress(e.target.value); setSelectedAddressId(null); }}
                 className="pl-10"
               />
             </div>
@@ -315,12 +446,43 @@ export default function CheckoutPage() {
       {/* Delivery Time */}
       <section className="px-4 py-2">
         <h2 className="font-bold text-lg mb-3">Время доставки</h2>
-        <div className="flex items-center gap-3 p-4 bg-muted rounded-xl">
-          <Clock className="h-5 w-5 text-primary" />
-          <div>
-            <p className="font-medium">Ближайшее время</p>
-            <p className="text-sm text-muted-foreground">30-60 минут</p>
-          </div>
+        
+        {/* Date selection */}
+        <div className="flex gap-2 mb-3">
+          {deliveryDates.map((date) => (
+            <Button
+              key={date.id}
+              variant={selectedDate === date.id ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedDate(date.id)}
+              className="flex-1"
+            >
+              {date.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Time slots */}
+        <div className="grid grid-cols-2 gap-2">
+          {timeSlots.map((slot) => (
+            <button
+              key={slot.id}
+              onClick={() => setSelectedTimeSlot(slot.id)}
+              className={`p-3 rounded-xl border text-left transition-colors ${
+                selectedTimeSlot === slot.id 
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Clock className={`h-4 w-4 ${selectedTimeSlot === slot.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`font-medium text-sm ${selectedTimeSlot === slot.id ? 'text-primary' : ''}`}>
+                  {slot.label}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{slot.description}</p>
+            </button>
+          ))}
         </div>
       </section>
 
