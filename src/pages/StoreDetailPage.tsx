@@ -1,10 +1,11 @@
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Star, Clock, Percent, Package, Truck } from 'lucide-react';
+import { ArrowLeft, Star, Clock, Percent, Package, Truck, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { stores } from '@/data/storesData';
 import { mockProducts } from '@/data/mockData';
 import { ProductCarousel } from '@/components/home/ProductCarousel';
+import { VigodaMap } from '@/components/map/VigodaMap';
 
 export default function StoreDetailPage() {
   const { id } = useParams();
@@ -115,6 +116,30 @@ export default function StoreDetailPage() {
               <p className="text-sm text-muted-foreground">{store.deliveryInfo}</p>
             </div>
           </div>
+        </div>
+
+        {/* Store Location Map */}
+        <div className="bg-card rounded-2xl p-4 border border-border">
+          <h2 className="font-bold text-foreground mb-3 flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-primary" />
+            Расположение магазина
+          </h2>
+          <VigodaMap
+            center={{ lat: 55.7558, lng: 37.6173 }}
+            zoom={15}
+            markers={[{
+              id: store.id,
+              lat: 55.7558,
+              lng: 37.6173,
+              color: store.color,
+              icon: store.logo,
+              label: store.name,
+            }]}
+            style={{ width: '100%', height: '200px', borderRadius: '0.75rem' }}
+          />
+          <p className="text-sm text-muted-foreground mt-2">
+            г. Москва, ул. Примерная, д. 1
+          </p>
         </div>
 
         {/* Categories */}

@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Navigation, Phone, Clock, Star, Loader2, MapPin, Bell, BellOff } from 'lucide-react';
+import { ArrowLeft, Navigation, Phone, Clock, Star, Loader2, MapPin, Bell, BellOff, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { VigodaMap } from '@/components/map/VigodaMap';
 import { StoreFilters, StoreType, isStoreOpen, getClosingHour, getStoreType } from '@/components/stores/StoreFilters';
+import { StoreMarkerModal } from '@/components/stores/StoreMarkerModal';
 import { useProximityNotifications } from '@/hooks/useProximityNotifications';
 import { toast } from 'sonner';
 
@@ -133,12 +134,17 @@ const mockStoreLocations: StoreLocation[] = [
   },
 ];
 
+// Mock favorite stores (would come from user settings)
+const mockFavoriteStores = ['Пятёрочка', 'Магнит', 'ВкусВилл'];
+
 export default function NearestStoresPage() {
   const navigate = useNavigate();
   const [selectedStore, setSelectedStore] = useState<StoreLocation | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [stores, setStores] = useState(mockStoreLocations);
+  const [favoriteStores, setFavoriteStores] = useState<string[]>(mockFavoriteStores);
   
   // Filters state
   const [selectedTypes, setSelectedTypes] = useState<StoreType[]>(['all']);
@@ -242,16 +248,36 @@ export default function NearestStoresPage() {
 
   const sortedStores = [...filteredStores].sort((a, b) => a.distanceMeters - b.distanceMeters);
 
-  // Convert stores to map markers
-  const mapMarkers = sortedStores.map(store => ({
-    id: store.id,
-    lat: store.lat,
-    lng: store.lng,
-    color: store.color,
-    icon: store.logo,
-    label: store.name,
-    onClick: () => setSelectedStore(store)
-  }));
+  // Check if store is favorite
+  const isFavoriteStore = (storeName: string) => favoriteStores.includes(storeName);
+
+  const toggleFavorite = (storeName: string) => {
+    setFavoriteStores(prev => 
+      prev.includes(storeName) 
+        ? prev.filter(s => s !== storeName)
+        : [...prev, storeName]
+    );
+    toast.success(favoriteStores.includes(storeName) ? 'Удалено из избранного' : 'Добавлено в избранное');
+  };
+
+  const handleMarkerClick = (store: StoreLocation) => {
+    setSelectedStore(store);
+    setIsModalOpen(true);
+  };
+
+  // Convert stores to map markers - favorites have brighter colors
+  const mapMarkers = sortedStores.map(store => {
+    const isFav = isFavoriteStore(store.name);
+    return {
+      id: store.id,
+      lat: store.lat,
+      lng: store.lng,
+      color: isFav ? 'bg-primary ring-2 ring-primary ring-offset-2' : store.color,
+      icon: isFav ? '⭐' : store.logo,
+      label: store.name,
+      onClick: () => handleMarkerClick(store)
+    };
+  });
 
   return (
     <div className="page-container">
@@ -305,7 +331,7 @@ export default function NearestStoresPage() {
             style={{ width: '100%', height: '300px', borderRadius: '0' }}
             onMarkerClick={(marker) => {
               const store = stores.find(s => s.id === marker.id);
-              if (store) setSelectedStore(store);
+              if (store) handleMarkerClick(store);
             }}
           />
         ) : null}
@@ -394,9 +420,26 @@ export default function NearestStoresPage() {
               <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-xs">🏪</div>
               <span>Магазин</span>
             </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs">⭐</div>
+              <span>Любимый магазин</span>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Store Marker Modal */}
+      <StoreMarkerModal
+        store={selectedStore}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        isFavorite={selectedStore ? isFavoriteStore(selectedStore.name) : false}
+        onToggleFavorite={() => {
+          if (selectedStore) {
+            toggleFavorite(selectedStore.name);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -304,6 +304,9 @@ export default function SettingsPage() {
               { label: 'Условия использования', to: '/terms' },
               { label: 'Политика конфиденциальности', to: '/privacy' },
               { label: 'Помощь и поддержка', to: '/support' },
+              { label: 'Политика обработки персональных данных', to: '/personal-data-policy' },
+              { label: 'Публичная оферта', to: '/public-offer' },
+              { label: 'Правила рекомендательных технологий', to: '/recommendation-rules' },
             ].map(item => (
               <Link 
                 key={item.to} 
