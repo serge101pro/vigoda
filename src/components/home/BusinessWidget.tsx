@@ -84,7 +84,7 @@ export function BusinessWidget({ hasOrganization, organizationName, balance }: B
             Подробнее
           </Button>
         </Link>
-        <Link to="/business/demo" className="flex-1">
+        <Link to="/organization" className="flex-1">
           <Button size="sm" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
             Демо-доступ
           </Button>

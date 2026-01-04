@@ -121,6 +121,57 @@ export type Database = {
           },
         ]
       }
+      delivery_addresses: {
+        Row: {
+          address: string
+          apartment: string | null
+          comment: string | null
+          created_at: string
+          entrance: string | null
+          floor: string | null
+          id: string
+          intercom: string | null
+          is_default: boolean | null
+          lat: number | null
+          lng: number | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          apartment?: string | null
+          comment?: string | null
+          created_at?: string
+          entrance?: string | null
+          floor?: string | null
+          id?: string
+          intercom?: string | null
+          is_default?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          apartment?: string | null
+          comment?: string | null
+          created_at?: string
+          entrance?: string | null
+          floor?: string | null
+          id?: string
+          intercom?: string | null
+          is_default?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string

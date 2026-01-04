@@ -66,6 +66,14 @@ import OrganizationOrdersPage from "@/pages/organization/OrganizationOrdersPage"
 import OrganizationApprovalsPage from "@/pages/organization/OrganizationApprovalsPage";
 import CoopCartPage from "@/pages/organization/CoopCartPage";
 
+// Legal pages
+import TermsPage from "@/pages/legal/TermsPage";
+import PrivacyPage from "@/pages/legal/PrivacyPage";
+import SupportPage from "@/pages/legal/SupportPage";
+import PersonalDataPolicyPage from "@/pages/legal/PersonalDataPolicyPage";
+import PublicOfferPage from "@/pages/legal/PublicOfferPage";
+import RecommendationRulesPage from "@/pages/legal/RecommendationRulesPage";
+
 const queryClient = new QueryClient();
 
 function AppRoutes() {
@@ -133,6 +141,13 @@ function AppRoutes() {
           <Route path="/profile/loyalty-cards" element={<LoyaltyCardsPage />} />
           <Route path="/profile/lists" element={<ShoppingListsPage />} />
           <Route path="/profile/edit" element={<ProfileEditPage />} />
+          {/* Legal pages */}
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/personal-data-policy" element={<PersonalDataPolicyPage />} />
+          <Route path="/public-offer" element={<PublicOfferPage />} />
+          <Route path="/recommendation-rules" element={<RecommendationRulesPage />} />
         </Route>
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
