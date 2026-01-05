@@ -888,6 +888,39 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          activated_at: string | null
+          bonus_earned: number
+          created_at: string
+          id: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          activated_at?: string | null
+          bonus_earned?: number
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          activated_at?: string | null
+          bonus_earned?: number
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       shopping_list_items: {
         Row: {
           created_at: string
@@ -998,7 +1031,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_top_referrers: {
+        Args: { limit_count?: number }
+        Returns: {
+          is_current_user: boolean
+          rank_position: number
+          referrer_hash: string
+          total_earned: number
+          total_referrals: number
+        }[]
+      }
       get_user_org_id: { Args: { _user_id: string }; Returns: string }
+      get_user_referral_stats: {
+        Args: never
+        Returns: {
+          active_referrals: number
+          total_earned: number
+          total_invited: number
+          user_position: number
+        }[]
+      }
       has_org_role: {
         Args: {
           _org_id: string

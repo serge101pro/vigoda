@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Gift, Share2, Copy, Check, ExternalLink, Users, Trophy, Sparkles } from 'lucide-react';
+import { Gift, Share2, Copy, Check, ExternalLink, Users, Trophy, Sparkles, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -21,20 +20,12 @@ export function ReferralBanner() {
   const { user } = useAuth();
 
   const referralCode = user?.id?.slice(0, 8).toUpperCase() || 'DEMO1234';
-  const baseUrl = window.location.origin;
-  const referralLink = `${baseUrl}/r/${referralCode}`;
+  const shortLink = `vigoda.app/r/${referralCode}`;
+  const fullLink = `https://${shortLink}`;
 
-  // Mock statistics - в реальном приложении данные из Supabase
-  const stats = {
-    invited: 12,
-    active: 8,
-    earned: 2450,
-  };
-
-  const bestPartner = {
-    invited: 156,
-    earned: 34200,
-  };
+  // Mock statistics
+  const stats = { invited: 12, active: 8, earned: 2450 };
+  const bestPartner = { invited: 156, earned: 34200 };
 
   const triggerConfetti = () => {
     confetti({
@@ -47,7 +38,7 @@ export function ReferralBanner() {
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(referralLink);
+      await navigator.clipboard.writeText(fullLink);
       setCopied(true);
       triggerConfetti();
       toast.success('Ссылка скопирована!');
@@ -63,7 +54,7 @@ export function ReferralBanner() {
         await navigator.share({
           title: 'Приглашение в Vigoda',
           text: 'Присоединяйся к Vigoda и получи бонусы! 🎁',
-          url: referralLink,
+          url: fullLink,
         });
         toast.success('Ссылка отправлена!');
       } catch (err) {
@@ -88,107 +79,100 @@ export function ReferralBanner() {
       </button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-md animate-scale-in">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <Gift className="h-6 w-6 text-primary" />
+        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-sm p-4 animate-scale-in">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <div className="p-1.5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
+                <Gift className="h-4 w-4 text-white" />
+              </div>
               Партнёрская программа
             </DialogTitle>
-            <DialogDescription className="text-left">
-              Приглашайте друзей и зарабатывайте вместе!
-            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* User stats */}
+          <div className="space-y-3">
+            {/* Motivation banner */}
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-3 text-white text-center">
+              <p className="text-sm font-medium">🎁 Получай <span className="font-bold">10%</span> от покупок друзей!</p>
+            </div>
+
+            {/* Stats grid - compact */}
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-primary/10 rounded-xl p-3 text-center">
-                <Users className="h-5 w-5 mx-auto text-primary mb-1" />
-                <div className="text-lg font-bold text-foreground">{stats.invited}</div>
-                <div className="text-xs text-muted-foreground">Приглашено</div>
+              <div className="bg-primary/10 rounded-lg p-2 text-center">
+                <Users className="h-4 w-4 mx-auto text-primary" />
+                <div className="text-base font-bold">{stats.invited}</div>
+                <div className="text-[10px] text-muted-foreground">Приглашено</div>
               </div>
-              <div className="bg-green-500/10 rounded-xl p-3 text-center">
-                <Sparkles className="h-5 w-5 mx-auto text-green-500 mb-1" />
-                <div className="text-lg font-bold text-foreground">{stats.active}</div>
-                <div className="text-xs text-muted-foreground">Активных</div>
+              <div className="bg-emerald-500/10 rounded-lg p-2 text-center">
+                <Sparkles className="h-4 w-4 mx-auto text-emerald-500" />
+                <div className="text-base font-bold">{stats.active}</div>
+                <div className="text-[10px] text-muted-foreground">Активных</div>
               </div>
-              <div className="bg-amber-500/10 rounded-xl p-3 text-center">
-                <Trophy className="h-5 w-5 mx-auto text-amber-500 mb-1" />
-                <div className="text-lg font-bold text-foreground">{stats.earned.toLocaleString()}</div>
-                <div className="text-xs text-muted-foreground">Бонусов</div>
-              </div>
-            </div>
-
-            {/* Best Partner */}
-            <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-xl p-3 border border-amber-500/30">
-              <div className="flex items-center gap-2 mb-2">
-                <Trophy className="h-4 w-4 text-amber-500" />
-                <span className="text-sm font-semibold text-foreground">Лучший партнёр месяца</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Приглашено: <span className="font-bold text-foreground">{bestPartner.invited}</span></span>
-                <span className="text-muted-foreground">Заработано: <span className="font-bold text-amber-500">{bestPartner.earned.toLocaleString()} ₽</span></span>
+              <div className="bg-amber-500/10 rounded-lg p-2 text-center">
+                <Trophy className="h-4 w-4 mx-auto text-amber-500" />
+                <div className="text-base font-bold text-amber-600">{stats.earned.toLocaleString()}₽</div>
+                <div className="text-[10px] text-muted-foreground">Заработано</div>
               </div>
             </div>
 
-            {/* Referral link */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Ваша ссылка:</label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate border border-border">
-                  {referralLink}
+            {/* Best Partner - compact */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-lg p-2.5 border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Trophy className="h-4 w-4 text-amber-500" />
+                  <span className="text-xs font-semibold">Лучший партнёр</span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={copyToClipboard}
-                  className="shrink-0"
-                >
-                  {copied ? (
-                    <Check className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
+                <div className="text-xs">
+                  <span className="text-muted-foreground">{bestPartner.invited} друзей • </span>
+                  <span className="font-bold text-amber-600">{bestPartner.earned.toLocaleString()}₽</span>
+                </div>
               </div>
             </div>
 
-            {/* QR Code */}
-            <div className="space-y-2">
+            {/* Link + Copy */}
+            <div className="flex items-center gap-2 bg-muted rounded-lg p-2">
+              <code className="flex-1 text-xs font-mono truncate">{shortLink}</code>
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowQR(!showQR)}
-                className="w-full"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={copyToClipboard}
               >
-                {showQR ? 'Скрыть QR-код' : 'Показать QR-код'}
+                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
               </Button>
-              {showQR && (
-                <div className="flex justify-center p-4 bg-white rounded-xl animate-fade-in">
-                  <QRCodeSVG 
-                    value={referralLink} 
-                    size={160}
-                    level="H"
-                    includeMargin
-                  />
-                </div>
-              )}
             </div>
+
+            {/* QR Toggle */}
+            {showQR ? (
+              <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-xl animate-fade-in">
+                <QRCodeSVG value={fullLink} size={120} level="H" />
+                <button onClick={() => setShowQR(false)} className="text-xs text-muted-foreground hover:underline">
+                  Скрыть QR
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowQR(true)}
+                className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1"
+              >
+                <QrCode className="h-3.5 w-3.5" />
+                Показать QR-код
+              </button>
+            )}
 
             {/* Share button */}
             <Button 
               onClick={shareLink} 
-              className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold"
             >
               <Share2 className="h-4 w-4 mr-2" />
-              Поделиться ссылкой
+              Поделиться
             </Button>
 
             {/* Link to full page */}
             <Link 
               to="/profile/affiliate" 
               onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center gap-1 text-sm text-primary hover:underline"
+              className="flex items-center justify-center gap-1 text-xs text-primary hover:underline"
             >
               Подробнее о программе
               <ExternalLink className="h-3 w-3" />
