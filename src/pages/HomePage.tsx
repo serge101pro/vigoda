@@ -16,6 +16,7 @@ import { HeaderAvatar } from '@/components/home/HeaderAvatar';
 import { AddressDropdown } from '@/components/home/AddressDropdown';
 import { LanguageSelector } from '@/components/home/LanguageSelector';
 import { BusinessWidget } from '@/components/home/BusinessWidget';
+import { ReferralBanner } from '@/components/home/ReferralBanner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Switch } from '@/components/ui/switch';
 import { mockProducts, mockRecipes } from '@/data/mockData';
@@ -102,6 +103,9 @@ export default function HomePage() {
           </div>
         </div>
       </header>
+
+      {/* Referral Banner */}
+      <ReferralBanner />
 
       {/* Promo Banner Carousel */}
       <section className="px-4 pt-4">
