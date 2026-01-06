@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, Plus, Heart, MessageCircle, Eye, Edit, Trash2, UserPlus, UserMinus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowLeft, Clock, Users, Plus, Heart, MessageCircle, Eye, Edit, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/lib/i18n';
 
 interface Recipe {
   id: string;
@@ -50,6 +51,8 @@ const newRecipes: Recipe[] = [
 export default function UserRecipesPage() {
   const [tab, setTab] = useState('my');
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   const [userRecipes, setUserRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -101,7 +104,6 @@ export default function UserRecipesPage() {
 
     try {
       if (editingRecipe) {
-        // Update existing recipe
         const { error } = await supabase
           .from('recipes')
           .update({
@@ -118,7 +120,6 @@ export default function UserRecipesPage() {
         if (error) throw error;
         toast.success('Рецепт обновлён');
       } else {
-        // Create new recipe
         const { error } = await supabase
           .from('recipes')
           .insert({
@@ -192,8 +193,15 @@ export default function UserRecipesPage() {
     setEditingRecipe(null);
   };
 
+  const handleRecipeClick = (recipeId: string) => {
+    navigate(`/recipes/${recipeId}`);
+  };
+
   const RecipeCard = ({ recipe, isOwn = false }: { recipe: Recipe; isOwn?: boolean }) => (
-    <div className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
+    <div 
+      className="bg-card rounded-2xl overflow-hidden shadow-md border border-border cursor-pointer hover:border-primary/50 transition-colors"
+      onClick={() => !isOwn && handleRecipeClick(recipe.id)}
+    >
       <div className="h-32 bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center relative">
         {recipe.image ? (
           <img src={recipe.image} alt={recipe.name} className="w-full h-full object-cover" />
@@ -207,7 +215,7 @@ export default function UserRecipesPage() {
               size="icon-sm"
               className="bg-background/80 hover:bg-background"
               onClick={(e) => {
-                e.preventDefault();
+                e.stopPropagation();
                 handleEdit(recipe);
               }}
             >
@@ -218,7 +226,7 @@ export default function UserRecipesPage() {
               size="icon-sm"
               className="bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
               onClick={(e) => {
-                e.preventDefault();
+                e.stopPropagation();
                 handleDelete(recipe.id);
               }}
             >
@@ -235,7 +243,7 @@ export default function UserRecipesPage() {
         <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {recipe.time_minutes} мин
+            {recipe.time_minutes} {t('recipes.min')}
           </span>
           <span className="flex items-center gap-1">
             <Users className="h-3 w-3" />
@@ -272,7 +280,7 @@ export default function UserRecipesPage() {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               </Link>
-              <h1 className="text-xl font-bold text-foreground">Рецепты</h1>
+              <h1 className="text-xl font-bold text-foreground">{t('recipes.title')}</h1>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
               setIsDialogOpen(open);
@@ -285,11 +293,11 @@ export default function UserRecipesPage() {
               </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>{editingRecipe ? 'Редактировать рецепт' : 'Новый рецепт'}</DialogTitle>
+                  <DialogTitle>{editingRecipe ? t('recipes.edit') : t('recipes.new')}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Название</Label>
+                    <Label htmlFor="name">{t('recipes.recipeName')}</Label>
                     <Input
                       id="name"
                       value={formData.name}
@@ -299,7 +307,7 @@ export default function UserRecipesPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="description">Описание</Label>
+                    <Label htmlFor="description">{t('recipes.description')}</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
@@ -310,7 +318,7 @@ export default function UserRecipesPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="time">Время (мин)</Label>
+                      <Label htmlFor="time">{t('recipes.time')}</Label>
                       <Input
                         id="time"
                         type="number"
@@ -320,7 +328,7 @@ export default function UserRecipesPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="servings">Порций</Label>
+                      <Label htmlFor="servings">{t('recipes.servings')}</Label>
                       <Input
                         id="servings"
                         type="number"
@@ -332,7 +340,7 @@ export default function UserRecipesPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="calories">Калории</Label>
+                      <Label htmlFor="calories">{t('recipes.calories')}</Label>
                       <Input
                         id="calories"
                         type="number"
@@ -342,25 +350,25 @@ export default function UserRecipesPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="difficulty">Сложность</Label>
+                      <Label htmlFor="difficulty">{t('recipes.difficulty')}</Label>
                       <select
                         id="difficulty"
                         value={formData.difficulty}
                         onChange={(e) => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
                         className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                       >
-                        <option value="easy">Легко</option>
-                        <option value="medium">Средне</option>
-                        <option value="hard">Сложно</option>
+                        <option value="easy">{t('recipes.easy')}</option>
+                        <option value="medium">{t('recipes.medium')}</option>
+                        <option value="hard">{t('recipes.hard')}</option>
                       </select>
                     </div>
                   </div>
                   <div className="flex gap-2 pt-4">
                     <Button type="button" variant="outline" className="flex-1" onClick={() => setIsDialogOpen(false)}>
-                      Отмена
+                      {t('recipes.cancel')}
                     </Button>
                     <Button type="submit" variant="hero" className="flex-1">
-                      {editingRecipe ? 'Сохранить' : 'Создать'}
+                      {editingRecipe ? t('recipes.save') : t('recipes.create')}
                     </Button>
                   </div>
                 </form>
@@ -373,14 +381,14 @@ export default function UserRecipesPage() {
       <div className="px-4 py-6">
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="w-full mb-6">
-            <TabsTrigger value="my" className="flex-1">Ваши рецепты</TabsTrigger>
-            <TabsTrigger value="subscriptions" className="flex-1">Ваши подписки</TabsTrigger>
+            <TabsTrigger value="my" className="flex-1">{t('recipes.your')}</TabsTrigger>
+            <TabsTrigger value="subscriptions" className="flex-1">{t('recipes.subscriptions')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="my" className="space-y-4">
             {loading ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">Загрузка...</p>
+                <p className="text-muted-foreground">{t('recipes.loading')}</p>
               </div>
             ) : userRecipes.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
@@ -391,10 +399,10 @@ export default function UserRecipesPage() {
             ) : (
               <div className="text-center py-12">
                 <p className="text-4xl mb-4">👨‍🍳</p>
-                <p className="text-muted-foreground mb-4">У вас пока нет рецептов</p>
+                <p className="text-muted-foreground mb-4">{t('recipes.noRecipes')}</p>
                 <Button variant="hero" onClick={() => setIsDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Создать рецепт
+                  {t('recipes.create')}
                 </Button>
               </div>
             )}
@@ -411,14 +419,14 @@ export default function UserRecipesPage() {
             ) : (
               <div className="text-center py-8">
                 <p className="text-4xl mb-4">📚</p>
-                <p className="text-muted-foreground mb-4">Вы пока ни на кого не подписаны</p>
-                <p className="text-sm text-muted-foreground">Посмотрите рекомендуемые рецепты:</p>
+                <p className="text-muted-foreground mb-4">{t('recipes.noSubscriptions')}</p>
+                <p className="text-sm text-muted-foreground">{t('recipes.checkRecommended')}</p>
               </div>
             )}
 
             {/* Recommended recipes */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Рекомендуемые рецепты</h3>
+              <h3 className="font-semibold text-foreground">{t('recipes.recommended')}</h3>
               <div className="grid grid-cols-2 gap-3">
                 {mockRecommendedRecipes.map(recipe => (
                   <RecipeCard key={recipe.id} recipe={recipe} />
@@ -428,7 +436,7 @@ export default function UserRecipesPage() {
 
             {/* New recipes */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-foreground">Новые рецепты</h3>
+              <h3 className="font-semibold text-foreground">{t('recipes.newRecipes')}</h3>
               <div className="grid grid-cols-2 gap-3">
                 {newRecipes.map(recipe => (
                   <RecipeCard key={recipe.id} recipe={recipe} />

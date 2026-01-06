@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Heart, ChefHat, ChevronRight, Store, Tractor, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Heart, ChefHat, ChevronRight, Store, Tractor, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { PromoBanner } from '@/components/ui/PromoBanner';
@@ -14,7 +14,6 @@ import { PromoBannerCarousel } from '@/components/home/PromoBannerCarousel';
 import { CategoryChipsCarousel } from '@/components/home/CategoryChipsCarousel';
 import { HeaderAvatar } from '@/components/home/HeaderAvatar';
 import { AddressDropdown } from '@/components/home/AddressDropdown';
-import { LanguageSelector } from '@/components/home/LanguageSelector';
 import { BusinessWidget } from '@/components/home/BusinessWidget';
 import { ReferralBanner } from '@/components/home/ReferralBanner';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -40,6 +39,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAppStore } from '@/stores/useAppStore';
+import { useTranslation } from '@/lib/i18n';
 
 const monthNames = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
 const currentMonth = monthNames[new Date().getMonth()];
@@ -92,12 +92,16 @@ export default function HomePage() {
               <AddressDropdown />
             </div>
             <div className="flex items-center gap-1">
+              <Link to="/nearest-stores">
+                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10">
+                  <MapPin className="h-5 w-5" />
+                </Button>
+              </Link>
               <Link to="/favorites">
                 <Button variant="ghost" size="icon" className="rounded-full w-10 h-10">
                   <Heart className="h-5 w-5" />
                 </Button>
               </Link>
-              <LanguageSelector />
               <ThemeToggle />
             </div>
           </div>
