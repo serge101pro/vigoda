@@ -27,17 +27,24 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, displayName: string) => {
+  const signUp = async (email: string, password: string, displayName: string, referralCode?: string) => {
     const redirectUrl = `${window.location.origin}/`;
+    
+    const userData: Record<string, string> = {
+      display_name: displayName,
+    };
+    
+    // Add referral code if present
+    if (referralCode) {
+      userData.referral_code = referralCode;
+    }
     
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: {
-          display_name: displayName,
-        },
+        data: userData,
       },
     });
     return { data, error };

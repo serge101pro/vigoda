@@ -236,18 +236,7 @@ export default function ReadyMealsPage() {
   };
 
   return (
-    <div className="page-container">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <Link to="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-bold text-foreground">Готовая еда</h1>
-        </div>
-      </header>
+    <div className="page-container pt-4">
 
       <div className="px-4 py-4 space-y-6">
         <Tabs defaultValue="plans">
