@@ -1031,10 +1031,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      activate_referral: {
-        Args: { referred_user_id: string }
-        Returns: boolean
-      }
       get_top_referrers: {
         Args: { limit_count?: number }
         Returns: {

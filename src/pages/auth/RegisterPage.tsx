@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
-import { useTranslation } from '@/lib/i18n';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -13,12 +12,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { signUp, user, loading } = useAuth();
-  const { t } = useTranslation();
-  
-  // Get referral code from URL
-  const referralCode = searchParams.get('ref') || '';
 
   useEffect(() => {
     if (!loading && user) {
@@ -30,21 +24,23 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signUp(email, password, name, referralCode);
+    const { error } = await signUp(email, password, name);
 
     if (error) {
+      // Generic error message to prevent user enumeration
+      // Only show password length hint as it's client-validatable
       const message = error.message.includes('Password should be at least')
-        ? t('auth.passwordMin')
-        : t('auth.accountError');
+        ? 'Пароль должен содержать минимум 6 символов'
+        : 'Не удалось создать аккаунт. Попробуйте другой email.';
       toast({
-        title: t('auth.error'),
+        title: 'Ошибка',
         description: message,
         variant: 'destructive',
       });
     } else {
       toast({
-        title: t('auth.registerSuccess'),
-        description: t('auth.checkEmail'),
+        title: 'Регистрация успешна!',
+        description: 'Проверьте почту для подтверждения аккаунта',
       });
       navigate('/');
     }
@@ -66,15 +62,15 @@ export default function RegisterPage() {
           <span className="text-3xl font-bold text-primary-foreground">В</span>
         </div>
 
-        <h1 className="text-3xl font-bold text-foreground mb-2">{t('auth.register')}</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Регистрация</h1>
         <p className="text-muted-foreground mb-8">
-          {referralCode ? '🎁 Вы регистрируетесь по реферальной ссылке!' : 'Создайте аккаунт и начните экономить'}
+          Создайте аккаунт и начните экономить
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              {t('auth.name')}
+              Имя
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -91,7 +87,7 @@ export default function RegisterPage() {
 
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              {t('auth.email')}
+              Email
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -108,7 +104,7 @@ export default function RegisterPage() {
 
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">
-              {t('auth.password')}
+              Пароль
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -136,13 +132,13 @@ export default function RegisterPage() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            {t('auth.termsAgree')}{' '}
+            Регистрируясь, вы соглашаетесь с{' '}
             <Link to="/terms" className="text-primary">
-              {t('auth.terms')}
+              условиями использования
             </Link>{' '}
-            {t('auth.and')}{' '}
+            и{' '}
             <Link to="/privacy" className="text-primary">
-              {t('auth.privacy')}
+              политикой конфиденциальности
             </Link>
           </p>
 
@@ -153,17 +149,17 @@ export default function RegisterPage() {
             className="w-full"
             disabled={isLoading}
           >
-            {isLoading ? t('auth.creating') : t('auth.createAccount')}
+            {isLoading ? 'Создание...' : 'Создать аккаунт'}
           </Button>
         </form>
 
         <p className="text-center mt-8 text-muted-foreground">
-          {t('auth.hasAccount')}{' '}
+          Уже есть аккаунт?{' '}
           <Link
             to="/auth/login"
             className="font-semibold text-primary hover:text-primary-dark"
           >
-            {t('auth.login')}
+            Войти
           </Link>
         </p>
       </div>

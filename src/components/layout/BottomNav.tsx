@@ -1,12 +1,10 @@
 import { Home, Search, ShoppingCart, ChefHat, UtensilsCrossed } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAppStore } from '@/stores/useAppStore';
-import { useTranslation } from '@/lib/i18n';
 
 export function BottomNav() {
   const cart = useAppStore((state) => state.cart);
   const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const { t } = useTranslation();
 
   return (
     <nav className="bottom-nav">
@@ -28,7 +26,7 @@ export function BottomNav() {
           activeClassName="bottom-nav-item-active"
         >
           <Search className="h-5 w-5" />
-          <span className="mt-0.5 text-[10px] font-medium">{t('nav.catalog')}</span>
+          <span className="mt-0.5 text-[10px] font-medium">Каталог</span>
         </NavLink>
 
         {/* Recipes */}
@@ -38,7 +36,7 @@ export function BottomNav() {
           activeClassName="bottom-nav-item-active"
         >
           <ChefHat className="h-5 w-5" />
-          <span className="mt-0.5 text-[10px] font-medium">{t('nav.recipes')}</span>
+          <span className="mt-0.5 text-[10px] font-medium">Рецепты</span>
         </NavLink>
 
         {/* Ready Meals */}
@@ -48,7 +46,7 @@ export function BottomNav() {
           activeClassName="bottom-nav-item-active"
         >
           <UtensilsCrossed className="h-5 w-5" />
-          <span className="mt-0.5 text-[10px] font-medium">{t('nav.ready')}</span>
+          <span className="mt-0.5 text-[10px] font-medium">Готовое</span>
         </NavLink>
 
         {/* Catering */}
@@ -58,7 +56,7 @@ export function BottomNav() {
           activeClassName="bottom-nav-item-active"
         >
           <span className="text-lg">🍽️</span>
-          <span className="mt-0.5 text-[10px] font-medium">{t('nav.catering')}</span>
+          <span className="mt-0.5 text-[10px] font-medium">Кейтеринг</span>
         </NavLink>
 
         {/* Cart - Circular Button */}

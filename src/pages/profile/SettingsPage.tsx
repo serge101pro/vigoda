@@ -8,23 +8,16 @@ import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTranslation, Language } from '@/lib/i18n';
 
 const stores = ['Пятёрочка', 'Магнит', 'Перекрёсток', 'ВкусВилл'];
-
-const languages: { code: Language; name: string; flag: string }[] = [
-  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-];
+const dietaryOptions = ['Вегетарианство', 'Веганство', 'Без глютена', 'Без лактозы'];
 
 export default function SettingsPage() {
-  const { t, language, setLanguage } = useTranslation();
-  
   // Account
   const [name, setName] = useState('Александр');
   const [email, setEmail] = useState('alex@example.com');
   const [phone, setPhone] = useState('+7 999 123 45 67');
+  const [language, setLanguage] = useState('ru');
 
   // Notifications
   const [pushEnabled, setPushEnabled] = useState(true);
@@ -51,13 +44,6 @@ export default function SettingsPage() {
   const [personalRecommendations, setPersonalRecommendations] = useState(true);
   const [geolocation, setGeolocation] = useState(true);
 
-  const dietaryOptions = [
-    { key: 'vegetarian', label: t('settings.vegetarian') },
-    { key: 'vegan', label: t('settings.vegan') },
-    { key: 'glutenFree', label: t('settings.glutenFree') },
-    { key: 'lactoseFree', label: t('settings.lactoseFree') },
-  ];
-
   const toggleStore = (store: string) => {
     setFavoriteStores(prev => 
       prev.includes(store) ? prev.filter(s => s !== store) : [...prev, store]
@@ -81,7 +67,7 @@ export default function SettingsPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <h1 className="text-xl font-bold text-foreground">{t('settings.title')}</h1>
+            <h1 className="text-xl font-bold text-foreground">Настройки</h1>
           </div>
         </div>
       </header>
@@ -89,35 +75,29 @@ export default function SettingsPage() {
       <div className="px-4 py-6 space-y-8">
         {/* Account Settings */}
         <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">{t('settings.account')}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Настройки аккаунта</h2>
           <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
             <div>
-              <Label htmlFor="name">{t('settings.name')}</Label>
+              <Label htmlFor="name">Имя</Label>
               <Input id="name" value={name} onChange={e => setName(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label htmlFor="email">{t('settings.email')}</Label>
+              <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label htmlFor="phone">{t('settings.phone')}</Label>
+              <Label htmlFor="phone">Телефон</Label>
               <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label>{t('settings.language')}</Label>
-              <Select value={language} onValueChange={(val) => setLanguage(val as Language)}>
+              <Label>Язык</Label>
+              <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {languages.map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      <span className="flex items-center gap-2">
-                        <span>{lang.flag}</span>
-                        <span>{lang.name}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="ru">Русский</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -126,18 +106,18 @@ export default function SettingsPage() {
 
         {/* Notifications */}
         <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">{t('settings.notifications')}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Уведомления</h2>
           <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="font-medium">{t('settings.push')}</span>
+              <span className="font-medium">Push-уведомления</span>
               <Switch checked={pushEnabled} onCheckedChange={setPushEnabled} />
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-medium">{t('settings.emailNotif')}</span>
+              <span className="font-medium">Email-уведомления</span>
               <Switch checked={emailEnabled} onCheckedChange={setEmailEnabled} />
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-medium">{t('settings.shoppingReminder')}</span>
+              <span className="font-medium">Напоминания о покупках</span>
               <Switch checked={shoppingReminder} onCheckedChange={setShoppingReminder} />
             </div>
             {shoppingReminder && (
@@ -152,17 +132,17 @@ export default function SettingsPage() {
               </div>
             )}
             <div className="flex items-center justify-between">
-              <span className="font-medium">{t('settings.discountNotify')}</span>
+              <span className="font-medium">Уведомления о скидках</span>
               <Switch checked={discountNotify} onCheckedChange={setDiscountNotify} />
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-medium">{t('settings.priceRise')}</span>
+              <span className="font-medium">Оповещать о росте цен</span>
               <Switch checked={priceRiseNotify} onCheckedChange={setPriceRiseNotify} />
             </div>
             <div className="flex items-center justify-between opacity-50">
               <div>
-                <span className="font-medium">{t('settings.familyUpdates')}</span>
-                <p className="text-xs text-muted-foreground">{t('settings.availableFamily')}</p>
+                <span className="font-medium">Семейные обновления</span>
+                <p className="text-xs text-muted-foreground">Доступно в Family плане</p>
               </div>
               <Switch checked={familyUpdates} onCheckedChange={setFamilyUpdates} disabled />
             </div>
@@ -171,14 +151,14 @@ export default function SettingsPage() {
 
         {/* Product Recommendations */}
         <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">{t('settings.recommendations')}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Рекомендации товаров</h2>
           <RadioGroup value={recommendationType} onValueChange={setRecommendationType} className="space-y-3">
             {[
-              { value: 'cheapest', label: t('settings.cheapest'), desc: t('settings.cheapestDesc') },
-              { value: 'previous', label: t('settings.previous'), desc: t('settings.previousDesc') },
-              { value: 'popular', label: t('settings.popularOthers'), desc: t('settings.popularOthersDesc') },
-              { value: 'premium', label: t('settings.premiumQuality'), desc: t('settings.premiumQualityDesc') },
-              { value: 'eco', label: t('settings.eco'), desc: t('settings.ecoDesc') },
+              { value: 'cheapest', label: 'Самые дешёвые', desc: 'Показывать товары с минимальной ценой' },
+              { value: 'previous', label: 'Ранее купленные', desc: 'Товары из вашей истории покупок' },
+              { value: 'popular', label: 'Популярные у других', desc: 'Что чаще всего покупают пользователи' },
+              { value: 'premium', label: 'Премиум качество', desc: 'Товары высокого качества' },
+              { value: 'eco', label: 'Экологичные', desc: 'Органические и фермерские продукты' },
             ].map(opt => (
               <label 
                 key={opt.value}
@@ -199,11 +179,11 @@ export default function SettingsPage() {
 
           <div className="mt-4 bg-card rounded-2xl border border-border p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="font-medium">{t('settings.showCheaper')}</span>
+              <span className="font-medium">Показывать аналоги дешевле</span>
               <Switch checked={showCheaperAnalogs} onCheckedChange={setShowCheaperAnalogs} />
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-medium">{t('settings.notifyPriceRise')}</span>
+              <span className="font-medium">Уведомлять о росте цен</span>
               <Switch checked={notifyPriceRise} onCheckedChange={setNotifyPriceRise} />
             </div>
           </div>
@@ -211,10 +191,10 @@ export default function SettingsPage() {
 
         {/* Shopping Preferences */}
         <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">{t('settings.preferences')}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Предпочтения покупок</h2>
           <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
             <div>
-              <Label className="font-semibold">{t('settings.favoriteStores')}</Label>
+              <Label className="font-semibold">Любимые магазины</Label>
               <div className="mt-2 space-y-2">
                 {stores.map(store => (
                   <label key={store} className="flex items-center gap-2 cursor-pointer">
@@ -229,22 +209,22 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <Label className="font-semibold">{t('settings.dietary')}</Label>
+              <Label className="font-semibold">Диетические ограничения</Label>
               <div className="mt-2 space-y-2">
                 {dietaryOptions.map(option => (
-                  <label key={option.key} className="flex items-center gap-2 cursor-pointer">
+                  <label key={option} className="flex items-center gap-2 cursor-pointer">
                     <Checkbox 
-                      checked={dietaryRestrictions.includes(option.key)} 
-                      onCheckedChange={() => toggleDietary(option.key)} 
+                      checked={dietaryRestrictions.includes(option)} 
+                      onCheckedChange={() => toggleDietary(option)} 
                     />
-                    <span>{option.label}</span>
+                    <span>{option}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <Label htmlFor="budget">{t('settings.monthlyBudget')}</Label>
+              <Label htmlFor="budget">Месячный бюджет</Label>
               <div className="relative mt-1">
                 <Input 
                   id="budget"
@@ -253,14 +233,14 @@ export default function SettingsPage() {
                   onChange={e => setMonthlyBudget(e.target.value)}
                   className="pr-8"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">{t('common.rub')}</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">₽</span>
               </div>
             </div>
 
             <div className="flex items-center justify-between">
               <div>
-                <span className="font-medium">{t('settings.autoPredictions')}</span>
-                <p className="text-xs text-muted-foreground">{t('settings.autoPredictionsDesc')}</p>
+                <span className="font-medium">Автодобавление предсказаний</span>
+                <p className="text-xs text-muted-foreground">AI автоматически добавляет часто покупаемые товары</p>
               </div>
               <Switch checked={aiPredictions} onCheckedChange={setAiPredictions} />
             </div>
@@ -269,23 +249,23 @@ export default function SettingsPage() {
 
         {/* Privacy */}
         <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">{t('settings.privacy')}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Конфиденциальность</h2>
           <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <span className="font-medium">{t('settings.anonymousStats')}</span>
-                <p className="text-xs text-muted-foreground">{t('settings.anonymousStatsDesc')}</p>
+                <span className="font-medium">Анонимная статистика</span>
+                <p className="text-xs text-muted-foreground">Помогает улучшить приложение</p>
               </div>
               <Switch checked={anonymousStats} onCheckedChange={setAnonymousStats} />
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-medium">{t('settings.personalRecs')}</span>
+              <span className="font-medium">Персональные рекомендации</span>
               <Switch checked={personalRecommendations} onCheckedChange={setPersonalRecommendations} />
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <span className="font-medium">{t('settings.geolocation')}</span>
-                <p className="text-xs text-muted-foreground">{t('settings.geolocationDesc')}</p>
+                <span className="font-medium">Геолокация</span>
+                <p className="text-xs text-muted-foreground">Для поиска ближайших магазинов</p>
               </div>
               <Switch checked={geolocation} onCheckedChange={setGeolocation} />
             </div>
@@ -295,19 +275,19 @@ export default function SettingsPage() {
             variant="outline" 
             className="w-full mt-4 text-destructive border-destructive hover:bg-destructive/10"
           >
-            {t('settings.deleteAccount')}
+            Удалить аккаунт
           </Button>
         </section>
 
         {/* Subscription */}
         <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">{t('settings.subscription')}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Управление подпиской</h2>
           <div className="bg-card rounded-2xl border border-border p-4">
-            <p className="text-sm text-muted-foreground">{t('settings.currentPlan')}</p>
-            <p className="text-xl font-bold text-primary">{t('settings.free')}</p>
+            <p className="text-sm text-muted-foreground">Текущий план</p>
+            <p className="text-xl font-bold text-primary">Бесплатная</p>
             <Link to="/profile/premium">
               <Button variant="link" className="p-0 h-auto mt-2 text-primary">
-                {t('settings.viewPlans')}
+                Посмотреть планы
               </Button>
             </Link>
           </div>
@@ -315,18 +295,18 @@ export default function SettingsPage() {
 
         {/* About */}
         <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">{t('settings.about')}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">О приложении</h2>
           <div className="bg-card rounded-2xl border border-border overflow-hidden">
             <div className="p-4 text-center border-b border-border">
               <p className="text-muted-foreground">v2.0.1</p>
             </div>
             {[
-              { label: t('settings.termsOfUse'), to: '/terms' },
-              { label: t('settings.privacyPolicy'), to: '/privacy' },
-              { label: t('settings.helpSupport'), to: '/support' },
-              { label: t('settings.personalDataPolicy'), to: '/personal-data-policy' },
-              { label: t('settings.publicOffer'), to: '/public-offer' },
-              { label: t('settings.recRules'), to: '/recommendation-rules' },
+              { label: 'Условия использования', to: '/terms' },
+              { label: 'Политика конфиденциальности', to: '/privacy' },
+              { label: 'Помощь и поддержка', to: '/support' },
+              { label: 'Политика обработки персональных данных', to: '/personal-data-policy' },
+              { label: 'Публичная оферта', to: '/public-offer' },
+              { label: 'Правила рекомендательных технологий', to: '/recommendation-rules' },
             ].map(item => (
               <Link 
                 key={item.to} 
@@ -340,7 +320,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="mt-4 bg-muted rounded-2xl p-4">
-            <p className="font-semibold">{t('settings.contactUs')}</p>
+            <p className="font-semibold">Связаться с нами:</p>
             <p className="text-muted-foreground">support@vigodnotut.ru</p>
           </div>
         </section>

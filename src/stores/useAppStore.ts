@@ -137,7 +137,7 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       // Onboarding
-      hasSeenOnboarding: true,
+      hasSeenOnboarding: false,
       setHasSeenOnboarding: (value) => set({ hasSeenOnboarding: value }),
 
       // Sections collapse

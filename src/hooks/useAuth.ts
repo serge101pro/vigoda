@@ -27,42 +27,19 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, displayName: string, referralCode?: string) => {
+  const signUp = async (email: string, password: string, displayName: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
-    const metadata: Record<string, string> = {
-      display_name: displayName,
-    };
-    
-    // Add referral code if provided
-    if (referralCode) {
-      metadata.referral_code = referralCode;
-    }
     
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: metadata,
+        data: {
+          display_name: displayName,
+        },
       },
     });
-    
-    // If referral code was used, notify the referrer
-    if (!error && data.user && referralCode) {
-      try {
-        await supabase.functions.invoke('notify-referral', {
-          body: {
-            referrer_id: atob(referralCode),
-            referred_email: email,
-            bonus_amount: 200,
-          },
-        });
-      } catch (e) {
-        console.error('Failed to notify referrer:', e);
-      }
-    }
-    
     return { data, error };
   };
 
