@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Users, Plus, Heart, MessageCircle, Eye, Edit, Trash2, UserPlus, UserMinus } from 'lucide-react';
+import { ArrowLeft, Clock, Users, Plus, Heart, MessageCircle, Eye, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -193,71 +193,75 @@ export default function UserRecipesPage() {
   };
 
   const RecipeCard = ({ recipe, isOwn = false }: { recipe: Recipe; isOwn?: boolean }) => (
-    <div className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
-      <div className="h-32 bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center relative">
-        {recipe.image ? (
-          <img src={recipe.image} alt={recipe.name} className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-5xl">🍽️</span>
-        )}
-        {isOwn && (
-          <div className="absolute top-2 right-2 flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="bg-background/80 hover:bg-background"
-              onClick={(e) => {
-                e.preventDefault();
-                handleEdit(recipe);
-              }}
-            >
-              <Edit className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete(recipe.id);
-              }}
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
+    <Link to={`/recipe/${recipe.id}`} className="block">
+      <div className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
+        <div className="h-32 bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center relative">
+          {recipe.image ? (
+            <img src={recipe.image} alt={recipe.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-5xl">🍽️</span>
+          )}
+          {isOwn && (
+            <div className="absolute top-2 right-2 flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="bg-background/80 hover:bg-background"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleEdit(recipe);
+                }}
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="bg-background/80 hover:bg-destructive hover:text-destructive-foreground"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDelete(recipe.id);
+                }}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+        <div className="p-4">
+          <h3 className="font-bold text-foreground line-clamp-1">{recipe.name}</h3>
+          {recipe.description && (
+            <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{recipe.description}</p>
+          )}
+          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {recipe.time_minutes} мин
+            </span>
+            <span className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {recipe.servings}
+            </span>
           </div>
-        )}
-      </div>
-      <div className="p-4">
-        <h3 className="font-bold text-foreground line-clamp-1">{recipe.name}</h3>
-        {recipe.description && (
-          <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{recipe.description}</p>
-        )}
-        <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {recipe.time_minutes} мин
-          </span>
-          <span className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
-            {recipe.servings}
-          </span>
-        </div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
-          <span className="flex items-center gap-1">
-            <Heart className="h-3 w-3" />
-            {recipe.rating ? Math.round((recipe.rating || 0) * 10) : 0}
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye className="h-3 w-3" />
-            {recipe.review_count || 0}
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageCircle className="h-3 w-3" />
-            0
-          </span>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+            <span className="flex items-center gap-1">
+              <Heart className="h-3 w-3" />
+              {recipe.rating ? Math.round((recipe.rating || 0) * 10) : 0}
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="h-3 w-3" />
+              {recipe.review_count || 0}
+            </span>
+            <span className="flex items-center gap-1">
+              <MessageCircle className="h-3 w-3" />
+              0
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 
   return (

@@ -138,17 +138,7 @@ export default function CateringPage() {
   };
 
   return (
-    <div className="page-container">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-muted">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="font-bold text-lg">Кейтеринг</h1>
-          <div className="w-10" />
-        </div>
-      </header>
+    <div className="page-container pt-4">
 
       {/* Hero */}
       <section className="relative h-48 overflow-hidden">

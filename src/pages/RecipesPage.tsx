@@ -226,19 +226,7 @@ export default function RecipesPage() {
   );
 
   return (
-    <div className="page-container">
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
-        <div className="px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Link to="/">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <h1 className="text-xl font-bold text-foreground">Рецепты</h1>
-          </div>
-        </div>
-      </header>
+    <div className="page-container pt-4">
 
       <div className="px-4 py-4 space-y-4">
         <Tabs value={mainTab} onValueChange={setMainTab}>

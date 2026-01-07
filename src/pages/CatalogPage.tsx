@@ -158,18 +158,9 @@ export default function CatalogPage() {
   const hasActiveFilters = priceRange[0] > 0 || priceRange[1] < maxPrice || minRating > 0;
 
   return (
-    <div className="page-container">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
-        <div className="px-4 py-3">
-          <div className="flex items-center gap-3 mb-3">
-            <Link to="/">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <h1 className="text-xl font-bold text-foreground">Каталог</h1>
-          </div>
+    <div className="page-container pt-4">
+      {/* Search & Filters */}
+      <div className="px-4 mb-3">
 
           {/* Search */}
           <div className="relative mb-3">
@@ -260,7 +251,6 @@ export default function CatalogPage() {
             </Select>
           </div>
         </div>
-      </header>
 
       {/* Main Categories Section - styled like HomePage */}
       <section className="pt-4 space-y-3">

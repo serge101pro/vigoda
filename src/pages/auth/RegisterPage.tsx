@@ -1,18 +1,28 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, User, Gift } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
 export default function RegisterPage() {
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { signUp, user, loading } = useAuth();
+
+  useEffect(() => {
+    // Get referral code from URL if present
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -24,7 +34,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signUp(email, password, name);
+    const { error } = await signUp(email, password, name, referralCode || undefined);
 
     if (error) {
       // Generic error message to prevent user enumeration
@@ -40,7 +50,7 @@ export default function RegisterPage() {
     } else {
       toast({
         title: 'Регистрация успешна!',
-        description: 'Проверьте почту для подтверждения аккаунта',
+        description: referralCode ? 'Проверьте почту. Реферальный бонус будет начислен после первого заказа!' : 'Проверьте почту для подтверждения аккаунта',
       });
       navigate('/');
     }
@@ -130,6 +140,16 @@ export default function RegisterPage() {
               </button>
             </div>
           </div>
+
+          {referralCode && (
+            <div className="bg-primary/10 rounded-xl p-3 flex items-center gap-2">
+              <Gift className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm font-medium text-primary">Реферальный код активен!</p>
+                <p className="text-xs text-muted-foreground">Получите бонус после первого заказа</p>
+              </div>
+            </div>
+          )}
 
           <p className="text-xs text-muted-foreground">
             Регистрируясь, вы соглашаетесь с{' '}
