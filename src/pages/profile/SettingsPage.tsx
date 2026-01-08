@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { ArrowLeft, Clock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Clock, User, Phone, Mail, Send, MapPin, CreditCard, Shield, LogOut, Bell, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,15 +8,27 @@ import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AvatarUpload } from '@/components/profile/AvatarUpload';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { toast } from '@/hooks/use-toast';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 
 const stores = ['Пятёрочка', 'Магнит', 'Перекрёсток', 'ВкусВилл'];
 const dietaryOptions = ['Вегетарианство', 'Веганство', 'Без глютена', 'Без лактозы'];
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
+  const [saving, setSaving] = useState(false);
+
   // Account
-  const [name, setName] = useState('Александр');
-  const [email, setEmail] = useState('alex@example.com');
-  const [phone, setPhone] = useState('+7 999 123 45 67');
+  const [formData, setFormData] = useState({
+    display_name: '',
+    phone: '',
+    telegram_chat_id: '',
+  });
   const [language, setLanguage] = useState('ru');
 
   // Notifications
@@ -44,6 +56,16 @@ export default function SettingsPage() {
   const [personalRecommendations, setPersonalRecommendations] = useState(true);
   const [geolocation, setGeolocation] = useState(true);
 
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        display_name: profile.display_name || '',
+        phone: profile.phone || '',
+        telegram_chat_id: profile.telegram_chat_id || '',
+      });
+    }
+  }, [profile]);
+
   const toggleStore = (store: string) => {
     setFavoriteStores(prev => 
       prev.includes(store) ? prev.filter(s => s !== store) : [...prev, store]
@@ -56,6 +78,41 @@ export default function SettingsPage() {
     );
   };
 
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSaving(true);
+    
+    const success = await updateProfile({
+      display_name: formData.display_name || null,
+      phone: formData.phone || null,
+    });
+    
+    // Note: telegram_chat_id would need to be added to the updateProfile function
+    
+    setSaving(false);
+    
+    if (success) {
+      toast({ title: 'Профиль успешно сохранён' });
+    } else {
+      toast({ title: 'Ошибка при сохранении', variant: 'destructive' });
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  if (authLoading || profileLoading) {
+    return (
+      <div className="page-container flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const isAuthenticated = !!user;
+
   return (
     <div className="page-container">
       {/* Header */}
@@ -67,264 +124,180 @@ export default function SettingsPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <h1 className="text-xl font-bold text-foreground">Настройки</h1>
+            <h1 className="text-xl font-bold text-foreground">Профиль и Настройки</h1>
           </div>
         </div>
       </header>
 
-      <div className="px-4 py-6 space-y-8">
-        {/* Account Settings */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">Настройки аккаунта</h2>
-          <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
-            <div>
-              <Label htmlFor="name">Имя</Label>
-              <Input id="name" value={name} onChange={e => setName(e.target.value)} className="mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="phone">Телефон</Label>
-              <Input id="phone" value={phone} onChange={e => setPhone(e.target.value)} className="mt-1" />
-            </div>
-            <div>
-              <Label>Язык</Label>
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ru">🇷🇺 Русский</SelectItem>
-                  <SelectItem value="en">🇬🇧 English</SelectItem>
-                  <SelectItem value="es">🇪🇸 Español</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </section>
+      <div className="px-4 py-2">
+        <Breadcrumbs />
+      </div>
 
-        {/* Notifications */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">Уведомления</h2>
-          <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Push-уведомления</span>
-              <Switch checked={pushEnabled} onCheckedChange={setPushEnabled} />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Email-уведомления</span>
-              <Switch checked={emailEnabled} onCheckedChange={setEmailEnabled} />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Напоминания о покупках</span>
-              <Switch checked={shoppingReminder} onCheckedChange={setShoppingReminder} />
-            </div>
-            {shoppingReminder && (
-              <div className="relative ml-4">
+      <div className="px-4 py-4 space-y-6">
+        {/* Account Settings - Only for authenticated users */}
+        {isAuthenticated && (
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" />
+              Настройки аккаунта
+            </h2>
+            <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
+              {/* Avatar */}
+              <div className="flex justify-center mb-4">
+                <AvatarUpload size="lg" />
+              </div>
+              
+              <div>
+                <Label htmlFor="name" className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  Имя
+                </Label>
                 <Input 
-                  type="time" 
-                  value={reminderTime} 
-                  onChange={e => setReminderTime(e.target.value)}
-                  className="pr-10"
+                  id="name" 
+                  value={formData.display_name} 
+                  onChange={e => setFormData(prev => ({ ...prev, display_name: e.target.value }))} 
+                  className="mt-1" 
                 />
-                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
-            )}
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Уведомления о скидках</span>
-              <Switch checked={discountNotify} onCheckedChange={setDiscountNotify} />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Оповещать о росте цен</span>
-              <Switch checked={priceRiseNotify} onCheckedChange={setPriceRiseNotify} />
-            </div>
-            <div className="flex items-center justify-between opacity-50">
               <div>
-                <span className="font-medium">Семейные обновления</span>
-                <p className="text-xs text-muted-foreground">Доступно в Family плане</p>
-              </div>
-              <Switch checked={familyUpdates} onCheckedChange={setFamilyUpdates} disabled />
-            </div>
-          </div>
-        </section>
-
-        {/* Product Recommendations */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">Рекомендации товаров</h2>
-          <RadioGroup value={recommendationType} onValueChange={setRecommendationType} className="space-y-3">
-            {[
-              { value: 'cheapest', label: 'Самые дешёвые', desc: 'Показывать товары с минимальной ценой' },
-              { value: 'previous', label: 'Ранее купленные', desc: 'Товары из вашей истории покупок' },
-              { value: 'popular', label: 'Популярные у других', desc: 'Что чаще всего покупают пользователи' },
-              { value: 'premium', label: 'Премиум качество', desc: 'Товары высокого качества' },
-              { value: 'eco', label: 'Экологичные', desc: 'Органические и фермерские продукты' },
-            ].map(opt => (
-              <label 
-                key={opt.value}
-                className={`flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                  recommendationType === opt.value 
-                    ? 'border-primary bg-primary-light' 
-                    : 'border-border bg-card hover:border-primary/50'
-                }`}
-              >
-                <RadioGroupItem value={opt.value} className="mt-1" />
-                <div>
-                  <p className="font-semibold">{opt.label}</p>
-                  <p className="text-sm text-muted-foreground">{opt.desc}</p>
-                </div>
-              </label>
-            ))}
-          </RadioGroup>
-
-          <div className="mt-4 bg-card rounded-2xl border border-border p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Показывать аналоги дешевле</span>
-              <Switch checked={showCheaperAnalogs} onCheckedChange={setShowCheaperAnalogs} />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Уведомлять о росте цен</span>
-              <Switch checked={notifyPriceRise} onCheckedChange={setNotifyPriceRise} />
-            </div>
-          </div>
-        </section>
-
-        {/* Shopping Preferences */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">Предпочтения покупок</h2>
-          <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
-            <div>
-              <Label className="font-semibold">Любимые магазины</Label>
-              <div className="mt-2 space-y-2">
-                {stores.map(store => (
-                  <label key={store} className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox 
-                      checked={favoriteStores.includes(store)} 
-                      onCheckedChange={() => toggleStore(store)} 
-                    />
-                    <span>{store}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <Label className="font-semibold">Диетические ограничения</Label>
-              <div className="mt-2 space-y-2">
-                {dietaryOptions.map(option => (
-                  <label key={option} className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox 
-                      checked={dietaryRestrictions.includes(option)} 
-                      onCheckedChange={() => toggleDietary(option)} 
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="budget">Месячный бюджет</Label>
-              <div className="relative mt-1">
+                <Label htmlFor="phone" className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  Телефон
+                </Label>
                 <Input 
-                  id="budget"
-                  type="number" 
-                  value={monthlyBudget} 
-                  onChange={e => setMonthlyBudget(e.target.value)}
-                  className="pr-8"
+                  id="phone" 
+                  value={formData.phone} 
+                  onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))} 
+                  className="mt-1" 
+                  placeholder="+7 (999) 123-45-67"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">₽</span>
               </div>
-            </div>
-
-            <div className="flex items-center justify-between">
               <div>
-                <span className="font-medium">Автодобавление предсказаний</span>
-                <p className="text-xs text-muted-foreground">AI автоматически добавляет часто покупаемые товары</p>
+                <Label className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  Email
+                </Label>
+                <Input 
+                  value={profile?.email || user?.email || ''} 
+                  disabled 
+                  className="mt-1 bg-muted" 
+                />
+                <p className="text-xs text-muted-foreground mt-1">Email нельзя изменить</p>
               </div>
-              <Switch checked={aiPredictions} onCheckedChange={setAiPredictions} />
-            </div>
-          </div>
-        </section>
-
-        {/* Privacy */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">Конфиденциальность</h2>
-          <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
-            <div className="flex items-center justify-between">
               <div>
-                <span className="font-medium">Анонимная статистика</span>
-                <p className="text-xs text-muted-foreground">Помогает улучшить приложение</p>
+                <Label htmlFor="telegram" className="flex items-center gap-2">
+                  <Send className="h-4 w-4 text-muted-foreground" />
+                  Telegram
+                </Label>
+                <Input 
+                  id="telegram" 
+                  value={formData.telegram_chat_id} 
+                  onChange={e => setFormData(prev => ({ ...prev, telegram_chat_id: e.target.value }))} 
+                  className="mt-1" 
+                  placeholder="@username или Chat ID"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Для получения уведомлений</p>
               </div>
-              <Switch checked={anonymousStats} onCheckedChange={setAnonymousStats} />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Персональные рекомендации</span>
-              <Switch checked={personalRecommendations} onCheckedChange={setPersonalRecommendations} />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="font-medium">Геолокация</span>
-                <p className="text-xs text-muted-foreground">Для поиска ближайших магазинов</p>
-              </div>
-              <Switch checked={geolocation} onCheckedChange={setGeolocation} />
-            </div>
-          </div>
 
-          <Button 
-            variant="outline" 
-            className="w-full mt-4 text-destructive border-destructive hover:bg-destructive/10"
-          >
-            Удалить аккаунт
-          </Button>
-        </section>
-
-        {/* Subscription */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">Управление подпиской</h2>
-          <div className="bg-card rounded-2xl border border-border p-4">
-            <p className="text-sm text-muted-foreground">Текущий план</p>
-            <p className="text-xl font-bold text-primary">Бесплатная</p>
-            <Link to="/profile/premium">
-              <Button variant="link" className="p-0 h-auto mt-2 text-primary">
-                Посмотреть планы
+              <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Сохранить профиль
               </Button>
+            </div>
+          </section>
+        )}
+
+        {/* Program Settings */}
+        <section>
+          <h2 className="text-lg font-bold text-foreground mb-4">Настройки программы</h2>
+          
+          {/* Language */}
+          <div className="bg-card rounded-2xl border border-border p-4 mb-4">
+            <Label>Язык</Label>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ru">🇷🇺 Русский</SelectItem>
+                <SelectItem value="en">🇬🇧 English</SelectItem>
+                <SelectItem value="es">🇪🇸 Español</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Quick Links to Sub-pages */}
+          <div className="space-y-2">
+            <Link to="/profile/notifications" className="flex items-center justify-between p-4 bg-card rounded-2xl border border-border hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Bell className="h-5 w-5 text-primary" />
+                <span className="font-medium">Настройка уведомлений</span>
+              </div>
+              <span className="text-muted-foreground">→</span>
+            </Link>
+            
+            <Link to="/recommendation-rules" className="flex items-center justify-between p-4 bg-card rounded-2xl border border-border hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">🤖</span>
+                <span className="font-medium">Правила рекомендации товаров</span>
+              </div>
+              <span className="text-muted-foreground">→</span>
+            </Link>
+
+            <Link to="/profile/preferences" className="flex items-center justify-between p-4 bg-card rounded-2xl border border-border hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">🍽️</span>
+                <span className="font-medium">Предпочтения и Ограничения</span>
+              </div>
+              <span className="text-muted-foreground">→</span>
+            </Link>
+
+            <Link to="/profile/addresses" className="flex items-center justify-between p-4 bg-card rounded-2xl border border-border hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-primary" />
+                <span className="font-medium">Мои адреса</span>
+              </div>
+              <span className="text-muted-foreground">→</span>
+            </Link>
+
+            <Link to="/profile/payment-methods" className="flex items-center justify-between p-4 bg-card rounded-2xl border border-border hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <CreditCard className="h-5 w-5 text-primary" />
+                <span className="font-medium">Способы оплаты</span>
+              </div>
+              <span className="text-muted-foreground">→</span>
+            </Link>
+
+            <Link to="/profile/loyalty-cards" className="flex items-center justify-between p-4 bg-card rounded-2xl border border-border hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">💳</span>
+                <span className="font-medium">Карты лояльности</span>
+              </div>
+              <span className="text-muted-foreground">→</span>
+            </Link>
+
+            <Link to="/privacy" className="flex items-center justify-between p-4 bg-card rounded-2xl border border-border hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-primary" />
+                <span className="font-medium">Конфиденциальность</span>
+              </div>
+              <span className="text-muted-foreground">→</span>
             </Link>
           </div>
         </section>
 
-        {/* About */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">О приложении</h2>
-          <div className="bg-card rounded-2xl border border-border overflow-hidden">
-            <div className="p-4 text-center border-b border-border">
-              <p className="text-muted-foreground">v2.0.1</p>
-            </div>
-            {[
-              { label: 'Условия использования', to: '/terms' },
-              { label: 'Политика конфиденциальности', to: '/privacy' },
-              { label: 'Помощь и поддержка', to: '/support' },
-              { label: 'Политика обработки персональных данных', to: '/personal-data-policy' },
-              { label: 'Публичная оферта', to: '/public-offer' },
-              { label: 'Правила рекомендательных технологий', to: '/recommendation-rules' },
-            ].map(item => (
-              <Link 
-                key={item.to} 
-                to={item.to}
-                className="flex items-center justify-between p-4 border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors"
-              >
-                <span>{item.label}</span>
-                <span className="text-muted-foreground">→</span>
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-4 bg-muted rounded-2xl p-4">
-            <p className="font-semibold">Связаться с нами:</p>
-            <p className="text-muted-foreground">support@vigodnotut.ru</p>
-          </div>
-        </section>
+        {/* Logout */}
+        {isAuthenticated && (
+          <Button
+            variant="ghost"
+            size="lg"
+            className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-5 w-5 mr-2" />
+            Выйти из аккаунта
+          </Button>
+        )}
       </div>
     </div>
   );

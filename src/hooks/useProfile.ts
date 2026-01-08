@@ -11,6 +11,7 @@ interface Profile {
   avatar_url: string | null;
   bonus_points: number;
   total_savings: number;
+  telegram_chat_id: string | null;
 }
 
 export function useProfile() {
@@ -46,7 +47,7 @@ export function useProfile() {
     fetchProfile();
   }, [fetchProfile]);
 
-  const updateProfile = async (updates: Partial<Pick<Profile, 'display_name' | 'phone' | 'avatar_url'>>) => {
+  const updateProfile = async (updates: Partial<Pick<Profile, 'display_name' | 'phone' | 'avatar_url' | 'telegram_chat_id'>>) => {
     if (!user || !profile) return false;
 
     try {

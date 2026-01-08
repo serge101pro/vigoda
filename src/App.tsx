@@ -32,6 +32,9 @@ import AnalyticsPage from "@/pages/profile/AnalyticsPage";
 import LoyaltyCardsPage from "@/pages/profile/LoyaltyCardsPage";
 import ShoppingListsPage from "@/pages/profile/ShoppingListsPage";
 import ProfileEditPage from "@/pages/profile/ProfileEditPage";
+import PaymentMethodsPage from "@/pages/profile/PaymentMethodsPage";
+import WalletPage from "@/pages/profile/WalletPage";
+import AboutPage from "@/pages/AboutPage";
 
 // New pages
 import RecipeDetailPage from "@/pages/RecipeDetailPage";
@@ -141,6 +144,9 @@ function AppRoutes() {
           <Route path="/profile/loyalty-cards" element={<LoyaltyCardsPage />} />
           <Route path="/profile/lists" element={<ShoppingListsPage />} />
           <Route path="/profile/edit" element={<ProfileEditPage />} />
+          <Route path="/profile/payment-methods" element={<PaymentMethodsPage />} />
+          <Route path="/profile/affiliate/wallet" element={<WalletPage />} />
+          <Route path="/about" element={<AboutPage />} />
           {/* Legal pages */}
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
