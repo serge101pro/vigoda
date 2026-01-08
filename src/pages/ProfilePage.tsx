@@ -1,85 +1,30 @@
 import { useState } from 'react';
 import { 
-  ArrowLeft, 
   Settings, 
-  Heart, 
-  ClipboardList, 
   BarChart3, 
   Gift, 
   Crown, 
-  ChevronRight,
   Trophy,
-  Activity,
-  MapPin,
-  CreditCard,
-  Wallet,
-  Bell,
-  ChefHat,
   Users,
-  Utensils,
-  Leaf,
   Loader2,
   User,
-  Film
+  Info,
+  TrendingDown,
+  PiggyBank
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { useFavorites } from '@/hooks/useFavorites';
-import { useShoppingLists } from '@/hooks/useShoppingLists';
-import { AvatarUpload } from '@/components/profile/AvatarUpload';
-import { ProfileStats } from '@/components/profile/ProfileStats';
-import { ProfileMenuItem } from '@/components/profile/ProfileMenuItem';
-import { SubscriptionCard } from '@/components/profile/SubscriptionCard';
-import { PeriodModal } from '@/components/profile/PeriodModal';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { useAppStore } from '@/stores/useAppStore';
-
-const planLabels = {
-  free: 'Бесплатная',
-  solo: 'Solo',
-  family: 'Family',
-  corp: 'Корп'
-};
-
-const menuItems = [
-  { icon: Trophy, label: 'Награды', to: '/profile/awards', badge: '2' },
-  { icon: Activity, label: 'Активность', to: '', isModal: true },
-  { icon: ClipboardList, label: 'Совместные списки', to: '/family' },
-  { icon: MapPin, label: 'Мои адреса', to: '/profile/addresses' },
-  { icon: CreditCard, label: 'Карты лояльности', to: '/profile/loyalty-cards' },
-  { icon: Wallet, label: 'Способы оплаты', to: '/profile/payment-methods' },
-  { icon: Bell, label: 'Уведомления', to: '/profile/notifications' },
-  { icon: Settings, label: 'Настройки', to: '/profile/settings' },
-];
+import { useSubscription } from '@/hooks/useSubscription';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
-  const { favoriteProducts, favoriteRecipes } = useFavorites();
-  const { lists } = useShoppingLists();
-  const [periodModal, setPeriodModal] = useState<'solo' | 'family' | null>(null);
+  const { subscription } = useSubscription();
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/');
-  };
-
-  const quickLinks = [
-    { icon: ClipboardList, label: 'Мои списки', to: '/profile/lists', badge: lists.length > 0 ? String(lists.length) : undefined },
-    { icon: Heart, label: 'Избранное', to: '/favorites', badge: (favoriteProducts.length + favoriteRecipes.length) > 0 ? String(favoriteProducts.length + favoriteRecipes.length) : undefined },
-    { icon: ChefHat, label: 'Мои рецепты', to: '/profile/recipes' },
-    { icon: BarChart3, label: 'Аналитика расходов', to: '/profile/analytics' },
-    { icon: Gift, label: 'Партнёрская программа', to: '/profile/affiliate', highlight: true },
-    { icon: Users, label: 'Семейное планирование', to: '/family' },
-    { icon: Utensils, label: 'Кейтеринг', to: '/catering' },
-    { icon: Leaf, label: 'Фермерские продукты', to: '/farm-products' },
-  ];
-
-  if (authLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="page-container flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -87,184 +32,170 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="page-container flex flex-col items-center justify-center px-4">
-        <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-          <User className="h-12 w-12 text-primary" />
-        </div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">Войдите в аккаунт</h1>
-        <p className="text-muted-foreground text-center mb-6">
-          Сохраняйте списки, отслеживайте экономию и получайте персональные рекомендации
-        </p>
-        <div className="flex gap-3 w-full max-w-xs">
-          <Link to="/auth/login" className="flex-1">
-            <Button variant="hero" size="lg" className="w-full">
-              Войти
-            </Button>
-          </Link>
-          <Link to="/auth/register" className="flex-1">
-            <Button variant="outline" size="lg" className="w-full">
-              Регистрация
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const isAuthenticated = !!user;
+  const isFamilyPlan = subscription?.plan === 'family';
+  const monthlySavings = 2450; // Mock data
+  const totalSavings = Number(profile?.total_savings) || 12650;
 
-  const displayName = profile?.display_name || user.user_metadata?.display_name || 'Пользователь';
-  const email = profile?.email || user.email || '';
+  // Tile data
+  const tiles = [
+    {
+      id: 'settings',
+      icon: Settings,
+      title: 'Профиль и Настройки',
+      subtitle: 'Аккаунт, уведомления',
+      to: '/profile/settings',
+      gradient: 'from-blue-500 to-cyan-400',
+      requiresAuth: true,
+    },
+    {
+      id: 'family',
+      icon: Users,
+      title: 'Семья',
+      subtitle: 'Члены семьи, списки',
+      to: '/family',
+      gradient: 'from-pink-500 to-rose-400',
+      requiresAuth: true,
+      requiresFamilyPlan: true,
+    },
+    {
+      id: 'awards',
+      icon: Trophy,
+      title: 'Награды и достижения',
+      subtitle: 'Бонусы, активность',
+      to: '/profile/awards',
+      gradient: 'from-amber-500 to-yellow-400',
+      requiresAuth: true,
+    },
+    {
+      id: 'analytics',
+      icon: BarChart3,
+      title: 'Статистика и Аналитика',
+      subtitle: 'Расходы, экономия',
+      to: '/profile/analytics',
+      gradient: 'from-violet-500 to-purple-400',
+      requiresAuth: true,
+    },
+    {
+      id: 'affiliate',
+      icon: Gift,
+      title: 'Партнёрская программа',
+      subtitle: 'Приглашай и зарабатывай',
+      to: '/profile/affiliate',
+      gradient: 'from-orange-500 to-red-400',
+      requiresAuth: false,
+    },
+    {
+      id: 'subscription',
+      icon: Crown,
+      title: 'Тарифы и подписка',
+      subtitle: 'Управление планом',
+      to: '/profile/premium',
+      gradient: 'from-emerald-500 to-teal-400',
+      requiresAuth: false,
+    },
+  ];
+
+  const visibleTiles = tiles.filter(tile => {
+    if (tile.requiresAuth && !isAuthenticated) return false;
+    if (tile.requiresFamilyPlan && !isFamilyPlan) return false;
+    return true;
+  });
+
+  // Fill empty spots for non-auth users
+  const displayTiles = [...visibleTiles];
+  while (displayTiles.length < 6 && displayTiles.length % 2 !== 0) {
+    displayTiles.push(null as any);
+  }
 
   return (
     <div className="page-container">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link to="/">
-                <Button variant="ghost" size="icon">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
-              <h1 className="text-xl font-bold text-foreground">Профиль</h1>
+      <div className="px-4 py-4 flex flex-col gap-4" style={{ minHeight: 'calc(100vh - 140px)' }}>
+        
+        {/* Savings Cards - Only for authenticated users */}
+        {isAuthenticated && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 p-4 text-white shadow-lg">
+              <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
+              <div className="absolute -right-2 -bottom-6 h-16 w-16 rounded-full bg-white/10" />
+              <TrendingDown className="h-6 w-6 mb-2 opacity-80" />
+              <p className="text-xs opacity-80 font-medium">Экономия за месяц</p>
+              <p className="text-2xl font-bold">{monthlySavings.toLocaleString()} ₽</p>
             </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  useAppStore.getState().setHasSeenOnboarding(false);
-                  window.location.href = '/onboarding';
-                }}
-                title="Показать онбординг"
-              >
-                <Film className="h-5 w-5" />
-              </Button>
-              <ThemeToggle />
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-4 text-white shadow-lg">
+              <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
+              <div className="absolute -right-2 -bottom-6 h-16 w-16 rounded-full bg-white/10" />
+              <PiggyBank className="h-6 w-6 mb-2 opacity-80" />
+              <p className="text-xs opacity-80 font-medium">Всего сэкономлено</p>
+              <p className="text-2xl font-bold">{totalSavings.toLocaleString()} ₽</p>
             </div>
           </div>
-        </div>
-      </header>
+        )}
 
-      {/* User Header with Avatar Upload */}
-      <div className="flex flex-col items-center pt-6 pb-4">
-        <AvatarUpload size="lg" />
-        <h1 className="mt-3 text-xl font-bold text-foreground">{displayName}</h1>
-        <p className="text-muted-foreground text-sm">{email}</p>
-        <Badge variant="secondary" className="mt-2">
-          {planLabels.free}
-        </Badge>
-        <Link to="/profile/edit">
-          <Button variant="outline" size="sm" className="mt-3">
-            Редактировать профиль
-          </Button>
-        </Link>
-      </div>
-
-      <div className="px-4 pb-6 space-y-6">
-        {/* Stats - moved above Subscription */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-3">Статистика</h2>
-          <ProfileStats
-            savings={Number(profile?.total_savings) || 0}
-            listsCreated={lists.length}
-            recipesPublished={0}
-            awardsEarned={profile?.bonus_points || 0}
-          />
-        </section>
-
-        {/* Subscription Preview */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-foreground">Подписка</h2>
-            <Link to="/profile/premium" className="text-sm font-semibold text-primary">
-              Все планы
-            </Link>
-          </div>
-          <SubscriptionCard type="free" isCurrentPlan />
-          
-          <div className="mt-3">
-            <SubscriptionCard 
-              type="solo" 
-              onSelectPeriod={() => setPeriodModal('solo')}
-            />
-          </div>
-        </section>
-
-        {/* Quick Links */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-3">Быстрый доступ</h2>
-          <div className="space-y-2">
-            {quickLinks.map(item => (
-              <ProfileMenuItem
-                key={item.to}
-                icon={item.icon}
-                label={item.label}
-                to={item.to}
-                badge={item.badge}
-                iconClassName={item.highlight ? 'text-accent' : 'text-primary'}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Premium CTA */}
-        <section>
-          <Link to="/profile/premium">
-            <div className="bg-gradient-to-r from-accent to-accent/80 rounded-2xl p-4 text-accent-foreground">
-              <div className="flex items-center gap-3">
-                <Crown className="h-8 w-8" />
-                <div>
-                  <h3 className="font-bold text-lg">Premium подписка</h3>
-                  <p className="text-sm opacity-90">Больше возможностей для экономии</p>
-                </div>
-                <ChevronRight className="h-6 w-6 ml-auto" />
+        {/* Not authenticated message */}
+        {!isAuthenticated && (
+          <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-4 border border-primary/20">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-bold text-foreground">Войдите в аккаунт</h2>
+                <p className="text-sm text-muted-foreground">Больше возможностей</p>
               </div>
             </div>
-          </Link>
-        </section>
-
-        {/* Menu */}
-        <section>
-          <h2 className="text-lg font-bold text-foreground mb-3">Настройки и данные</h2>
-          <div className="space-y-2">
-            {menuItems.map(item => (
-              <ProfileMenuItem
-                key={item.to || item.label}
-                icon={item.icon}
-                label={item.label}
-                to={item.to}
-                badge={item.badge}
-              />
-            ))}
+            <div className="flex gap-2">
+              <Link to="/auth/login" className="flex-1">
+                <Button variant="hero" size="sm" className="w-full">Войти</Button>
+              </Link>
+              <Link to="/auth/register" className="flex-1">
+                <Button variant="outline" size="sm" className="w-full">Регистрация</Button>
+              </Link>
+            </div>
           </div>
-        </section>
+        )}
 
-        {/* Logout */}
-        <Button
-          variant="ghost"
-          size="lg"
-          className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={handleLogout}
+        {/* Main Tiles Grid */}
+        <div className="grid grid-cols-2 gap-3 flex-1">
+          {displayTiles.map((tile, index) => {
+            if (!tile) {
+              return <div key={`empty-${index}`} className="rounded-2xl bg-muted/30" />;
+            }
+            
+            return (
+              <Link
+                key={tile.id}
+                to={tile.to}
+                className={`
+                  relative overflow-hidden rounded-2xl p-4 flex flex-col justify-between
+                  bg-gradient-to-br ${tile.gradient} text-white shadow-lg
+                  transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
+                  min-h-[120px]
+                `}
+              >
+                {/* Decorative circles */}
+                <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10" />
+                <div className="absolute -left-4 -bottom-8 h-20 w-20 rounded-full bg-white/10" />
+                
+                <tile.icon className="h-7 w-7 mb-auto relative z-10" />
+                <div className="relative z-10">
+                  <h3 className="font-bold text-sm leading-tight">{tile.title}</h3>
+                  <p className="text-[11px] opacity-80 mt-0.5">{tile.subtitle}</p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* About App Link */}
+        <Link
+          to="/about"
+          className="flex items-center justify-center gap-2 py-3 text-muted-foreground hover:text-foreground transition-colors"
         >
-          Выйти из аккаунта
-        </Button>
+          <Info className="h-4 w-4" />
+          <span className="text-sm font-medium">О приложении</span>
+        </Link>
       </div>
-
-      {/* Period Modal */}
-      {periodModal && (
-        <PeriodModal
-          open={!!periodModal}
-          onClose={() => setPeriodModal(null)}
-          planType={periodModal}
-          onSelect={(period) => {
-            console.log('Selected period:', period);
-            setPeriodModal(null);
-          }}
-        />
-      )}
     </div>
   );
 }
