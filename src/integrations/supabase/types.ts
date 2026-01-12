@@ -268,6 +268,57 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          created_at: string
+          discount_alerts: boolean | null
+          email_enabled: boolean | null
+          family_updates: boolean | null
+          id: string
+          order_updates: boolean | null
+          price_rise_alerts: boolean | null
+          promo_notifications: boolean | null
+          push_enabled: boolean | null
+          reminder_time: string | null
+          shopping_reminders: boolean | null
+          telegram_enabled: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount_alerts?: boolean | null
+          email_enabled?: boolean | null
+          family_updates?: boolean | null
+          id?: string
+          order_updates?: boolean | null
+          price_rise_alerts?: boolean | null
+          promo_notifications?: boolean | null
+          push_enabled?: boolean | null
+          reminder_time?: string | null
+          shopping_reminders?: boolean | null
+          telegram_enabled?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discount_alerts?: boolean | null
+          email_enabled?: boolean | null
+          family_updates?: boolean | null
+          id?: string
+          order_updates?: boolean | null
+          price_rise_alerts?: boolean | null
+          promo_notifications?: boolean | null
+          push_enabled?: boolean | null
+          reminder_time?: string | null
+          shopping_reminders?: boolean | null
+          telegram_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_approvals: {
         Row: {
           approved_at: string | null
@@ -684,6 +735,39 @@ export type Database = {
           },
         ]
       }
+      permission_settings: {
+        Row: {
+          camera_enabled: boolean | null
+          created_at: string
+          geolocation_enabled: boolean | null
+          id: string
+          personal_recommendations: boolean | null
+          share_anonymous_stats: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          camera_enabled?: boolean | null
+          created_at?: string
+          geolocation_enabled?: boolean | null
+          id?: string
+          personal_recommendations?: boolean | null
+          share_anonymous_stats?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          camera_enabled?: boolean | null
+          created_at?: string
+          geolocation_enabled?: boolean | null
+          id?: string
+          personal_recommendations?: boolean | null
+          share_anonymous_stats?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           badge: string | null
@@ -1034,6 +1118,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          created_at: string
+          dietary_restrictions: string[] | null
+          favorite_stores: string[] | null
+          id: string
+          monthly_budget: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          favorite_stores?: string[] | null
+          id?: string
+          monthly_budget?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dietary_restrictions?: string[] | null
+          favorite_stores?: string[] | null
+          id?: string
+          monthly_budget?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           created_at: string
@@ -1106,6 +1220,11 @@ export type Database = {
       }
       is_org_member: {
         Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_test_admin: { Args: { _user_id: string }; Returns: boolean }
+      set_subscription_plan: {
+        Args: { _plan: Database["public"]["Enums"]["subscription_plan"] }
         Returns: boolean
       }
     }
