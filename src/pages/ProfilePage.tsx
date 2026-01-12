@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { 
   Settings, 
   BarChart3, 
@@ -10,16 +9,16 @@ import {
   User,
   Info,
   TrendingDown,
-  PiggyBank
+  PiggyBank,
+  Lock
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
 
 export default function ProfilePage() {
-  const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const { subscription } = useSubscription();
@@ -37,7 +36,7 @@ export default function ProfilePage() {
   const monthlySavings = 2450; // Mock data
   const totalSavings = Number(profile?.total_savings) || 12650;
 
-  // Tile data
+  // Tile data - Family is visible to all authenticated users (with lock indicator for non-family plans)
   const tiles = [
     {
       id: 'settings',
@@ -47,16 +46,17 @@ export default function ProfilePage() {
       to: '/profile/settings',
       gradient: 'from-blue-500 to-cyan-400',
       requiresAuth: true,
+      isLocked: false,
     },
     {
       id: 'family',
       icon: Users,
       title: 'Семья',
-      subtitle: 'Члены семьи, списки',
-      to: '/family',
+      subtitle: isFamilyPlan ? 'Члены семьи, списки' : 'Только для тарифа Семья',
+      to: isFamilyPlan ? '/family' : '/profile/premium',
       gradient: 'from-pink-500 to-rose-400',
       requiresAuth: true,
-      requiresFamilyPlan: true,
+      isLocked: !isFamilyPlan,
     },
     {
       id: 'awards',
@@ -66,6 +66,7 @@ export default function ProfilePage() {
       to: '/profile/awards',
       gradient: 'from-amber-500 to-yellow-400',
       requiresAuth: true,
+      isLocked: false,
     },
     {
       id: 'analytics',
@@ -75,6 +76,7 @@ export default function ProfilePage() {
       to: '/profile/analytics',
       gradient: 'from-violet-500 to-purple-400',
       requiresAuth: true,
+      isLocked: false,
     },
     {
       id: 'affiliate',
@@ -84,6 +86,7 @@ export default function ProfilePage() {
       to: '/profile/affiliate',
       gradient: 'from-orange-500 to-red-400',
       requiresAuth: false,
+      isLocked: false,
     },
     {
       id: 'subscription',
@@ -93,12 +96,12 @@ export default function ProfilePage() {
       to: '/profile/premium',
       gradient: 'from-emerald-500 to-teal-400',
       requiresAuth: false,
+      isLocked: false,
     },
   ];
 
   const visibleTiles = tiles.filter(tile => {
     if (tile.requiresAuth && !isAuthenticated) return false;
-    if (tile.requiresFamilyPlan && !isFamilyPlan) return false;
     return true;
   });
 
@@ -162,6 +165,8 @@ export default function ProfilePage() {
               return <div key={`empty-${index}`} className="rounded-2xl bg-muted/30" />;
             }
             
+            const IconComponent = tile.icon;
+            
             return (
               <Link
                 key={tile.id}
@@ -171,14 +176,22 @@ export default function ProfilePage() {
                   bg-gradient-to-br ${tile.gradient} text-white shadow-lg
                   transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
                   min-h-[120px]
+                  ${tile.isLocked ? 'opacity-80' : ''}
                 `}
               >
                 {/* Decorative circles */}
                 <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10" />
                 <div className="absolute -left-4 -bottom-8 h-20 w-20 rounded-full bg-white/10" />
                 
-                <tile.icon className="h-7 w-7 mb-auto relative z-10" />
-                <div className="relative z-10">
+                <div className="flex items-center justify-between relative z-10">
+                  <IconComponent className="h-7 w-7" />
+                  {tile.isLocked && (
+                    <div className="bg-black/30 rounded-full p-1">
+                      <Lock className="h-4 w-4" />
+                    </div>
+                  )}
+                </div>
+                <div className="relative z-10 mt-auto">
                   <h3 className="font-bold text-sm leading-tight">{tile.title}</h3>
                   <p className="text-[11px] opacity-80 mt-0.5">{tile.subtitle}</p>
                 </div>

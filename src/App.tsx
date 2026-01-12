@@ -35,6 +35,9 @@ import ProfileEditPage from "@/pages/profile/ProfileEditPage";
 import PaymentMethodsPage from "@/pages/profile/PaymentMethodsPage";
 import WalletPage from "@/pages/profile/WalletPage";
 import AboutPage from "@/pages/AboutPage";
+import PermissionsPage from "@/pages/profile/PermissionsPage";
+import PreferencesPage from "@/pages/profile/PreferencesPage";
+import NotificationsPage from "@/pages/profile/NotificationsPage";
 
 // New pages
 import RecipeDetailPage from "@/pages/RecipeDetailPage";
@@ -146,6 +149,9 @@ function AppRoutes() {
           <Route path="/profile/edit" element={<ProfileEditPage />} />
           <Route path="/profile/payment-methods" element={<PaymentMethodsPage />} />
           <Route path="/profile/affiliate/wallet" element={<WalletPage />} />
+          <Route path="/profile/permissions" element={<PermissionsPage />} />
+          <Route path="/profile/preferences" element={<PreferencesPage />} />
+          <Route path="/profile/notifications" element={<NotificationsPage />} />
           <Route path="/about" element={<AboutPage />} />
           {/* Legal pages */}
           <Route path="/terms" element={<TermsPage />} />
