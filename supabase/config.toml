@@ -10,7 +10,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.telegram-notify]
-verify_jwt = true
+verify_jwt = false
+
+[functions.notify-referral-activation]
+verify_jwt = false
 
 [functions.export-analytics]
 verify_jwt = true
