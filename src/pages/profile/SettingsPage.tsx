@@ -228,8 +228,17 @@ export default function SettingsPage() {
                   className="mt-1" 
                   placeholder="Ваш Chat ID (например: 123456789)"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Для получения уведомлений. Узнайте свой Chat ID у @userinfobot в Telegram
+                <div className="mt-2 p-3 bg-muted rounded-lg border border-border">
+                  <p className="text-sm font-medium text-foreground mb-1">📱 Как получить Chat ID:</p>
+                  <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                    <li>Откройте Telegram</li>
+                    <li>Найдите бота <a href="https://t.me/userinfobot" target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">@userinfobot</a></li>
+                    <li>Нажмите "Старт" — бот отправит ваш Chat ID</li>
+                    <li>Скопируйте ID и вставьте сюда</li>
+                  </ol>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Для получения уведомлений о скидках, заказах и акциях
                 </p>
                 
                 {formData.telegram_chat_id && (

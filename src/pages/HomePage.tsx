@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Heart, ChefHat, ChevronRight, Store, Tractor, MapPin } from 'lucide-react';
+import { Search, Heart, ChefHat, ChevronRight, Store, Tractor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { PromoBanner } from '@/components/ui/PromoBanner';
@@ -91,11 +91,6 @@ export default function HomePage() {
               <AddressDropdown />
             </div>
             <div className="flex items-center gap-1">
-              <Link to="/nearest-stores">
-                <Button variant="ghost" size="icon" className="rounded-full w-10 h-10">
-                  <MapPin className="h-5 w-5" />
-                </Button>
-              </Link>
               <Link to="/favorites">
                 <Button variant="ghost" size="icon" className="rounded-full w-10 h-10">
                   <Heart className="h-5 w-5" />
@@ -180,12 +175,12 @@ export default function HomePage() {
 
       {/* Banner: Скидки дня */}
       <section className="px-4 pt-4">
-        <Link to="/catalog?filter=sale">
+        <Link to="/daily-deals">
           <PromoBanner
             title="Скидки дня"
             subtitle="До 50% на популярные товары!"
             buttonText="Смотреть"
-            buttonLink="/catalog?filter=sale"
+            buttonLink="/daily-deals"
             image={heroImage}
             variant="primary"
           />

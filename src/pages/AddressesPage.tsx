@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, Plus, MapPin, Home, Briefcase, Heart, 
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from '@/hooks/use-toast';
+import { VigodaMap } from '@/components/map/VigodaMap';
 
 interface Address {
   id: string;
@@ -151,34 +152,22 @@ export default function AddressesPage() {
       </header>
 
       <div className="px-4 py-4 space-y-4">
-        {/* Map Placeholder */}
-        <div className="relative h-48 md:h-64 bg-muted rounded-2xl overflow-hidden">
-          <img 
-            src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&h=400&fit=crop"
-            alt="Карта"
-            className="w-full h-full object-cover opacity-80"
+        {/* Real Map with Addresses */}
+        <div className="relative h-48 md:h-64 rounded-2xl overflow-hidden">
+          <VigodaMap
+            center={addresses[0]?.coordinates || { lat: 55.7558, lng: 37.6173 }}
+            zoom={11}
+            markers={addresses.map((addr) => ({
+              id: addr.id,
+              lat: addr.coordinates.lat,
+              lng: addr.coordinates.lng,
+              color: addr.isDefault ? 'bg-primary' : 'bg-card',
+              icon: addr.type === 'home' ? '🏠' : addr.type === 'work' ? '💼' : '📍',
+              label: addr.label,
+            }))}
+            style={{ width: '100%', height: '100%', borderRadius: '1rem' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
           
-          {/* Map Markers */}
-          {addresses.map((addr, i) => (
-            <div 
-              key={addr.id}
-              className="absolute"
-              style={{ 
-                left: `${20 + i * 25}%`, 
-                top: `${30 + (i % 2) * 20}%`,
-              }}
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${addr.isDefault ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground'}`}>
-                {(() => {
-                  const Icon = addressIcons[addr.type];
-                  return <Icon className="h-5 w-5" />;
-                })()}
-              </div>
-            </div>
-          ))}
-
           <Button 
             variant="secondary" 
             size="sm" 
