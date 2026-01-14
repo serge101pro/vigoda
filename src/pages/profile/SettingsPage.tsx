@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, User, Phone, Mail, Send, MapPin, CreditCard, Shield, LogOut, Bell, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, Clock, User, Phone, Mail, Send, MapPin, CreditCard, Shield, LogOut, Bell, Loader2, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useTelegramNotify } from '@/hooks/useTelegramNotify';
 import { toast } from '@/hooks/use-toast';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 
@@ -21,7 +22,10 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
+  const { sendWelcomeNotification } = useTelegramNotify();
   const [saving, setSaving] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+  const previousTelegramId = useRef<string | null>(null);
 
   // Account
   const [formData, setFormData] = useState({
@@ -58,6 +62,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (profile) {
+      previousTelegramId.current = profile.telegram_chat_id;
       setFormData({
         display_name: profile.display_name || '',
         phone: profile.phone || '',
@@ -78,21 +83,48 @@ export default function SettingsPage() {
     );
   };
 
+  const handleSendTestNotification = async () => {
+    if (!user || !formData.telegram_chat_id) {
+      toast({ title: 'Сначала укажите Telegram ID', variant: 'destructive' });
+      return;
+    }
+    
+    setSendingTest(true);
+    const result = await sendWelcomeNotification(user.id);
+    setSendingTest(false);
+    
+    if (result.success) {
+      toast({ title: '✅ Тестовое уведомление отправлено!' });
+    } else {
+      toast({ title: 'Ошибка отправки уведомления', description: 'Проверьте правильность Telegram ID', variant: 'destructive' });
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
     setSaving(true);
     
+    const isNewTelegramId = !previousTelegramId.current && formData.telegram_chat_id;
+    
     const success = await updateProfile({
       display_name: formData.display_name || null,
       phone: formData.phone || null,
+      telegram_chat_id: formData.telegram_chat_id || null,
     });
-    
-    // Note: telegram_chat_id would need to be added to the updateProfile function
     
     setSaving(false);
     
     if (success) {
       toast({ title: 'Профиль успешно сохранён' });
+      
+      // Send welcome notification if Telegram ID was just added
+      if (isNewTelegramId) {
+        const result = await sendWelcomeNotification(user.id);
+        if (result.success) {
+          toast({ title: '🎉 Приветственное уведомление отправлено в Telegram!' });
+        }
+        previousTelegramId.current = formData.telegram_chat_id;
+      }
     } else {
       toast({ title: 'Ошибка при сохранении', variant: 'destructive' });
     }
@@ -194,9 +226,29 @@ export default function SettingsPage() {
                   value={formData.telegram_chat_id} 
                   onChange={e => setFormData(prev => ({ ...prev, telegram_chat_id: e.target.value }))} 
                   className="mt-1" 
-                  placeholder="@username или Chat ID"
+                  placeholder="Ваш Chat ID (например: 123456789)"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Для получения уведомлений</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Для получения уведомлений. Узнайте свой Chat ID у @userinfobot в Telegram
+                </p>
+                
+                {formData.telegram_chat_id && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 w-full"
+                    onClick={handleSendTestNotification}
+                    disabled={sendingTest}
+                  >
+                    {sendingTest ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                    )}
+                    Отправить тестовое уведомление
+                  </Button>
+                )}
               </div>
 
               <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
