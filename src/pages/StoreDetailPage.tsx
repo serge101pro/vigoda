@@ -118,28 +118,33 @@ export default function StoreDetailPage() {
           </div>
         </div>
 
-        {/* Store Location Map */}
+        {/* Store Locations Map */}
         <div className="bg-card rounded-2xl p-4 border border-border">
           <h2 className="font-bold text-foreground mb-3 flex items-center gap-2">
             <MapPin className="h-5 w-5 text-primary" />
-            Расположение магазина
+            Магазины сети ({store.locations?.length || 1})
           </h2>
           <VigodaMap
-            center={{ lat: 55.7558, lng: 37.6173 }}
-            zoom={15}
-            markers={[{
-              id: store.id,
-              lat: 55.7558,
-              lng: 37.6173,
+            center={store.locations?.[0] || { lat: 55.7558, lng: 37.6173 }}
+            zoom={12}
+            markers={(store.locations || [{ address: 'г. Москва', lat: 55.7558, lng: 37.6173 }]).map((loc, i) => ({
+              id: `${store.id}-${i}`,
+              lat: loc.lat,
+              lng: loc.lng,
               color: store.color,
               icon: store.logo,
-              label: store.name,
-            }]}
-            style={{ width: '100%', height: '200px', borderRadius: '0.75rem' }}
+              label: loc.address,
+            }))}
+            style={{ width: '100%', height: '250px', borderRadius: '0.75rem' }}
           />
-          <p className="text-sm text-muted-foreground mt-2">
-            г. Москва, ул. Примерная, д. 1
-          </p>
+          <div className="mt-3 space-y-2">
+            {(store.locations || []).map((loc, i) => (
+              <p key={i} className="text-sm text-muted-foreground flex items-center gap-2">
+                <MapPin className="h-3 w-3" />
+                {loc.address}
+              </p>
+            ))}
+          </div>
         </div>
 
         {/* Categories */}

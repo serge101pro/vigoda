@@ -62,6 +62,7 @@ import PromosPage from "@/pages/PromosPage";
 import PaymentPage from "@/pages/PaymentPage";
 import NearestStoresPage from "@/pages/NearestStoresPage";
 import ShoppingRoutePage from "@/pages/ShoppingRoutePage";
+import DailyDealsPage from "@/pages/DailyDealsPage";
 import CheckoutPage from "@/pages/CheckoutPage";
 import BusinessLandingPage from "@/pages/BusinessLandingPage";
 import OrganizationDashboardPage from "@/pages/organization/OrganizationDashboardPage";
@@ -116,6 +117,7 @@ function AppRoutes() {
           <Route path="/catering/:id" element={<CateringDetailPage />} />
           <Route path="/promos" element={<PromosPage />} />
           <Route path="/promo/:id" element={<PromoDetailPage />} />
+          <Route path="/daily-deals" element={<DailyDealsPage />} />
           <Route path="/farm-products" element={<FarmProductsPage />} />
           <Route path="/farm-product/:id" element={<FarmProductDetailPage />} />
           <Route path="/stores" element={<StoresPage />} />

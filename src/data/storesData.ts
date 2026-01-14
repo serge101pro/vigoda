@@ -14,6 +14,12 @@ export interface Store {
   reviewCount: number;
   productsCount: number;
   averageDiscount: number;
+  // Location data for maps
+  locations: {
+    address: string;
+    lat: number;
+    lng: number;
+  }[];
   reviews: {
     author: string;
     rating: number;
@@ -39,6 +45,11 @@ export const stores: Store[] = [
     reviewCount: 15432,
     productsCount: 3500,
     averageDiscount: 25,
+    locations: [
+      { address: 'ул. Ленина, 15', lat: 55.7588, lng: 37.6203 },
+      { address: 'пр. Мира, 78', lat: 55.7710, lng: 37.6320 },
+      { address: 'ул. Арбат, 12', lat: 55.7512, lng: 37.5920 },
+    ],
     reviews: [
       { author: 'Мария К.', rating: 5, text: 'Удобное расположение, всегда свежие продукты. Часто бывают хорошие акции.', date: '18.12.2024' },
       { author: 'Алексей П.', rating: 4, text: 'Нормальный магазин для ежедневных покупок. Цены адекватные.', date: '15.12.2024' },
@@ -61,6 +72,10 @@ export const stores: Store[] = [
     reviewCount: 12567,
     productsCount: 4200,
     averageDiscount: 22,
+    locations: [
+      { address: 'пр. Мира, 42', lat: 55.7530, lng: 37.6145 },
+      { address: 'ул. Тверская, 28', lat: 55.7675, lng: 37.6050 },
+    ],
     reviews: [
       { author: 'Ольга М.', rating: 4, text: 'Хороший выбор собственных марок. Качество достойное.', date: '17.12.2024' },
       { author: 'Дмитрий В.', rating: 4, text: 'Удобно, что есть и маленькие магазины, и гипермаркеты.', date: '14.12.2024' },
@@ -83,6 +98,10 @@ export const stores: Store[] = [
     reviewCount: 8934,
     productsCount: 5500,
     averageDiscount: 20,
+    locations: [
+      { address: 'ул. Арбат, 21', lat: 55.7520, lng: 37.6250 },
+      { address: 'Кутузовский пр., 45', lat: 55.7420, lng: 37.5480 },
+    ],
     reviews: [
       { author: 'Игорь Н.', rating: 5, text: 'Отличный выбор деликатесов и вин. Качество на высоте!', date: '19.12.2024' },
       { author: 'Светлана К.', rating: 5, text: 'Люблю их готовую еду. Всегда свежая и вкусная.', date: '16.12.2024' },
@@ -105,6 +124,10 @@ export const stores: Store[] = [
     reviewCount: 7845,
     productsCount: 8000,
     averageDiscount: 30,
+    locations: [
+      { address: 'Волгоградский пр., 125', lat: 55.7480, lng: 37.6300 },
+      { address: 'Ленинградское ш., 112', lat: 55.8520, lng: 37.4890 },
+    ],
     reviews: [
       { author: 'Татьяна В.', rating: 5, text: 'Лучшие цены для больших закупок. Закупаюсь на неделю.', date: '18.12.2024' },
       { author: 'Сергей М.', rating: 4, text: 'Огромный выбор, но иногда сложно найти нужный товар.', date: '14.12.2024' },
@@ -127,6 +150,11 @@ export const stores: Store[] = [
     reviewCount: 11234,
     productsCount: 2800,
     averageDiscount: 15,
+    locations: [
+      { address: 'ул. Тверская, 7', lat: 55.7575, lng: 37.6100 },
+      { address: 'Новый Арбат, 15', lat: 55.7535, lng: 37.5880 },
+      { address: 'ул. Маросейка, 8', lat: 55.7580, lng: 37.6350 },
+    ],
     reviews: [
       { author: 'Елена Р.', rating: 5, text: 'Лучшая молочка! Дети едят с удовольствием.', date: '17.12.2024' },
       { author: 'Андрей К.', rating: 5, text: 'Качество продуктов на высшем уровне. Рекомендую!', date: '13.12.2024' },
@@ -149,6 +177,9 @@ export const stores: Store[] = [
     reviewCount: 5678,
     productsCount: 1500,
     averageDiscount: 40,
+    locations: [
+      { address: 'ул. Народная, 12', lat: 55.7500, lng: 37.6350 },
+    ],
     reviews: [
       { author: 'Николай К.', rating: 5, text: 'Очень низкие цены! Экономлю существенно.', date: '18.12.2024' },
       { author: 'Мария Л.', rating: 4, text: 'Для базовых продуктов — идеально.', date: '14.12.2024' },
@@ -171,6 +202,10 @@ export const stores: Store[] = [
     reviewCount: 6789,
     productsCount: 12000,
     averageDiscount: 25,
+    locations: [
+      { address: 'ТЦ "Авиапарк", Ходынский бульвар, 4', lat: 55.7620, lng: 37.5900 },
+      { address: 'МКАД, 14-й км', lat: 55.6910, lng: 37.4560 },
+    ],
     reviews: [
       { author: 'Ольга Н.', rating: 5, text: 'Огромный выбор! Можно найти всё что нужно.', date: '19.12.2024' },
       { author: 'Марина Л.', rating: 4, text: 'Хорошая пекарня и мясной отдел.', date: '15.12.2024' },
@@ -193,6 +228,10 @@ export const stores: Store[] = [
     reviewCount: 4567,
     productsCount: 15000,
     averageDiscount: 35,
+    locations: [
+      { address: 'Ленинградское ш., 71Б', lat: 55.8200, lng: 37.4920 },
+      { address: 'Дмитровское ш., 163А', lat: 55.8780, lng: 37.5340 },
+    ],
     reviews: [
       { author: 'Игорь Н.', rating: 5, text: 'Отличные оптовые цены. Закупаюсь для ресторана.', date: '17.12.2024' },
       { author: 'Светлана К.', rating: 5, text: 'Большие упаковки по выгодной цене.', date: '13.12.2024' },
