@@ -6,7 +6,7 @@ import { stores } from '@/data/storesData';
 import { mockProducts } from '@/data/mockData';
 import { ProductCarousel } from '@/components/home/ProductCarousel';
 import { VigodaMap } from '@/components/map/VigodaMap';
-
+import { NavigationButtons } from '@/components/map/NavigationButtons';
 export default function StoreDetailPage() {
   const { id } = useParams();
   const store = stores.find(s => s.id === id);
@@ -137,12 +137,19 @@ export default function StoreDetailPage() {
             }))}
             style={{ width: '100%', height: '250px', borderRadius: '0.75rem' }}
           />
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 space-y-3">
             {(store.locations || []).map((loc, i) => (
-              <p key={i} className="text-sm text-muted-foreground flex items-center gap-2">
-                <MapPin className="h-3 w-3" />
-                {loc.address}
-              </p>
+              <div key={i} className="border-b border-border pb-3 last:border-0 last:pb-0">
+                <p className="text-sm text-muted-foreground flex items-center gap-2 mb-2">
+                  <MapPin className="h-3 w-3" />
+                  {loc.address}
+                </p>
+                <NavigationButtons 
+                  lat={loc.lat} 
+                  lng={loc.lng} 
+                  address={loc.address}
+                />
+              </div>
             ))}
           </div>
         </div>

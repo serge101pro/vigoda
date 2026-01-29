@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Clock, Percent, Star, Filter, TrendingDown, Flame, Zap } from 'lucide-react';
+import { ArrowLeft, Star, TrendingDown, Flame, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProductCard } from '@/components/products/ProductCard';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
+import { FlashDealCard } from '@/components/deals/FlashDealCard';
 import { mockProducts } from '@/data/mockData';
 
 // Demo data for daily deals
@@ -18,7 +19,7 @@ const dailyDeals = [
   }))
 ].slice(0, 20);
 
-// Flash deals with timer
+// Flash deals with timer - using real-time countdown
 const flashDeals = [
   {
     id: 'flash-1',
@@ -28,7 +29,7 @@ const flashDeals = [
     discount: 50,
     remaining: 12,
     total: 50,
-    endsIn: 7200, // seconds
+    endsIn: 7200, // 2 hours
   },
   {
     id: 'flash-2',
@@ -38,7 +39,7 @@ const flashDeals = [
     discount: 50,
     remaining: 8,
     total: 30,
-    endsIn: 3600,
+    endsIn: 3600, // 1 hour
   },
   {
     id: 'flash-3',
@@ -48,7 +49,7 @@ const flashDeals = [
     discount: 50,
     remaining: 25,
     total: 100,
-    endsIn: 14400,
+    endsIn: 14400, // 4 hours
   },
 ];
 
@@ -60,13 +61,6 @@ const categoryDeals = [
   { id: 'cat-4', name: 'Хлеб и выпечка', discount: 20, emoji: '🍞', count: 23 },
   { id: 'cat-5', name: 'Напитки', discount: 35, emoji: '🧃', count: 41 },
 ];
-
-function formatTime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
 
 export default function DailyDealsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -124,42 +118,17 @@ export default function DailyDealsPage() {
             
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
               {flashDeals.map((deal) => (
-                <div 
-                  key={deal.id} 
-                  className="bg-white/10 backdrop-blur-sm rounded-xl p-3 min-w-[200px] shrink-0"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-14 h-14 rounded-lg bg-white/20 flex items-center justify-center overflow-hidden">
-                      <img 
-                        src={deal.product.image} 
-                        alt={deal.product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{deal.product.name}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-lg">{deal.dealPrice}₽</span>
-                        <span className="text-white/60 line-through text-sm">{deal.originalPrice}₽</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{formatTime(deal.endsIn)}</span>
-                    </div>
-                    <span className="text-white/80">Осталось: {deal.remaining}/{deal.total}</span>
-                  </div>
-                  
-                  <div className="mt-2 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-white rounded-full transition-all"
-                      style={{ width: `${(deal.remaining / deal.total) * 100}%` }}
-                    />
-                  </div>
-                </div>
+                <FlashDealCard
+                  key={deal.id}
+                  id={deal.id}
+                  product={deal.product}
+                  originalPrice={deal.originalPrice}
+                  dealPrice={deal.dealPrice}
+                  discount={deal.discount}
+                  remaining={deal.remaining}
+                  total={deal.total}
+                  endsIn={deal.endsIn}
+                />
               ))}
             </div>
           </div>
