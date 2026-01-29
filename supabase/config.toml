@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.export-analytics]
 verify_jwt = true
+
+[functions.check-favorite-discounts]
+verify_jwt = false
