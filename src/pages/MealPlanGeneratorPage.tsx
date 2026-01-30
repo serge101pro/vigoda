@@ -4,7 +4,7 @@ import {
   Sparkles, ChefHat, Calendar, Users, Flame, Apple, 
   Download, FileText, ShoppingCart, Heart, BookOpen,
   Check, X, Loader2, AlertCircle, ChevronDown, Share2,
-  CalendarDays, List, Crown, Soup
+  CalendarDays, List, Crown, Soup, Pencil, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -185,6 +185,9 @@ export default function MealPlanGeneratorPage() {
   const [expandedDays, setExpandedDays] = useState<number[]>([1]);
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [isSavingRecipe, setIsSavingRecipe] = useState(false);
+  const [editingMeal, setEditingMeal] = useState<{ dayIndex: number; mealIndex: number; meal: MealPlanMeal } | null>(null);
+  const [editedMealName, setEditedMealName] = useState('');
+  const [editedMealCalories, setEditedMealCalories] = useState('');
   
   // Load user dietary restrictions as defaults
   useEffect(() => {
@@ -478,6 +481,65 @@ export default function MealPlanGeneratorPage() {
       await navigator.clipboard.writeText(shareText);
       toast.success('План скопирован в буфер обмена!');
     }
+  };
+  
+  const handleEditMeal = (dayIndex: number, mealIndex: number, meal: MealPlanMeal) => {
+    setEditingMeal({ dayIndex, mealIndex, meal });
+    setEditedMealName(meal.name);
+    setEditedMealCalories(meal.calories.toString());
+  };
+  
+  const handleSaveEditedMeal = () => {
+    if (!editingMeal || !generatedPlan) return;
+    
+    const newPlan = { ...generatedPlan };
+    const dayIdx = editingMeal.dayIndex;
+    const mealIdx = editingMeal.mealIndex;
+    
+    newPlan.days[dayIdx].meals[mealIdx].meal = {
+      ...newPlan.days[dayIdx].meals[mealIdx].meal,
+      name: editedMealName,
+      calories: parseInt(editedMealCalories) || newPlan.days[dayIdx].meals[mealIdx].meal.calories,
+    };
+    
+    // Recalculate day totals
+    newPlan.days[dayIdx].total_calories = newPlan.days[dayIdx].meals.reduce(
+      (sum, m) => sum + m.meal.calories, 0
+    );
+    
+    // Recalculate summary
+    const allMeals = newPlan.days.flatMap(d => d.meals.map(m => m.meal));
+    const totalCalories = allMeals.reduce((sum, m) => sum + m.calories, 0);
+    const totalProtein = allMeals.reduce((sum, m) => sum + m.protein, 0);
+    const totalCarbs = allMeals.reduce((sum, m) => sum + m.carbs, 0);
+    const totalFat = allMeals.reduce((sum, m) => sum + m.fat, 0);
+    const daysCount = newPlan.days.length;
+    
+    newPlan.summary = {
+      avg_calories: Math.round(totalCalories / daysCount),
+      avg_protein: Math.round(totalProtein / daysCount),
+      avg_carbs: Math.round(totalCarbs / daysCount),
+      avg_fat: Math.round(totalFat / daysCount),
+    };
+    
+    setGeneratedPlan(newPlan);
+    setEditingMeal(null);
+    toast.success('Блюдо обновлено!');
+  };
+  
+  const handleDeleteMeal = (dayIndex: number, mealIndex: number) => {
+    if (!generatedPlan) return;
+    
+    const newPlan = { ...generatedPlan };
+    newPlan.days[dayIndex].meals.splice(mealIndex, 1);
+    
+    // Recalculate day totals
+    newPlan.days[dayIndex].total_calories = newPlan.days[dayIndex].meals.reduce(
+      (sum, m) => sum + m.meal.calories, 0
+    );
+    
+    setGeneratedPlan(newPlan);
+    toast.success('Блюдо удалено');
   };
   
   const exportToPDF = () => {
@@ -959,25 +1021,56 @@ export default function MealPlanGeneratorPage() {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <CardContent className="pt-0 space-y-2">
-                        {day.meals.map((m, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setSelectedMeal({ day: day.day, meal: m.meal })}
-                            className="w-full flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors text-left"
-                          >
-                            <div className="text-2xl">
-                              {MEAL_TYPES.find(mt => mt.label === m.type)?.emoji || '🍽️'}
+                        {day.meals.map((m, mealIdx) => {
+                          const dayIdx = generatedPlan.days.findIndex(d => d.day === day.day);
+                          return (
+                            <div
+                              key={mealIdx}
+                              className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
+                            >
+                              <button
+                                onClick={() => setSelectedMeal({ day: day.day, meal: m.meal })}
+                                className="flex items-center gap-3 flex-1 text-left"
+                              >
+                                <div className="text-2xl">
+                                  {MEAL_TYPES.find(mt => mt.label === m.type)?.emoji || '🍽️'}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs text-muted-foreground">{m.type}</p>
+                                  <p className="font-medium truncate">{m.meal.name}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-semibold text-primary">{m.meal.calories}</p>
+                                  <p className="text-xs text-muted-foreground">ккал</p>
+                                </div>
+                              </button>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditMeal(dayIdx, mealIdx, m.meal);
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive hover:text-destructive"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteMeal(dayIdx, mealIdx);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs text-muted-foreground">{m.type}</p>
-                              <p className="font-medium truncate">{m.meal.name}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-semibold text-primary">{m.meal.calories}</p>
-                              <p className="text-xs text-muted-foreground">ккал</p>
-                            </div>
-                          </button>
-                        ))}
+                          );
+                        })}
                       </CardContent>
                     </CollapsibleContent>
                   </Card>
@@ -1201,6 +1294,54 @@ export default function MealPlanGeneratorPage() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Meal Dialog */}
+      <Dialog open={!!editingMeal} onOpenChange={() => setEditingMeal(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              Редактировать блюдо
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label>Название блюда</Label>
+              <Input
+                value={editedMealName}
+                onChange={(e) => setEditedMealName(e.target.value)}
+                placeholder="Название блюда"
+              />
+            </div>
+            <div>
+              <Label>Калории</Label>
+              <Input
+                type="number"
+                value={editedMealCalories}
+                onChange={(e) => setEditedMealCalories(e.target.value)}
+                placeholder="Калории"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setEditingMeal(null)}
+                className="flex-1"
+              >
+                Отмена
+              </Button>
+              <Button
+                onClick={handleSaveEditedMeal}
+                className="flex-1"
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Сохранить
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
