@@ -316,12 +316,53 @@ export default function MealPlanGeneratorPage() {
       
       if (error) throw error;
       
+      // Generate images for each meal
+      const planWithImages = { ...data.plan };
+      const imagePromises: Promise<void>[] = [];
+      
+      for (let dayIdx = 0; dayIdx < planWithImages.days.length; dayIdx++) {
+        const day = planWithImages.days[dayIdx];
+        for (let mealIdx = 0; mealIdx < day.meals.length; mealIdx++) {
+          const meal = day.meals[mealIdx].meal;
+          
+          // Generate image for this meal
+          const promise = (async () => {
+            try {
+              const { data: imgData } = await supabase.functions.invoke('generate-meal-images', {
+                body: {
+                  mealName: meal.name,
+                  searchQuery: meal.photo_search_query,
+                  dayIndex: dayIdx,
+                  mealIndex: mealIdx,
+                }
+              });
+              
+              if (imgData?.imageUrl) {
+                planWithImages.days[dayIdx].meals[mealIdx].meal.image_url = imgData.imageUrl;
+              }
+            } catch (imgError) {
+              console.log(`Failed to generate image for ${meal.name}, using fallback`);
+              planWithImages.days[dayIdx].meals[mealIdx].meal.image_url = 
+                `https://source.unsplash.com/featured/800x600/?${encodeURIComponent(meal.photo_search_query)},food`;
+            }
+          })();
+          
+          imagePromises.push(promise);
+        }
+      }
+      
+      // Wait for all images to be generated (with timeout)
+      await Promise.race([
+        Promise.all(imagePromises),
+        new Promise(resolve => setTimeout(resolve, 15000)) // 15 second timeout
+      ]);
+      
       setGenerationProgress(100);
-      setGeneratedPlan(data.plan);
+      setGeneratedPlan(planWithImages);
       setActiveTab('plan');
       setExpandedDays([1]);
       
-      toast.success('План питания создан!');
+      toast.success('План питания создан с изображениями!');
     } catch (error) {
       console.error('Error generating meal plan:', error);
       toast.error('Ошибка при генерации плана');
@@ -1200,7 +1241,7 @@ export default function MealPlanGeneratorPage() {
               {/* Image */}
               <div className="relative aspect-video rounded-xl overflow-hidden bg-muted">
                 <img
-                  src={`https://source.unsplash.com/featured/800x600/?${encodeURIComponent(selectedMeal.meal.photo_search_query)},food`}
+                  src={selectedMeal.meal.image_url || `https://source.unsplash.com/featured/800x600/?${encodeURIComponent(selectedMeal.meal.photo_search_query)},food`}
                   alt={selectedMeal.meal.name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
