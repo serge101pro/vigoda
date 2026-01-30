@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Trash2, ShoppingBag, Zap, Clock, Scale, MapPin, ChevronRight, Tag, Sparkles, Loader2, Package, Utensils, UtensilsCrossed, Leaf, Users } from 'lucide-react';
+import { ArrowLeft, Trash2, ShoppingBag, Zap, Clock, Scale, MapPin, ChevronRight, Tag, Sparkles, Loader2, Package, Utensils, UtensilsCrossed, Leaf, Users, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,17 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useCart, CartItemDB } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const strategies = [
   {
@@ -191,6 +202,7 @@ export default function CartPage() {
   const [showStrategySelector, setShowStrategySelector] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Use DB items if user is logged in, otherwise use local cart
   const useDbCart = !!user && dbItems.length > 0;
@@ -307,6 +319,53 @@ export default function CartPage() {
       await clearDbCart();
     }
     clearLocalCart();
+    toast.success('Корзина очищена');
+  };
+
+  const handleSyncWithAccount = async () => {
+    if (!user) {
+      toast.error('Войдите в систему для синхронизации');
+      return;
+    }
+
+    if (cart.length === 0) {
+      toast.info('Локальная корзина пуста');
+      return;
+    }
+
+    setIsSyncing(true);
+
+    try {
+      const merged = new Map<string, { name: string; quantity: number; unit: string; category: string | null }>();
+
+      for (const ci of cart) {
+        const p = ci.product;
+        if (!p) continue;
+
+        const key = `${p.name}`.trim().toLowerCase();
+        if (!key) continue;
+
+        const prev = merged.get(key);
+        merged.set(key, {
+          name: p.name,
+          quantity: (prev?.quantity || 0) + (ci.quantity || 0),
+          unit: p.unit || prev?.unit || 'шт',
+          category: p.category || prev?.category || null,
+        });
+      }
+
+      const ok = await importItems(Array.from(merged.values()));
+      if (ok) {
+        clearLocalCart();
+        await refetchCart();
+        toast.success('Корзина синхронизирована с аккаунтом');
+      }
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast.error('Ошибка синхронизации');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Show empty state if both carts are empty
@@ -345,10 +404,28 @@ export default function CartPage() {
               </Link>
               <h1 className="text-xl font-bold text-foreground">Корзина</h1>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleClearCart} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-1" />
-              Очистить
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-destructive">
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Очистить
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Очистить корзину?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Все товары будут удалены из корзины. Это действие нельзя отменить.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearCart} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Очистить
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </header>
@@ -374,6 +451,29 @@ export default function CartPage() {
             </>
           )}
         </Button>
+
+        {/* Sync with account button - show only when user is logged in and has local cart items */}
+        {user && cart.length > 0 && (
+          <Button
+            onClick={handleSyncWithAccount}
+            disabled={isSyncing}
+            variant="outline"
+            className="w-full mt-2"
+            size="lg"
+          >
+            {isSyncing ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Синхронизация...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-5 w-5 mr-2" />
+                Синхронизировать с аккаунтом
+              </>
+            )}
+          </Button>
+        )}
       </section>
 
       {/* Strategy Selector - only show if there are store products */}

@@ -76,7 +76,12 @@ import OrganizationOrdersPage from "@/pages/organization/OrganizationOrdersPage"
 import OrganizationApprovalsPage from "@/pages/organization/OrganizationApprovalsPage";
 import CoopCartPage from "@/pages/organization/CoopCartPage";
 
-// Legal pages
+// Admin pages
+import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
+import AdminUsersPage from "@/pages/admin/AdminUsersPage";
+import AdminOrdersPage from "@/pages/admin/AdminOrdersPage";
+import AdminAnalyticsPage from "@/pages/admin/AdminAnalyticsPage";
+
 import TermsPage from "@/pages/legal/TermsPage";
 import PrivacyPage from "@/pages/legal/PrivacyPage";
 import SupportPage from "@/pages/legal/SupportPage";
@@ -142,6 +147,16 @@ function AppRoutes() {
           <Route path="/organization/orders" element={<OrganizationOrdersPage />} />
           <Route path="/organization/approvals" element={<OrganizationApprovalsPage />} />
           <Route path="/organization/coop-cart" element={<CoopCartPage />} />
+          {/* Admin routes */}
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/orders" element={<AdminOrdersPage />} />
+          <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+          <Route path="/admin/subscriptions" element={<AdminDashboardPage />} />
+          <Route path="/admin/content" element={<AdminDashboardPage />} />
+          <Route path="/admin/notifications" element={<AdminDashboardPage />} />
+          <Route path="/admin/database" element={<AdminDashboardPage />} />
+          <Route path="/admin/settings" element={<AdminDashboardPage />} />
           <Route path="/profile/addresses" element={<AddressesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/affiliate" element={<AffiliatePage />} />
