@@ -8,8 +8,12 @@ import { useAppStore } from "@/stores/useAppStore";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+
 // Layout
 import { MainLayout } from "@/components/layout/MainLayout";
+
+// Components
+import { SafeImage } from "@/components/ui/SafeImage";
 
 // Pages
 import { OnboardingPage } from "@/pages/OnboardingPage";
@@ -23,7 +27,7 @@ import PriceComparisonPage from "@/pages/PriceComparisonPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
-import NotFound from "./pages/NotFound";
+import NotFound from "@/pages/NotFound";
 
 // Profile pages
 import PremiumPage from "@/pages/profile/PremiumPage";
@@ -200,40 +204,23 @@ function AppRoutes() {
 }
 
 const App = () => {
-  // Global error handler to prevent white screen on mobile (especially Android)
   useEffect(() => {
     const handleRejection = (event: PromiseRejectionEvent) => {
       console.error("Unhandled rejection:", event.reason);
-      // Prevent the default browser handling which can crash the app on Android
       event.preventDefault();
     };
 
     const handleError = (event: ErrorEvent) => {
       console.error("Runtime error:", event.error);
-      // Prevent the default browser handling which can crash the app on Android
       event.preventDefault();
-    };
-
-    // Android WebView specific: catch any global errors
-    const handleGlobalError = (...args: unknown[]) => {
-      console.error("Global error caught:", args);
-      return true; // Prevent default error handling
     };
 
     window.addEventListener("unhandledrejection", handleRejection);
     window.addEventListener("error", handleError);
     
-    // Override console.error to catch any remaining issues
-    const originalConsoleError = console.error;
-    console.error = (...args: unknown[]) => {
-      originalConsoleError.apply(console, args);
-      // Don't throw - just log
-    };
-    
     return () => {
       window.removeEventListener("unhandledrejection", handleRejection);
       window.removeEventListener("error", handleError);
-      console.error = originalConsoleError;
     };
   }, []);
 
@@ -241,6 +228,7 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
+          {/* Проверьте, что файлы toaster.tsx и sonner.tsx существуют в src/components/ui/ */}
           <Toaster />
           <Sonner />
           <BrowserRouter>
