@@ -230,7 +230,7 @@ ${allergies.length > 0 ? `- Исключить аллергены: ${allergies.j
         console.error(`[${VERSION}] Rate limit exceeded after retries`);
         return new Response(
           JSON.stringify({ 
-            error: 'Сервис временно перегружен. Попробуйте через несколько минут.',
+            error: 'Квота/лимит Gemini API исчерпан (429). Проверьте биллинг/лимиты и попробуйте позже.',
             errorCode: 'RATE_LIMIT',
             _version: VERSION 
           }),

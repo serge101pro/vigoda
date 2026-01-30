@@ -276,6 +276,9 @@ export default function MealPlanGeneratorPage() {
   };
   
   const handleGenerate = async () => {
+    // Prevent duplicate clicks / parallel invocations
+    if (isGenerating) return;
+
     const enabledMeals = Object.entries(formData.mealSettings)
       .filter(([_, settings]) => settings.enabled)
       .map(([id]) => id);
@@ -318,6 +321,39 @@ export default function MealPlanGeneratorPage() {
       
       if (error) {
         console.error('Edge function error:', error);
+
+        // supabase-js returns non-2xx responses as FunctionsHttpError and `data` will be null.
+        // We still want to show a meaningful message for 429 (Gemini quota/rate limit).
+        const ctx = (error as any)?.context;
+        const status: number | undefined = typeof ctx?.status === 'number' ? ctx.status : undefined;
+
+        let payload: any = null;
+        if (typeof ctx?.json === 'function') {
+          try {
+            payload = await ctx.json();
+          } catch {
+            // ignore
+          }
+        }
+
+        if (status === 429 || payload?.errorCode === 'RATE_LIMIT') {
+          toast.error(
+            payload?.error || 'Квота/лимит сервиса ИИ исчерпан (429). Проверьте биллинг/лимиты Gemini API и попробуйте позже.',
+            { duration: 7000 }
+          );
+          throw new Error('RATE_LIMIT');
+        }
+
+        if (payload?.errorCode === 'CONFIG_ERROR') {
+          toast.error(payload?.error || 'Сервис не настроен. Обратитесь в поддержку.');
+          throw new Error('CONFIG_ERROR');
+        }
+
+        if (payload?.error) {
+          toast.error(payload.error);
+          throw new Error('EDGE_ERROR_HANDLED');
+        }
+
         throw new Error(error.message || 'Ошибка вызова сервиса');
       }
       
@@ -395,7 +431,7 @@ export default function MealPlanGeneratorPage() {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
       // Only show generic error if we haven't already shown a specific toast
-      if (!['RATE_LIMIT', 'CONFIG_ERROR'].includes(errorMessage)) {
+      if (!['RATE_LIMIT', 'CONFIG_ERROR', 'EDGE_ERROR_HANDLED'].includes(errorMessage)) {
         toast.error('Ошибка при генерации плана. Попробуйте ещё раз.');
       }
     } finally {

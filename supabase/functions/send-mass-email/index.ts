@@ -14,6 +14,7 @@ interface MassEmailRequest {
   htmlContent: string;
   textContent?: string;
   targetUserIds?: string[]; // If empty, send to all users with emails
+  audience?: 'all' | 'paid' | 'solo' | 'family' | 'corp';
 }
 
 serve(async (req: Request) => {
@@ -25,6 +26,7 @@ serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
@@ -47,26 +49,47 @@ serve(async (req: Request) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Verify caller is superadmin
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid token', _version: VERSION }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+
+    // 1) Validate JWT (prefer getClaims, fallback to getUser for compatibility)
+    const supabaseAuth = createClient(
+      supabaseUrl,
+      supabaseAnonKey,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    let callerUserId: string | null = null;
+    try {
+      const maybeGetClaims = (supabaseAuth.auth as any).getClaims;
+      if (typeof maybeGetClaims === 'function') {
+        const { data, error } = await maybeGetClaims.call(supabaseAuth.auth, token);
+        if (!error && data?.claims?.sub) callerUserId = data.claims.sub;
+      }
+    } catch {
+      // ignore
     }
 
+    if (!callerUserId) {
+      const { data, error } = await supabaseAuth.auth.getUser(token);
+      if (error || !data?.user?.id) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid token', _version: VERSION }),
+          { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+      callerUserId = data.user.id;
+    }
+
+    // 2) Admin DB client
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
     // Check if user is superadmin
-    const { data: superadminData } = await supabase
+    const { data: superadminData } = await supabaseAdmin
       .from('superadmin_users')
       .select('id')
-      .eq('user_id', user.id)
-      .single();
-    
+      .eq('user_id', callerUserId)
+      .maybeSingle();
+
     if (!superadminData) {
       return new Response(
         JSON.stringify({ error: 'Access denied. Superadmin only.', _version: VERSION }),
@@ -75,7 +98,7 @@ serve(async (req: Request) => {
     }
 
     const body: MassEmailRequest = await req.json();
-    const { subject, htmlContent, textContent, targetUserIds } = body;
+    const { subject, htmlContent, textContent, targetUserIds, audience = 'all' } = body;
 
     if (!subject || !htmlContent) {
       return new Response(
@@ -86,21 +109,90 @@ serve(async (req: Request) => {
 
     console.log(`[${VERSION}] Sending mass email: "${subject}"`);
 
-    // Get user emails from profiles
-    let query = supabase.from("profiles").select("user_id, email, display_name");
-    
-    if (targetUserIds && targetUserIds.length > 0) {
-      query = query.in('user_id', targetUserIds);
+    // Resolve audience -> user ids (server-side, with service role)
+    let effectiveTargetUserIds: string[] | null =
+      targetUserIds && targetUserIds.length > 0 ? targetUserIds : null;
+
+    if (!effectiveTargetUserIds && audience !== 'all') {
+      let subQuery = supabaseAdmin
+        .from('user_subscriptions')
+        .select('user_id')
+        .eq('is_active', true);
+
+      if (audience === 'paid') {
+        subQuery = subQuery.in('plan', ['solo', 'family', 'corp']);
+      } else {
+        subQuery = subQuery.eq('plan', audience);
+      }
+
+      const { data: subs, error: subsError } = await subQuery;
+
+      if (subsError) {
+        console.error(`[${VERSION}] Error fetching subscriptions:`, subsError);
+        return new Response(
+          JSON.stringify({ error: subsError.message, _version: VERSION }),
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      effectiveTargetUserIds = (subs || []).map((s: any) => s.user_id).filter(Boolean);
     }
 
-    const { data: profiles, error: profilesError } = await query;
-
-    if (profilesError) {
-      console.error(`[${VERSION}] Error fetching profiles:`, profilesError);
+    // Get user emails from profiles
+    let profiles: any[] = [];
+    if (effectiveTargetUserIds && effectiveTargetUserIds.length > 0) {
+      const chunkSize = 1000;
+      for (let i = 0; i < effectiveTargetUserIds.length; i += chunkSize) {
+        const chunk = effectiveTargetUserIds.slice(i, i + chunkSize);
+        const { data, error } = await supabaseAdmin
+          .from('profiles')
+          .select('user_id, email, display_name')
+          .in('user_id', chunk);
+        if (error) {
+          console.error(`[${VERSION}] Error fetching profiles:`, error);
+          return new Response(
+            JSON.stringify({ error: error.message, _version: VERSION }),
+            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+        profiles = profiles.concat(data || []);
+      }
+    } else if (effectiveTargetUserIds && effectiveTargetUserIds.length === 0) {
       return new Response(
-        JSON.stringify({ error: profilesError.message, _version: VERSION }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({
+          success: true,
+          message: 'No recipients for selected audience',
+          sent: 0,
+          failed: 0,
+          total: 0,
+          _version: VERSION,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
+    } else {
+      // NOTE: Supabase has a default 1000-row limit; paginate to truly send to all.
+      const pageSize = 1000;
+      let offset = 0;
+      while (true) {
+        const { data, error } = await supabaseAdmin
+          .from('profiles')
+          .select('user_id, email, display_name')
+          .range(offset, offset + pageSize - 1);
+
+        if (error) {
+          console.error(`[${VERSION}] Error fetching profiles:`, error);
+          return new Response(
+            JSON.stringify({ error: error.message, _version: VERSION }),
+            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+
+        const chunk = data || [];
+        profiles = profiles.concat(chunk);
+
+        if (chunk.length < pageSize) break;
+        offset += pageSize;
+      }
     }
 
     // Filter profiles with valid emails
@@ -134,7 +226,7 @@ serve(async (req: Request) => {
         batch.map(async (profile) => {
           try {
             const { error } = await resend.emails.send({
-              from: "Vigoda <noreply@lifocus.lovable.app>",
+              from: "Vigoda <onboarding@resend.dev>",
               to: [profile.email],
               subject: subject,
               html: htmlContent,
