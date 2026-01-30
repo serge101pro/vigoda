@@ -180,6 +180,7 @@ export default function CartPage() {
     groupedItems: dbGroupedItems, 
     loading: cartLoading, 
     optimizing, 
+    importItems,
     optimizeCart, 
     removeItem: removeDbItem,
     updateItemQuantity: updateDbItemQuantity,
@@ -268,6 +269,34 @@ export default function CartPage() {
         }
       });
       return;
+    }
+
+    // If the user has items only in the local cart (e.g. added before auth finished loading),
+    // sync them into Supabase first so optimization doesn't see an "empty" DB cart.
+    if (dbItems.length === 0 && cart.length > 0) {
+      const merged = new Map<string, { name: string; quantity: number; unit: string; category: string | null }>();
+
+      for (const ci of cart) {
+        const p = ci.product;
+        if (!p) continue;
+
+        const key = `${p.name}`.trim().toLowerCase();
+        if (!key) continue;
+
+        const prev = merged.get(key);
+        merged.set(key, {
+          name: p.name,
+          quantity: (prev?.quantity || 0) + (ci.quantity || 0),
+          unit: p.unit || prev?.unit || 'шт',
+          category: p.category || prev?.category || null,
+        });
+      }
+
+      const ok = await importItems(Array.from(merged.values()));
+      if (!ok) return;
+
+      // Ensure UI is in sync after import
+      await refetchCart();
     }
 
     await optimizeCart();

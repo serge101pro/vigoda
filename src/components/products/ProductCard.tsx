@@ -17,7 +17,9 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
   const { isProductFavorite, addProductToFavorites, removeProductFromFavorites } = useFavorites();
   const [dialogOpen, setDialogOpen] = useState(false);
   
-  const cartItem = cart.find((item) => item.product.id === product.id);
+  // Some cart item types (e.g. recipe ingredients) don't have `product`.
+  // Guard access to avoid crashes (especially critical on Android WebView).
+  const cartItem = cart.find((item) => item.product?.id === product.id);
   const isFavorite = isProductFavorite(product.id);
 
   const handleToggleFavorite = async () => {

@@ -20,6 +20,13 @@ export interface OptimizedCartItem extends CartItemDB {
   original_quantity: number;
 }
 
+export interface ImportCartItemInput {
+  name: string;
+  quantity: number;
+  unit?: string | null;
+  category?: string | null;
+}
+
 export function useCart() {
   const { user } = useAuth();
   const [cartId, setCartId] = useState<string | null>(null);
@@ -32,12 +39,14 @@ export function useCart() {
     if (!user) return null;
 
     try {
-      // Try to find active cart
+      // Try to find latest active cart (limit 1 avoids errors if multiple active carts exist)
       const { data: existingCart, error: findError } = await supabase
         .from('carts')
         .select('id')
         .eq('user_id', user.id)
         .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (findError) {
@@ -105,6 +114,107 @@ export function useCart() {
       setLoading(false);
     }
   }, [user, getOrCreateCart]);
+
+  // Import a batch of items into the DB cart (useful when the user has a local cart but DB cart is empty).
+  const importItems = useCallback(async (inputItems: ImportCartItemInput[]) => {
+    if (!user) {
+      toast.error('Войдите в систему для синхронизации корзины');
+      return false;
+    }
+
+    const normalized = (inputItems || [])
+      .map((i) => ({
+        name: (i?.name || '').trim(),
+        quantity: Number(i?.quantity || 0),
+        unit: i?.unit ?? 'шт',
+        category: i?.category ?? null,
+      }))
+      .filter((i) => i.name.length > 0 && Number.isFinite(i.quantity) && i.quantity > 0);
+
+    if (normalized.length === 0) return true;
+
+    try {
+      let activeCartId = cartId;
+      if (!activeCartId) {
+        activeCartId = await getOrCreateCart();
+        if (!activeCartId) {
+          toast.error('Не удалось создать корзину');
+          return false;
+        }
+        setCartId(activeCartId);
+      }
+
+      const { data: existingItems, error: existingError } = await supabase
+        .from('cart_items')
+        .select('id,name,quantity,unit,category')
+        .eq('cart_id', activeCartId);
+
+      if (existingError) throw existingError;
+
+      const byName = new Map<string, (typeof existingItems)[number]>();
+      (existingItems || []).forEach((row) => byName.set(row.name.toLowerCase(), row));
+
+      // Merge duplicates in input by name (case-insensitive)
+      const merged = new Map<string, { name: string; quantity: number; unit: string | null; category: string | null }>();
+      for (const i of normalized) {
+        const key = i.name.toLowerCase();
+        const prev = merged.get(key);
+        merged.set(key, {
+          name: i.name,
+          quantity: (prev?.quantity || 0) + i.quantity,
+          unit: i.unit,
+          category: i.category,
+        });
+      }
+
+      const toInsert: Array<{ cart_id: string; name: string; quantity: number; unit: string | null; category: string | null }> = [];
+      const toUpdate: Array<{ id: string; quantity: number; unit: string | null; category: string | null }> = [];
+
+      for (const [key, i] of merged.entries()) {
+        const existing = byName.get(key);
+        if (existing) {
+          toUpdate.push({
+            id: existing.id,
+            quantity: Number(existing.quantity || 0) + i.quantity,
+            unit: i.unit ?? existing.unit,
+            category: i.category ?? existing.category,
+          });
+        } else {
+          toInsert.push({
+            cart_id: activeCartId,
+            name: i.name,
+            quantity: i.quantity,
+            unit: i.unit,
+            category: i.category,
+          });
+        }
+      }
+
+      if (toInsert.length > 0) {
+        const { error } = await supabase.from('cart_items').insert(toInsert);
+        if (error) throw error;
+      }
+
+      if (toUpdate.length > 0) {
+        // Supabase doesn't support per-row updates in a single call without a stored procedure.
+        await Promise.all(
+          toUpdate.map((u) =>
+            supabase
+              .from('cart_items')
+              .update({ quantity: u.quantity, unit: u.unit, category: u.category })
+              .eq('id', u.id)
+          )
+        );
+      }
+
+      await fetchCartItems();
+      return true;
+    } catch (err) {
+      console.error('Error importing items to DB cart:', err);
+      toast.error('Ошибка при синхронизации корзины');
+      return false;
+    }
+  }, [user, cartId, getOrCreateCart, fetchCartItems]);
 
   // Add item to cart
   const addItem = useCallback(async (name: string, quantity: number, unit?: string, category?: string) => {
@@ -317,6 +427,7 @@ export function useCart() {
     loading,
     optimizing,
     addItem,
+    importItems,
     removeItem,
     updateItemQuantity,
     clearCart,
