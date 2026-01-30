@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   ArrowLeft, Heart, Share2, Star, Clock, Flame, ShoppingCart, 
-  Plus, Minus, ThermometerSnowflake, ChefHat, Users, Check
+  Plus, Minus, ThermometerSnowflake, ChefHat, Users, Check, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,15 +10,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { readyMealsData, getMealById, MealIngredient } from '@/data/readyMealsData';
+import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
+import { toast as sonnerToast } from 'sonner';
 
 export default function ReadyMealDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { addItem, importItems, loading: cartLoading } = useCart();
   const [isFavorite, setIsFavorite] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [servings, setServings] = useState(1);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addingIngredients, setAddingIngredients] = useState(false);
 
   const meal = getMealById(id || '1') || readyMealsData[0];
 
@@ -27,11 +34,31 @@ export default function ReadyMealDetailPage() {
     toast({ title: 'Ссылка скопирована!' });
   };
 
-  const handleAddMealToCart = () => {
-    toast({
-      title: 'Добавлено в корзину',
-      description: `${meal.name} x${quantity}`,
-    });
+  const handleAddMealToCart = async () => {
+    if (!user) {
+      sonnerToast.error('Войдите в систему для добавления в корзину');
+      return;
+    }
+
+    setAddingToCart(true);
+    try {
+      // Add the ready meal as a product to DB cart
+      const success = await addItem(
+        meal.name,
+        quantity,
+        'порц.',
+        'Готовые блюда'
+      );
+      
+      if (success) {
+        toast({
+          title: 'Добавлено в корзину',
+          description: `${meal.name} x${quantity}`,
+        });
+      }
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   const toggleIngredient = (ingredientId: string) => {
@@ -55,7 +82,7 @@ export default function ReadyMealDetailPage() {
     return Math.round(amount * ingredient.pricePerUnit);
   };
 
-  const handleAddIngredientsToCart = () => {
+  const handleAddIngredientsToCart = async () => {
     if (selectedIngredients.length === 0) {
       toast({ 
         title: 'Выберите ингредиенты',
@@ -64,15 +91,37 @@ export default function ReadyMealDetailPage() {
       });
       return;
     }
+
+    if (!user) {
+      sonnerToast.error('Войдите в систему для добавления в корзину');
+      return;
+    }
     
-    const selected = meal.ingredients.filter(ing => selectedIngredients.includes(ing.id));
-    const totalPrice = selected.reduce((sum, ing) => sum + calculateIngredientPrice(ing), 0);
-    
-    toast({
-      title: 'Ингредиенты добавлены в корзину',
-      description: `${selected.length} ингредиентов на сумму ${totalPrice}₽`,
-    });
-    setSelectedIngredients([]);
+    setAddingIngredients(true);
+    try {
+      const selected = meal.ingredients.filter(ing => selectedIngredients.includes(ing.id));
+      
+      // Prepare items for batch import to DB cart
+      const itemsToImport = selected.map(ing => ({
+        name: ing.name,
+        quantity: calculateIngredientAmount(ing),
+        unit: ing.unit,
+        category: 'Продукты'
+      }));
+
+      const success = await importItems(itemsToImport);
+      
+      if (success) {
+        const totalPrice = selected.reduce((sum, ing) => sum + calculateIngredientPrice(ing), 0);
+        toast({
+          title: 'Ингредиенты добавлены в корзину',
+          description: `${selected.length} ингредиентов на сумму ~${totalPrice}₽`,
+        });
+        setSelectedIngredients([]);
+      }
+    } finally {
+      setAddingIngredients(false);
+    }
   };
 
   const totalIngredientsPrice = meal.ingredients
@@ -274,8 +323,13 @@ export default function ReadyMealDetailPage() {
                   <Button 
                     className="w-full"
                     onClick={handleAddIngredientsToCart}
+                    disabled={addingIngredients || !user}
                   >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    {addingIngredients ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                    )}
                     Добавить ингредиенты в корзину
                   </Button>
                 </div>
@@ -420,8 +474,13 @@ export default function ReadyMealDetailPage() {
           <Button 
             className="flex-1 h-12 rounded-xl text-base"
             onClick={handleAddMealToCart}
+            disabled={addingToCart || !user}
           >
-            <ShoppingCart className="h-5 w-5 mr-2" />
+            {addingToCart ? (
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+            ) : (
+              <ShoppingCart className="h-5 w-5 mr-2" />
+            )}
             В корзину • {meal.price * quantity} ₽
           </Button>
         </div>
