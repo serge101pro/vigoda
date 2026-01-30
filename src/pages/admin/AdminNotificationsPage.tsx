@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { 
   Bell, Mail, Send, Users, 
-  Clock, CheckCircle, AlertCircle, Loader2
+  Clock, CheckCircle, AlertCircle, Loader2, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,14 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { BackButton } from '@/components/common/BackButton';
 import { useSuperadmin } from '@/hooks/useSuperadmin';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+interface NotificationResult {
+  sent: number;
+  failed: number;
+  total: number;
+}
 
 export default function AdminNotificationsPage() {
   const { isSuperadmin, loading: superadminLoading } = useSuperadmin();
@@ -20,6 +27,10 @@ export default function AdminNotificationsPage() {
   const [emailBody, setEmailBody] = useState('');
   const [pushTitle, setPushTitle] = useState('');
   const [pushBody, setPushBody] = useState('');
+  const [isSendingPush, setIsSendingPush] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [lastPushResult, setLastPushResult] = useState<NotificationResult | null>(null);
+  const [lastEmailResult, setLastEmailResult] = useState<NotificationResult | null>(null);
 
   if (superadminLoading) {
     return (
@@ -33,24 +44,119 @@ export default function AdminNotificationsPage() {
     return <Navigate to="/" replace />;
   }
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (!emailSubject || !emailBody) {
       toast.error('Заполните все поля');
       return;
     }
-    toast.success('Рассылка запланирована');
-    setEmailSubject('');
-    setEmailBody('');
+    
+    setIsSendingEmail(true);
+    setLastEmailResult(null);
+    
+    try {
+      // Wrap email body in simple HTML template
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px 12px 0 0; text-align: center; }
+            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px; }
+            .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1 style="margin: 0;">Vigoda</h1>
+          </div>
+          <div class="content">
+            ${emailBody.replace(/\n/g, '<br>')}
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Vigoda. Все права защищены.</p>
+            <p>Это автоматическое сообщение, пожалуйста, не отвечайте на него.</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const { data, error } = await supabase.functions.invoke('send-mass-email', {
+        body: {
+          subject: emailSubject,
+          htmlContent,
+          textContent: emailBody,
+        }
+      });
+
+      if (error) throw error;
+
+      setLastEmailResult({
+        sent: data.sent || 0,
+        failed: data.failed || 0,
+        total: data.total || 0,
+      });
+
+      if (data.sent > 0) {
+        toast.success(`Email-рассылка отправлена: ${data.sent} из ${data.total}`);
+        setEmailSubject('');
+        setEmailBody('');
+      } else if (data.total === 0) {
+        toast.info('Нет пользователей с email-адресами для рассылки');
+      } else {
+        toast.error('Не удалось отправить рассылку');
+      }
+    } catch (error) {
+      console.error('Error sending mass email:', error);
+      toast.error('Ошибка при отправке рассылки');
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
-  const handleSendPush = () => {
+  const handleSendPush = async () => {
     if (!pushTitle || !pushBody) {
       toast.error('Заполните все поля');
       return;
     }
-    toast.success('Push-уведомление отправлено');
-    setPushTitle('');
-    setPushBody('');
+    
+    setIsSendingPush(true);
+    setLastPushResult(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-mass-push', {
+        body: {
+          title: pushTitle,
+          body: pushBody,
+          url: '/',
+          tag: 'admin-broadcast',
+        }
+      });
+
+      if (error) throw error;
+
+      setLastPushResult({
+        sent: data.sent || 0,
+        failed: data.failed || 0,
+        total: data.total || 0,
+      });
+
+      if (data.sent > 0) {
+        toast.success(`Push отправлен: ${data.sent} из ${data.total}`);
+        setPushTitle('');
+        setPushBody('');
+      } else if (data.total === 0) {
+        toast.info('Нет пользователей с push-подписками');
+      } else {
+        toast.error('Не удалось отправить уведомления');
+      }
+    } catch (error) {
+      console.error('Error sending mass push:', error);
+      toast.error('Ошибка при отправке push-уведомлений');
+    } finally {
+      setIsSendingPush(false);
+    }
   };
 
   const recentNotifications = [
@@ -96,19 +202,45 @@ export default function AdminNotificationsPage() {
                   placeholder="Заголовок уведомления"
                   value={pushTitle}
                   onChange={(e) => setPushTitle(e.target.value)}
+                  disabled={isSendingPush}
                 />
                 <Textarea
                   placeholder="Текст уведомления..."
                   value={pushBody}
                   onChange={(e) => setPushBody(e.target.value)}
                   rows={3}
+                  disabled={isSendingPush}
                 />
+                
+                {lastPushResult && (
+                  <div className="p-3 rounded-lg bg-muted">
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span>Отправлено: {lastPushResult.sent}</span>
+                      {lastPushResult.failed > 0 && (
+                        <>
+                          <AlertCircle className="h-4 w-4 text-red-500 ml-2" />
+                          <span>Ошибок: {lastPushResult.failed}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex gap-3">
-                  <Button className="flex-1" onClick={handleSendPush}>
-                    <Send className="h-4 w-4 mr-2" />
+                  <Button 
+                    className="flex-1" 
+                    onClick={handleSendPush}
+                    disabled={isSendingPush || !pushTitle || !pushBody}
+                  >
+                    {isSendingPush ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
                     Отправить всем
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" disabled>
                     <Users className="h-4 w-4 mr-2" />
                     Выбрать
                   </Button>
@@ -127,19 +259,45 @@ export default function AdminNotificationsPage() {
                   placeholder="Тема письма"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
+                  disabled={isSendingEmail}
                 />
                 <Textarea
                   placeholder="Содержание письма..."
                   value={emailBody}
                   onChange={(e) => setEmailBody(e.target.value)}
                   rows={6}
+                  disabled={isSendingEmail}
                 />
+                
+                {lastEmailResult && (
+                  <div className="p-3 rounded-lg bg-muted">
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span>Отправлено: {lastEmailResult.sent}</span>
+                      {lastEmailResult.failed > 0 && (
+                        <>
+                          <AlertCircle className="h-4 w-4 text-red-500 ml-2" />
+                          <span>Ошибок: {lastEmailResult.failed}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex gap-3">
-                  <Button className="flex-1" onClick={handleSendEmail}>
-                    <Send className="h-4 w-4 mr-2" />
+                  <Button 
+                    className="flex-1" 
+                    onClick={handleSendEmail}
+                    disabled={isSendingEmail || !emailSubject || !emailBody}
+                  >
+                    {isSendingEmail ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
                     Отправить рассылку
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" disabled>
                     <Clock className="h-4 w-4 mr-2" />
                     Запланировать
                   </Button>
