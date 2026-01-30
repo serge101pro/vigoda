@@ -7,19 +7,9 @@ export function MainLayout() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   
-  // Pages that have their own header
+  // Pages that have their own header (only home page)
   const pagesWithOwnHeader = [
     '/',
-    '/profile',
-    '/profile/settings',
-    '/profile/premium',
-    '/profile/awards',
-    '/profile/recipes',
-    '/profile/analytics',
-    '/profile/loyalty-cards',
-    '/profile/lists',
-    '/profile/edit',
-    '/profile/affiliate',
     '/organization',
   ];
   

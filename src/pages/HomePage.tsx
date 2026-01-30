@@ -203,6 +203,35 @@ export default function HomePage() {
           />
         </div>
       </section>
+
+      {/* Product Categories */}
+      <section className="pt-6">
+        <CollapsibleSection title="Продукты" linkText="Каталог" linkTo="/catalog" initialExpanded={!allSectionsCollapsed}>
+          <CategoryChipsCarousel />
+        </CollapsibleSection>
+      </section>
+
+      {/* Popular Products */}
+      <section className="pt-6">
+        <CollapsibleSection title="Популярные товары" linkText="Все" linkTo="/catalog?sort=popular" initialExpanded={!allSectionsCollapsed}>
+          <ProductCarousel products={mockProducts.slice(0, 12)} rows={1} />
+        </CollapsibleSection>
+      </section>
+
+      {/* Farm/Eco Products */}
+      <section className="pt-6">
+        <CollapsibleSection title="Фермерские / Эко продукты" linkText="Все" linkTo="/farm-products" initialExpanded={!allSectionsCollapsed}>
+          <FarmProductCarousel products={farmProducts.slice(0, 8)} rows={1} />
+        </CollapsibleSection>
+      </section>
+
+      {/* Promotions/Sales */}
+      <section className="pt-6">
+        <CollapsibleSection title="Акции" linkText="Все" linkTo="/promos" initialExpanded={!allSectionsCollapsed}>
+          <ProductCarousel products={saleProducts.slice(0, 12)} rows={1} />
+        </CollapsibleSection>
+      </section>
+
       {/* Banner: Готовые блюда и рационы */}
       <section className="px-4 pt-6">
         <Link to="/ready-meals">
