@@ -316,7 +316,32 @@ export default function MealPlanGeneratorPage() {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Ошибка вызова сервиса');
+      }
+      
+      // Check for API-level errors in the response
+      if (data?.error) {
+        console.error('API error:', data.error, data.errorCode);
+        
+        // Show specific error messages based on error code
+        if (data.errorCode === 'RATE_LIMIT') {
+          toast.error('Сервис временно перегружен. Попробуйте через 2-3 минуты.', {
+            duration: 5000,
+          });
+          throw new Error('RATE_LIMIT');
+        } else if (data.errorCode === 'CONFIG_ERROR') {
+          toast.error('Сервис не настроен. Обратитесь в поддержку.');
+          throw new Error('CONFIG_ERROR');
+        } else {
+          throw new Error(data.error);
+        }
+      }
+      
+      if (!data?.plan) {
+        throw new Error('Пустой ответ от сервиса');
+      }
       
       // Generate images for each meal
       const planWithImages = { ...data.plan };
@@ -367,7 +392,12 @@ export default function MealPlanGeneratorPage() {
       toast.success('План питания создан с изображениями!');
     } catch (error) {
       console.error('Error generating meal plan:', error);
-      toast.error('Ошибка при генерации плана');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Only show generic error if we haven't already shown a specific toast
+      if (!['RATE_LIMIT', 'CONFIG_ERROR'].includes(errorMessage)) {
+        toast.error('Ошибка при генерации плана. Попробуйте ещё раз.');
+      }
     } finally {
       clearInterval(progressInterval);
       setIsGenerating(false);

@@ -35,3 +35,9 @@ verify_jwt = false
 
 [functions.optimize-cart]
 verify_jwt = false
+
+[functions.send-mass-push]
+verify_jwt = false
+
+[functions.send-mass-email]
+verify_jwt = false
