@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Search, Heart, ChefHat, ChevronRight, Store, Tractor } from 'lucide-react';
+import { Search, Heart, ChefHat, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SectionHeader } from '@/components/ui/SectionHeader';
 import { PromoBanner } from '@/components/ui/PromoBanner';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { ProductCarousel } from '@/components/home/ProductCarousel';
@@ -17,9 +16,11 @@ import { AddressDropdown } from '@/components/home/AddressDropdown';
 import { BusinessWidget } from '@/components/home/BusinessWidget';
 import { ReferralBanner } from '@/components/home/ReferralBanner';
 import { MealPlanGeneratorBanner } from '@/components/home/MealPlanGeneratorBanner';
+import { CulinaryClubBanner } from '@/components/home/CulinaryClubBanner';
+import { StoresFarmsCards } from '@/components/home/StoresFarmsCards';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Switch } from '@/components/ui/switch';
-import { mockProducts, mockRecipes } from '@/data/mockData';
+import { mockProducts } from '@/data/mockData';
 import { homeCateringOffers, officeCateringOffers, themedCateringOffers } from '@/data/cateringData';
 import { farmProducts } from '@/data/farmData';
 import { petProducts, popularPetProducts } from '@/data/petData';
@@ -174,13 +175,55 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Banner: Генератор меню (moved before daily deals) */}
+      {/* Banner: Генератор меню */}
       <section className="px-4 pt-4">
         <MealPlanGeneratorBanner />
       </section>
 
+      {/* Product Categories */}
+      <section className="pt-6">
+        <CollapsibleSection title="Продукты" linkText="Каталог" linkTo="/catalog" initialExpanded={!allSectionsCollapsed}>
+          <CategoryChipsCarousel />
+        </CollapsibleSection>
+      </section>
+
+      {/* Popular Products */}
+      <section className="pt-6">
+        <CollapsibleSection title="Популярные товары" linkText="Все" linkTo="/catalog?sort=popular" initialExpanded={!allSectionsCollapsed}>
+          <ProductCarousel products={mockProducts.slice(0, 12)} rows={1} />
+        </CollapsibleSection>
+      </section>
+
+      {/* Banner: Готовые блюда и рационы */}
+      <section className="px-4 pt-6">
+        <Link to="/ready-meals">
+          <PromoBanner
+            title="Готовые блюда и рационы питания"
+            subtitle="Экономьте время на готовку!"
+            buttonText="Подробнее"
+            buttonLink="/ready-meals"
+            image={chickenQuinoaHd}
+            variant="accent"
+          />
+        </Link>
+      </section>
+
+      {/* Farm/Eco Products */}
+      <section className="pt-6">
+        <CollapsibleSection title="Фермерские / Эко продукты" linkText="Все" linkTo="/farm-products" initialExpanded={!allSectionsCollapsed}>
+          <FarmProductCarousel products={farmProducts.slice(0, 8)} rows={1} />
+        </CollapsibleSection>
+      </section>
+
+      {/* Promotions/Sales */}
+      <section className="pt-6">
+        <CollapsibleSection title="Акции" linkText="Все" linkTo="/promos" initialExpanded={!allSectionsCollapsed}>
+          <ProductCarousel products={saleProducts.slice(0, 12)} rows={1} />
+        </CollapsibleSection>
+      </section>
+
       {/* Banner: Скидки дня */}
-      <section className="px-4 pt-4">
+      <section className="px-4 pt-6">
         <Link to="/daily-deals">
           <PromoBanner
             title="Скидки дня"
@@ -204,48 +247,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Product Categories */}
-      <section className="pt-6">
-        <CollapsibleSection title="Продукты" linkText="Каталог" linkTo="/catalog" initialExpanded={!allSectionsCollapsed}>
-          <CategoryChipsCarousel />
-        </CollapsibleSection>
-      </section>
-
-      {/* Popular Products */}
-      <section className="pt-6">
-        <CollapsibleSection title="Популярные товары" linkText="Все" linkTo="/catalog?sort=popular" initialExpanded={!allSectionsCollapsed}>
-          <ProductCarousel products={mockProducts.slice(0, 12)} rows={1} />
-        </CollapsibleSection>
-      </section>
-
-      {/* Farm/Eco Products */}
-      <section className="pt-6">
-        <CollapsibleSection title="Фермерские / Эко продукты" linkText="Все" linkTo="/farm-products" initialExpanded={!allSectionsCollapsed}>
-          <FarmProductCarousel products={farmProducts.slice(0, 8)} rows={1} />
-        </CollapsibleSection>
-      </section>
-
-      {/* Promotions/Sales */}
-      <section className="pt-6">
-        <CollapsibleSection title="Акции" linkText="Все" linkTo="/promos" initialExpanded={!allSectionsCollapsed}>
-          <ProductCarousel products={saleProducts.slice(0, 12)} rows={1} />
-        </CollapsibleSection>
-      </section>
-
-      {/* Banner: Готовые блюда и рационы */}
-      <section className="px-4 pt-6">
-        <Link to="/ready-meals">
-          <PromoBanner
-            title="Готовые блюда и рационы питания"
-            subtitle="Экономьте время на готовку!"
-            buttonText="Подробнее"
-            buttonLink="/ready-meals"
-            image={chickenQuinoaHd}
-            variant="accent"
-          />
-        </Link>
-      </section>
-
       {/* Popular Meals */}
       <section className="pt-6">
         <CollapsibleSection title="Популярные блюда" linkText="Все" linkTo="/ready-meals?tab=meals" initialExpanded={!allSectionsCollapsed}>
@@ -260,7 +261,12 @@ export default function HomePage() {
         </CollapsibleSection>
       </section>
 
-      {/* Catering - Moved after Meal Plans */}
+      {/* Banner: Клуб Кулинаров */}
+      <section className="px-4 pt-6">
+        <CulinaryClubBanner />
+      </section>
+
+      {/* Catering */}
       <section className="pt-6">
         <CollapsibleSection title="Кейтеринг" linkText="Все" linkTo="/catering" initialExpanded={!allSectionsCollapsed}>
           <div className="space-y-4">
@@ -280,44 +286,9 @@ export default function HomePage() {
         </CollapsibleSection>
       </section>
 
-      {/* Banner: Клуб Кулинаров */}
-      <section className="px-4 pt-6">
-        <Link to="/social-recipes">
-          <div className="relative rounded-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-3xl">👨‍🍳</span>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Клуб Кулинаров</h3>
-                  <p className="text-white/80 text-sm">Челленджи, рейтинги, призы</p>
-                </div>
-                <ChevronRight className="h-6 w-6 text-white ml-auto" />
-              </div>
-            </div>
-          </div>
-        </Link>
-      </section>
-
       {/* Магазины и Фермы */}
       <section className="px-4 pt-6">
-        <div className="grid grid-cols-2 gap-3">
-          <Link to="/stores" className="block">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
-              <Store className="h-8 w-8 mb-2" />
-              <h3 className="font-bold">Магазины</h3>
-              <p className="text-sm text-white/80">Сетевые и локальные</p>
-              <ChevronRight className="h-5 w-5 mt-2" />
-            </div>
-          </Link>
-          <Link to="/farms" className="block">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-4 text-white">
-              <Tractor className="h-8 w-8 mb-2" />
-              <h3 className="font-bold">Фермы</h3>
-              <p className="text-sm text-white/80">Свежее от фермеров</p>
-              <ChevronRight className="h-5 w-5 mt-2" />
-            </div>
-          </Link>
-        </div>
+        <StoresFarmsCards />
       </section>
 
       {/* Business Widget */}

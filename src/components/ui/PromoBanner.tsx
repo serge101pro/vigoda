@@ -20,17 +20,17 @@ export function PromoBanner({
 }: PromoBannerProps) {
   return (
     <div
-      className={`relative overflow-hidden rounded-3xl p-5 ${
+      className={`relative overflow-hidden rounded-2xl h-[140px] ${
         variant === 'primary' ? 'bg-primary' : 'bg-accent'
       }`}
     >
-      <div className="relative z-10 max-w-[60%]">
+      <div className="relative z-10 h-full flex flex-col justify-center p-5 max-w-[60%]">
         <p className={`text-sm font-medium mb-1 ${
           variant === 'primary' ? 'text-primary-foreground/80' : 'text-accent-foreground/80'
         }`}>
           {subtitle}
         </p>
-        <h3 className={`text-xl font-bold mb-4 ${
+        <h3 className={`text-xl font-bold mb-3 ${
           variant === 'primary' ? 'text-primary-foreground' : 'text-accent-foreground'
         }`}>
           {title}
