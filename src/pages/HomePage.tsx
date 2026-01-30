@@ -18,12 +18,14 @@ import { ReferralBanner } from '@/components/home/ReferralBanner';
 import { MealPlanGeneratorBanner } from '@/components/home/MealPlanGeneratorBanner';
 import { CulinaryClubBanner } from '@/components/home/CulinaryClubBanner';
 import { StoresFarmsCards } from '@/components/home/StoresFarmsCards';
+import { RecipeCarousel } from '@/components/home/RecipeCarousel';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Switch } from '@/components/ui/switch';
 import { mockProducts } from '@/data/mockData';
 import { homeCateringOffers, officeCateringOffers, themedCateringOffers } from '@/data/cateringData';
 import { farmProducts } from '@/data/farmData';
 import { petProducts, popularPetProducts } from '@/data/petData';
+import { extendedRecipes } from '@/data/recipeData';
 import { PetProductCarousel } from '@/components/home/PetProductCarousel';
 import heroImage from '@/assets/hero-groceries.jpg';
 import mealPlanBalanced from '@/assets/meals/meal-plan-balanced.jpg';
@@ -67,6 +69,11 @@ const mealPlans = [
 const cateringHomeOffers = homeCateringOffers.map(o => ({ ...o, category: 'home' as const }));
 const cateringOfficeOffers = officeCateringOffers.map(o => ({ ...o, category: 'office' as const }));
 const cateringThemedOffers = themedCateringOffers.map(o => ({ ...o, category: 'themed' as const }));
+
+// Get top 10 popular recipes by rating and review count
+const popularRecipes = [...extendedRecipes]
+  .sort((a, b) => (b.rating * b.reviewCount) - (a.rating * a.reviewCount))
+  .slice(0, 10);
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,8 +187,21 @@ export default function HomePage() {
         <MealPlanGeneratorBanner />
       </section>
 
+      {/* Expand/Collapse Toggle - Before Products */}
+      <section className="px-4 pt-4">
+        <div className="flex items-center justify-end gap-2">
+          <span className="text-xs text-muted-foreground">
+            {allSectionsCollapsed ? 'Развернуть' : 'Свернуть'} все
+          </span>
+          <Switch
+            checked={!allSectionsCollapsed}
+            onCheckedChange={(checked) => setAllSectionsCollapsed(!checked)}
+          />
+        </div>
+      </section>
+
       {/* Product Categories */}
-      <section className="pt-6">
+      <section className="pt-4">
         <CollapsibleSection title="Продукты" linkText="Каталог" linkTo="/catalog" initialExpanded={!allSectionsCollapsed}>
           <CategoryChipsCarousel />
         </CollapsibleSection>
@@ -234,17 +254,6 @@ export default function HomePage() {
             variant="primary"
           />
         </Link>
-        
-        {/* Compact Expand/Collapse Toggle */}
-        <div className="flex items-center justify-end gap-2 mt-2">
-          <span className="text-xs text-muted-foreground">
-            {allSectionsCollapsed ? 'Развернуть' : 'Свернуть'} все
-          </span>
-          <Switch
-            checked={!allSectionsCollapsed}
-            onCheckedChange={(checked) => setAllSectionsCollapsed(!checked)}
-          />
-        </div>
       </section>
 
       {/* Popular Meals */}
@@ -266,6 +275,18 @@ export default function HomePage() {
         <CulinaryClubBanner />
       </section>
 
+      {/* Popular Recipes - After Culinary Club */}
+      <section className="pt-6">
+        <CollapsibleSection title="Популярные рецепты" linkText="Все" linkTo="/recipes" initialExpanded={false}>
+          <RecipeCarousel recipes={popularRecipes} />
+        </CollapsibleSection>
+      </section>
+
+      {/* Магазины и Фермы - After Popular Recipes */}
+      <section className="px-4 pt-6">
+        <StoresFarmsCards />
+      </section>
+
       {/* Catering */}
       <section className="pt-6">
         <CollapsibleSection title="Кейтеринг" linkText="Все" linkTo="/catering" initialExpanded={!allSectionsCollapsed}>
@@ -284,11 +305,6 @@ export default function HomePage() {
             </div>
           </div>
         </CollapsibleSection>
-      </section>
-
-      {/* Магазины и Фермы */}
-      <section className="px-4 pt-6">
-        <StoresFarmsCards />
       </section>
 
       {/* Business Widget */}
@@ -312,4 +328,3 @@ export default function HomePage() {
     </div>
   );
 }
-

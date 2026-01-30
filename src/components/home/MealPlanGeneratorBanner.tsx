@@ -36,35 +36,35 @@ export function MealPlanGeneratorBanner() {
         <div className="absolute inset-0 bg-gradient-to-r from-violet-600/90 via-purple-600/80 to-fuchsia-600/60" />
         
         {/* Content */}
-        <div className="relative z-10 h-full flex items-center p-5">
+        <div className="relative z-10 h-full flex items-center p-4">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
-                <Sparkles className="h-5 w-5 text-yellow-300" />
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="bg-white/20 backdrop-blur-sm rounded-full p-1.5">
+                <Sparkles className="h-4 w-4 text-yellow-300" />
               </div>
-              <span className="text-white/90 text-sm font-medium bg-white/10 px-2 py-0.5 rounded-full">
+              <span className="text-white/90 text-xs font-medium bg-white/10 px-2 py-0.5 rounded-full">
                 AI-powered
               </span>
               {!loading && !hasPaidPlan && (
-                <span className="text-white/90 text-sm font-medium bg-amber-500/80 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="text-white/90 text-xs font-medium bg-amber-500/80 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Crown className="h-3 w-3" />
                   Premium
                 </span>
               )}
             </div>
             
-            <h3 className="text-xl font-bold text-white mb-1">
+            <h3 className="text-lg font-bold text-white mb-0.5">
               Создай персональное меню
             </h3>
-            <p className="text-white/80 text-sm mb-3">
+            <p className="text-white/80 text-xs mb-2">
               ИИ подберёт идеальный рацион под твои предпочтения
             </p>
             
             <Button 
               size="sm" 
-              className="bg-white text-purple-700 hover:bg-white/90 font-semibold shadow-lg"
+              className="bg-white text-purple-700 hover:bg-white/90 font-semibold shadow-lg h-8 text-xs"
             >
-              <Utensils className="h-4 w-4 mr-1.5" />
+              <Utensils className="h-3.5 w-3.5 mr-1" />
               Создать
             </Button>
           </div>
