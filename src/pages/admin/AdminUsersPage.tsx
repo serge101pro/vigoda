@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { ChangePlanModal } from '@/components/admin/ChangePlanModal';
 
 interface UserProfile {
   id: string;
@@ -40,45 +41,48 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+
+  const fetchUsers = async () => {
+    if (!isSuperadmin) return;
+
+    try {
+      setLoading(true);
+      // Fetch profiles
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch subscriptions for each user
+      const usersWithSubs = await Promise.all(
+        (profiles || []).map(async (profile) => {
+          const { data: sub } = await supabase
+            .from('user_subscriptions')
+            .select('plan, is_active')
+            .eq('user_id', profile.user_id)
+            .maybeSingle();
+          
+          return {
+            ...profile,
+            subscription: sub,
+          };
+        })
+      );
+
+      setUsers(usersWithSubs);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Ошибка загрузки пользователей');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      if (!isSuperadmin) return;
-
-      try {
-        // Fetch profiles
-        const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        // Fetch subscriptions for each user
-        const usersWithSubs = await Promise.all(
-          (profiles || []).map(async (profile) => {
-            const { data: sub } = await supabase
-              .from('user_subscriptions')
-              .select('plan, is_active')
-              .eq('user_id', profile.user_id)
-              .maybeSingle();
-            
-            return {
-              ...profile,
-              subscription: sub,
-            };
-          })
-        );
-
-        setUsers(usersWithSubs);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        toast.error('Ошибка загрузки пользователей');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (isSuperadmin) {
       fetchUsers();
     }
@@ -92,14 +96,19 @@ export default function AdminUsersPage() {
   const getPlanBadge = (plan?: string) => {
     switch (plan) {
       case 'solo':
-        return <Badge className="bg-blue-500/10 text-blue-600">Персональный</Badge>;
+        return <Badge className="bg-green-500/10 text-green-600">Персона</Badge>;
       case 'family':
-        return <Badge className="bg-purple-500/10 text-purple-600">Семейный</Badge>;
+        return <Badge className="bg-purple-500/10 text-purple-600">Семья</Badge>;
       case 'corp':
         return <Badge className="bg-orange-500/10 text-orange-600">Бизнес</Badge>;
       default:
-        return <Badge variant="secondary">Бесплатный</Badge>;
+        return <Badge variant="secondary">Выгода</Badge>;
     }
+  };
+
+  const handleOpenPlanModal = (user: UserProfile) => {
+    setSelectedUser(user);
+    setShowPlanModal(true);
   };
 
   if (superadminLoading) {
@@ -121,7 +130,7 @@ export default function AdminUsersPage() {
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
             <Link to="/admin">
-              <Button variant="ghost" size="icon-sm">
+              <Button variant="ghost" size="icon">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
@@ -188,12 +197,12 @@ export default function AdminUsersPage() {
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon-sm">
+                        <Button variant="ghost" size="icon">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenPlanModal(user)}>
                           <CreditCard className="h-4 w-4 mr-2" />
                           Изменить тариф
                         </DropdownMenuItem>
@@ -214,6 +223,25 @@ export default function AdminUsersPage() {
           </div>
         )}
       </main>
+
+      {/* Change Plan Modal */}
+      {selectedUser && (
+        <ChangePlanModal
+          open={showPlanModal}
+          onClose={() => {
+            setShowPlanModal(false);
+            setSelectedUser(null);
+          }}
+          user={{
+            id: selectedUser.id,
+            user_id: selectedUser.user_id,
+            display_name: selectedUser.display_name,
+            email: selectedUser.email,
+            currentPlan: selectedUser.subscription?.plan,
+          }}
+          onSuccess={fetchUsers}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Clock, User, Phone, Mail, Send, MapPin, CreditCard, Shield, LogOut, Bell, Loader2, MessageCircle, BellRing } from 'lucide-react';
+import { ArrowLeft, Clock, User, Phone, Mail, Send, MapPin, CreditCard, Shield, LogOut, Bell, Loader2, MessageCircle, BellRing, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useTelegramNotify } from '@/hooks/useTelegramNotify';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useSuperadmin } from '@/hooks/useSuperadmin';
 import { toast } from '@/hooks/use-toast';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 
@@ -24,6 +25,7 @@ export default function SettingsPage() {
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
   const { sendWelcomeNotification } = useTelegramNotify();
+  const { isSuperadmin } = useSuperadmin();
   const { 
     isSupported: isPushSupported, 
     isSubscribed: isPushSubscribed, 
@@ -462,6 +464,20 @@ export default function SettingsPage() {
               </div>
               <span className="text-muted-foreground">→</span>
             </Link>
+
+            {/* Admin Panel Link - Only for Superadmins */}
+            {isSuperadmin && (
+              <Link to="/admin" className="flex items-center justify-between p-4 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-2xl border border-red-500/20 hover:from-red-500/20 hover:to-orange-500/20 transition-colors">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="h-5 w-5 text-red-500" />
+                  <div>
+                    <span className="font-medium text-foreground">Панель Администратора</span>
+                    <p className="text-xs text-muted-foreground">Управление платформой</p>
+                  </div>
+                </div>
+                <span className="text-red-500">→</span>
+              </Link>
+            )}
           </div>
         </section>
 
