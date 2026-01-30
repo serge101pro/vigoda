@@ -27,7 +27,8 @@ function FarmProductCard({ product }: { product: FarmProduct }) {
     badge: product.oldPrice ? 'sale' as const : 'new' as const,
   };
 
-  const cartItem = cart.find((item) => item.product.id === product.id);
+  // Some cart item types don't have `product`; guard to prevent runtime crashes.
+  const cartItem = cart.find((item) => item.product?.id === product.id);
   const hasDiscount = product.oldPrice && product.oldPrice > product.price;
   const discountPercent = hasDiscount
     ? Math.round((1 - product.price / product.oldPrice!) * 100)
