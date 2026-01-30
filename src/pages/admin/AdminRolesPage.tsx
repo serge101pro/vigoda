@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { 
-  ArrowLeft, Shield, Users, Search, Crown, 
+  Shield, Users, Search, Crown, 
   UserPlus, UserMinus, Loader2, AlertTriangle, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { BackButton } from '@/components/common/BackButton';
 import { useSuperadmin } from '@/hooks/useSuperadmin';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -167,11 +168,7 @@ export default function AdminRolesPage() {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/admin/users">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/admin/users" />
             <div>
               <h1 className="text-xl font-bold">Управление ролями</h1>
               <p className="text-sm text-muted-foreground">

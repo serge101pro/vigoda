@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { 
-  ArrowLeft, ShoppingCart, Search, Package, 
+  ShoppingCart, Search, Package, 
   MoreVertical, Loader2, Calendar, MapPin, CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { BackButton } from '@/components/common/BackButton';
 import { useSuperadmin } from '@/hooks/useSuperadmin';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -119,11 +120,7 @@ export default function AdminOrdersPage() {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/admin">
-              <Button variant="ghost" size="icon-sm">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/admin" />
             <div>
               <h1 className="text-xl font-bold">Заказы</h1>
               <p className="text-sm text-muted-foreground">{orders.length} заказов</p>

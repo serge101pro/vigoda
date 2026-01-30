@@ -3,11 +3,12 @@ import { Link, Navigate } from 'react-router-dom';
 import { 
   Shield, Users, ShoppingCart, Settings, BarChart3, 
   FileText, Bell, Database, CreditCard, Mail, 
-  AlertTriangle, ArrowLeft, Loader2, Crown
+  AlertTriangle, Loader2, Crown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { BackButton } from '@/components/common/BackButton';
 import { useSuperadmin } from '@/hooks/useSuperadmin';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -157,11 +158,7 @@ export default function AdminDashboardPage() {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link to="/">
-                <Button variant="ghost" size="icon-sm" className="text-white hover:bg-white/20">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
+              <BackButton fallbackPath="/" variant="ghost" size="icon-sm" className="text-white hover:bg-white/20" />
               <div>
                 <div className="flex items-center gap-2">
                   <Shield className="h-6 w-6" />

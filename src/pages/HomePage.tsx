@@ -200,10 +200,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Product Categories */}
+      {/* Products with inline Categories */}
       <section className="pt-4">
         <CollapsibleSection title="Продукты" linkText="Каталог" linkTo="/catalog" initialExpanded={!allSectionsCollapsed}>
-          <CategoryChipsCarousel />
+          <CategoryChipsCarousel showHeader={false} />
         </CollapsibleSection>
       </section>
 
