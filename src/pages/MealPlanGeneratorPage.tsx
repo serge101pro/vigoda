@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, ChefHat, Calendar, Users, Flame, Apple, 
   Download, FileText, ShoppingCart, Heart, BookOpen,
-  Check, X, Loader2, AlertCircle, ChevronDown
+  Check, X, Loader2, AlertCircle, ChevronDown, Share2,
+  CalendarDays, List, Crown, Soup
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,11 +18,14 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { useQuery } from '@tanstack/react-query';
+import { useAppStore } from '@/stores/useAppStore';
 
 // Cuisine types (Top 20)
 const CUISINE_TYPES = [
@@ -59,14 +63,14 @@ const DIET_TYPES = [
   { id: 'high_protein', label: 'Высокобелковая', emoji: '💪' },
 ];
 
-// Meal types
+// Meal types with dish count
 const MEAL_TYPES = [
-  { id: 'breakfast', label: 'Завтрак', emoji: '🍳' },
-  { id: 'snack1', label: 'Перекус 1', emoji: '🍎' },
-  { id: 'lunch', label: 'Обед', emoji: '🍲' },
-  { id: 'snack2', label: 'Перекус 2', emoji: '🥜' },
-  { id: 'dinner', label: 'Ужин', emoji: '🥗' },
-  { id: 'late_snack', label: 'Поздний ужин', emoji: '🌙' },
+  { id: 'breakfast', label: 'Завтрак', emoji: '🍳', allowSoup: false },
+  { id: 'snack1', label: 'Перекус 1', emoji: '🍎', allowSoup: false },
+  { id: 'lunch', label: 'Обед', emoji: '🍲', allowSoup: true },
+  { id: 'snack2', label: 'Перекус 2', emoji: '🥜', allowSoup: false },
+  { id: 'dinner', label: 'Ужин', emoji: '🥗', allowSoup: true },
+  { id: 'late_snack', label: 'Поздний ужин', emoji: '🌙', allowSoup: false },
 ];
 
 // Day options
@@ -84,6 +88,7 @@ interface MealPlanMeal {
   carbs: number;
   fat: number;
   photo_search_query: string;
+  image_url?: string;
   recipe: {
     ingredients: { name: string; amount: string; category: string }[];
     steps: string[];
@@ -113,19 +118,28 @@ interface GeneratedMealPlan {
   };
 }
 
+interface MealSettings {
+  enabled: boolean;
+  dishCount: number;
+  includeSoup: boolean;
+}
+
 interface FormData {
   cuisines: string[];
   diets: string[];
   calories: string;
   allergies: string;
   servings: number;
-  meals: string[];
+  mealSettings: Record<string, MealSettings>;
   days: string;
+  soupMeal: 'lunch' | 'dinner' | null;
 }
 
 export default function MealPlanGeneratorPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { hasPaidPlan, loading: subscriptionLoading } = useSubscription();
+  const { addToCart } = useAppStore();
   
   // Fetch user preferences for dietary restrictions
   const { data: userPreferences } = useQuery({
@@ -142,14 +156,24 @@ export default function MealPlanGeneratorPage() {
     enabled: !!user,
   });
   
+  const initialMealSettings: Record<string, MealSettings> = {};
+  MEAL_TYPES.forEach(meal => {
+    initialMealSettings[meal.id] = {
+      enabled: ['breakfast', 'lunch', 'dinner'].includes(meal.id),
+      dishCount: 1,
+      includeSoup: false,
+    };
+  });
+  
   const [formData, setFormData] = useState<FormData>({
     cuisines: [],
     diets: [],
     calories: '',
     allergies: '',
     servings: 2,
-    meals: ['breakfast', 'lunch', 'dinner'],
+    mealSettings: initialMealSettings,
     days: '7',
+    soupMeal: null,
   });
   
   const [isGenerating, setIsGenerating] = useState(false);
@@ -159,11 +183,12 @@ export default function MealPlanGeneratorPage() {
   const [mealImages, setMealImages] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState('plan');
   const [expandedDays, setExpandedDays] = useState<number[]>([1]);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [isSavingRecipe, setIsSavingRecipe] = useState(false);
   
   // Load user dietary restrictions as defaults
   useEffect(() => {
     if (userPreferences?.dietary_restrictions && userPreferences.dietary_restrictions.length > 0) {
-      // Map profile dietary restrictions to our diet type IDs
       const mappedDiets = userPreferences.dietary_restrictions.map((r: string) => {
         const mapping: Record<string, string> = {
           'Вегетарианство': 'vegetarian',
@@ -203,14 +228,54 @@ export default function MealPlanGeneratorPage() {
   const toggleMeal = (id: string) => {
     setFormData(prev => ({
       ...prev,
-      meals: prev.meals.includes(id)
-        ? prev.meals.filter(m => m !== id)
-        : [...prev.meals, id]
+      mealSettings: {
+        ...prev.mealSettings,
+        [id]: {
+          ...prev.mealSettings[id],
+          enabled: !prev.mealSettings[id].enabled,
+        }
+      }
     }));
   };
   
+  const setMealDishCount = (id: string, count: number) => {
+    setFormData(prev => ({
+      ...prev,
+      mealSettings: {
+        ...prev.mealSettings,
+        [id]: {
+          ...prev.mealSettings[id],
+          dishCount: count,
+        }
+      }
+    }));
+  };
+  
+  const setSoupMeal = (mealId: 'lunch' | 'dinner' | null) => {
+    setFormData(prev => {
+      const newSettings = { ...prev.mealSettings };
+      // Reset all soup settings
+      Object.keys(newSettings).forEach(key => {
+        newSettings[key] = { ...newSettings[key], includeSoup: false };
+      });
+      // Set the new soup meal
+      if (mealId) {
+        newSettings[mealId] = { ...newSettings[mealId], includeSoup: true };
+      }
+      return {
+        ...prev,
+        mealSettings: newSettings,
+        soupMeal: mealId,
+      };
+    });
+  };
+  
   const handleGenerate = async () => {
-    if (formData.meals.length === 0) {
+    const enabledMeals = Object.entries(formData.mealSettings)
+      .filter(([_, settings]) => settings.enabled)
+      .map(([id]) => id);
+    
+    if (enabledMeals.length === 0) {
       toast.error('Выберите хотя бы один приём пищи');
       return;
     }
@@ -218,12 +283,22 @@ export default function MealPlanGeneratorPage() {
     setIsGenerating(true);
     setGenerationProgress(0);
     
-    // Simulate progress
     const progressInterval = setInterval(() => {
       setGenerationProgress(prev => Math.min(prev + Math.random() * 15, 90));
     }, 500);
     
     try {
+      // Prepare meal data with dish counts and soup info
+      const mealsData = enabledMeals.map(id => {
+        const mealType = MEAL_TYPES.find(m => m.id === id);
+        const settings = formData.mealSettings[id];
+        return {
+          type: mealType?.label || id,
+          dishCount: settings.dishCount,
+          includeSoup: settings.includeSoup,
+        };
+      });
+      
       const { data, error } = await supabase.functions.invoke('generate-meal-plan', {
         body: {
           cuisines: formData.cuisines.map(c => CUISINE_TYPES.find(ct => ct.id === c)?.label).filter(Boolean),
@@ -231,7 +306,7 @@ export default function MealPlanGeneratorPage() {
           calories: formData.calories ? parseInt(formData.calories) : null,
           allergies: formData.allergies.split(',').map(a => a.trim()).filter(Boolean),
           servings: formData.servings,
-          meals: formData.meals.map(m => MEAL_TYPES.find(mt => mt.id === m)?.label).filter(Boolean),
+          meals: mealsData,
           days: parseInt(formData.days),
         }
       });
@@ -253,12 +328,77 @@ export default function MealPlanGeneratorPage() {
     }
   };
   
-  const getMealImage = async (query: string): Promise<string> => {
-    if (mealImages[query]) return mealImages[query];
+  const handleSaveRecipeToDb = async (meal: MealPlanMeal) => {
+    if (!user) {
+      toast.error('Войдите, чтобы сохранить рецепт');
+      return;
+    }
     
-    const imageUrl = `https://source.unsplash.com/featured/800x600/?${encodeURIComponent(query)},food`;
-    setMealImages(prev => ({ ...prev, [query]: imageUrl }));
-    return imageUrl;
+    setIsSavingRecipe(true);
+    
+    try {
+      // First, download and save the image
+      let imageUrl = meal.image_url;
+      if (!imageUrl) {
+        // Generate a stable image URL from Unsplash
+        imageUrl = `https://source.unsplash.com/featured/800x600/?${encodeURIComponent(meal.photo_search_query)},food`;
+      }
+      
+      // Create the recipe in the database
+      const { data: recipe, error: recipeError } = await supabase
+        .from('recipes')
+        .insert({
+          name: meal.name,
+          image: imageUrl,
+          time_minutes: meal.recipe.cooking_time,
+          servings: meal.recipe.servings,
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fat: meal.fat,
+          author_id: user.id,
+          is_user_created: true,
+          difficulty: 'medium',
+          category: 'Сгенерировано ИИ',
+        })
+        .select()
+        .single();
+      
+      if (recipeError) throw recipeError;
+      
+      // Add ingredients
+      const ingredientsToInsert = meal.recipe.ingredients.map(ing => ({
+        recipe_id: recipe.id,
+        name: ing.name,
+        amount: ing.amount,
+      }));
+      
+      const { error: ingredientsError } = await supabase
+        .from('recipe_ingredients')
+        .insert(ingredientsToInsert);
+      
+      if (ingredientsError) throw ingredientsError;
+      
+      // Add steps
+      const stepsToInsert = meal.recipe.steps.map((step, idx) => ({
+        recipe_id: recipe.id,
+        step_number: idx + 1,
+        description: step,
+      }));
+      
+      const { error: stepsError } = await supabase
+        .from('recipe_steps')
+        .insert(stepsToInsert);
+      
+      if (stepsError) throw stepsError;
+      
+      toast.success(`"${meal.name}" сохранён в ваши рецепты!`);
+    } catch (error) {
+      console.error('Error saving recipe:', error);
+      toast.error('Ошибка при сохранении рецепта');
+    } finally {
+      setIsSavingRecipe(false);
+    }
   };
   
   const handleAddToFavorites = async (meal: MealPlanMeal) => {
@@ -267,16 +407,8 @@ export default function MealPlanGeneratorPage() {
       return;
     }
     
-    toast.success(`"${meal.name}" добавлено в избранное`);
-  };
-  
-  const handleAddToMyRecipes = async (meal: MealPlanMeal) => {
-    if (!user) {
-      toast.error('Войдите, чтобы сохранить рецепт');
-      return;
-    }
-    
-    toast.success(`"${meal.name}" добавлено в ваши рецепты`);
+    // First save the recipe, then add to favorites
+    await handleSaveRecipeToDb(meal);
   };
   
   const toggleShoppingItem = (categoryIndex: number, itemIndex: number) => {
@@ -292,10 +424,60 @@ export default function MealPlanGeneratorPage() {
     if (!generatedPlan) return;
     
     const uncheckedItems = generatedPlan.shopping_list
-      .flatMap(c => c.items.filter(i => !i.checked))
-      .length;
+      .flatMap(c => c.items.filter(i => !i.checked));
     
-    toast.success(`${uncheckedItems} товаров добавлено в корзину`);
+    // Add each item to cart as a product
+    uncheckedItems.forEach(item => {
+      // Parse amount to get quantity
+      const amountMatch = item.amount.match(/^([\d.,]+)/);
+      const quantity = amountMatch ? parseFloat(amountMatch[1].replace(',', '.')) : 1;
+      
+      addToCart({
+        id: `generated-${item.name}-${Date.now()}`,
+        name: item.name,
+        category: 'Ингредиенты',
+        image: '/placeholder.svg',
+        price: 0, // Price will be determined at checkout
+        unit: item.amount.replace(/^[\d.,]+\s*/, '') || 'шт',
+        rating: 0,
+        reviewCount: 0,
+      }, Math.ceil(quantity) || 1);
+    });
+    
+    toast.success(`${uncheckedItems.length} товаров добавлено в корзину`);
+  };
+  
+  const handleShareMenu = async () => {
+    if (!generatedPlan) return;
+    
+    let shareText = '🍽️ Мой план питания\n\n';
+    
+    generatedPlan.days.forEach(day => {
+      shareText += `📅 День ${day.day}:\n`;
+      day.meals.forEach(m => {
+        shareText += `• ${m.type}: ${m.meal.name} (${m.meal.calories} ккал)\n`;
+      });
+      shareText += '\n';
+    });
+    
+    shareText += `📊 Среднее в день: ${generatedPlan.summary.avg_calories} ккал\n`;
+    shareText += '\nСоздано в Вигодно Тут 🛒';
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Мой план питания',
+          text: shareText,
+        });
+      } catch (error) {
+        // User cancelled or error
+        console.log('Share cancelled');
+      }
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(shareText);
+      toast.success('План скопирован в буфер обмена!');
+    }
   };
   
   const exportToPDF = () => {
@@ -371,6 +553,59 @@ export default function MealPlanGeneratorPage() {
     
     toast.success('TXT сохранён');
   };
+  
+  // Get weekday name for calendar view
+  const getWeekdayName = (dayNum: number): string => {
+    const weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    return weekdays[(dayNum - 1) % 7];
+  };
+  
+  // Check premium access
+  if (!subscriptionLoading && !hasPaidPlan) {
+    return (
+      <div className="page-container pb-24">
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-r from-violet-500 to-purple-500 p-2 rounded-xl">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">Генератор меню</h1>
+                <p className="text-xs text-muted-foreground">Персональный план питания с ИИ</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        
+        <div className="flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4 rounded-full mb-6">
+            <Crown className="h-12 w-12 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold mb-3">Премиум-функция</h2>
+          <p className="text-muted-foreground mb-6 max-w-sm">
+            ИИ-генератор персонального меню доступен для пользователей платных тарифов
+          </p>
+          <div className="space-y-3 w-full max-w-xs">
+            <Button 
+              onClick={() => navigate('/profile/premium')}
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+            >
+              <Crown className="h-4 w-4 mr-2" />
+              Перейти на платный тариф
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="w-full"
+            >
+              На главную
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="page-container pb-24">
@@ -491,27 +726,86 @@ export default function MealPlanGeneratorPage() {
             </div>
           </div>
           
-          {/* Meal Types */}
+          {/* Meal Types with Dish Count */}
           <div>
             <Label className="text-base font-semibold mb-3 block">Приёмы пищи</Label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-3">
               {MEAL_TYPES.map(meal => (
-                <label
+                <div
                   key={meal.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                    formData.meals.includes(meal.id)
+                  className={`p-3 rounded-xl border transition-all ${
+                    formData.mealSettings[meal.id].enabled
                       ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
+                      : 'border-border'
                   }`}
                 >
-                  <Checkbox
-                    checked={formData.meals.includes(meal.id)}
-                    onCheckedChange={() => toggleMeal(meal.id)}
-                  />
-                  <span className="text-lg">{meal.emoji}</span>
-                  <span className="text-sm font-medium">{meal.label}</span>
-                </label>
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-3 cursor-pointer flex-1">
+                      <Checkbox
+                        checked={formData.mealSettings[meal.id].enabled}
+                        onCheckedChange={() => toggleMeal(meal.id)}
+                      />
+                      <span className="text-lg">{meal.emoji}</span>
+                      <span className="text-sm font-medium">{meal.label}</span>
+                    </label>
+                    
+                    {formData.mealSettings[meal.id].enabled && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Блюд:</span>
+                        <Select
+                          value={formData.mealSettings[meal.id].dishCount.toString()}
+                          onValueChange={(v) => setMealDishCount(meal.id, parseInt(v))}
+                        >
+                          <SelectTrigger className="w-16 h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="3">3</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </div>
               ))}
+            </div>
+            
+            {/* Soup option */}
+            <div className="mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <Label className="flex items-center gap-2 mb-3">
+                <Soup className="h-5 w-5 text-amber-600" />
+                Первое блюдо (суп)
+              </Label>
+              <RadioGroup
+                value={formData.soupMeal || ''}
+                onValueChange={(v) => setSoupMeal(v as 'lunch' | 'dinner' | null)}
+                className="flex flex-wrap gap-2"
+              >
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer ${
+                  formData.soupMeal === null ? 'border-primary bg-primary/10' : 'border-border'
+                }`}>
+                  <RadioGroupItem value="" className="sr-only" />
+                  <span className="text-sm">Без супа</span>
+                </label>
+                {formData.mealSettings.lunch.enabled && (
+                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer ${
+                    formData.soupMeal === 'lunch' ? 'border-primary bg-primary/10' : 'border-border'
+                  }`}>
+                    <RadioGroupItem value="lunch" className="sr-only" />
+                    <span className="text-sm">🍲 На обед</span>
+                  </label>
+                )}
+                {formData.mealSettings.dinner.enabled && (
+                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer ${
+                    formData.soupMeal === 'dinner' ? 'border-primary bg-primary/10' : 'border-border'
+                  }`}>
+                    <RadioGroupItem value="dinner" className="sr-only" />
+                    <span className="text-sm">🥗 На ужин</span>
+                  </label>
+                )}
+              </RadioGroup>
             </div>
           </div>
           
@@ -556,7 +850,7 @@ export default function MealPlanGeneratorPage() {
             ) : (
               <>
                 <Sparkles className="h-5 w-5 mr-2" />
-                Сгенерировать план
+                Создать
               </>
             )}
           </Button>
@@ -590,6 +884,26 @@ export default function MealPlanGeneratorPage() {
             </TabsList>
             
             <TabsContent value="plan" className="p-4 space-y-4 mt-0">
+              {/* View Mode Toggle */}
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="h-4 w-4 mr-1" />
+                  Список
+                </Button>
+                <Button
+                  variant={viewMode === 'calendar' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('calendar')}
+                >
+                  <CalendarDays className="h-4 w-4 mr-1" />
+                  Календарь
+                </Button>
+              </div>
+              
               {/* Summary */}
               <Card className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 border-violet-500/20">
                 <CardContent className="p-4">
@@ -614,8 +928,8 @@ export default function MealPlanGeneratorPage() {
                 </CardContent>
               </Card>
               
-              {/* Days */}
-              {generatedPlan.days.map(day => (
+              {/* Days - List View */}
+              {viewMode === 'list' && generatedPlan.days.map(day => (
                 <Collapsible
                   key={day.day}
                   open={expandedDays.includes(day.day)}
@@ -670,13 +984,51 @@ export default function MealPlanGeneratorPage() {
                 </Collapsible>
               ))}
               
-              <Button
-                variant="outline"
-                onClick={() => setGeneratedPlan(null)}
-                className="w-full"
-              >
-                Создать новый план
-              </Button>
+              {/* Days - Calendar View */}
+              {viewMode === 'calendar' && (
+                <div className="grid grid-cols-7 gap-1">
+                  {/* Weekday headers */}
+                  {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
+                    <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
+                      {day}
+                    </div>
+                  ))}
+                  
+                  {/* Day cells */}
+                  {generatedPlan.days.map(day => (
+                    <button
+                      key={day.day}
+                      onClick={() => {
+                        setExpandedDays([day.day]);
+                        setViewMode('list');
+                      }}
+                      className="aspect-square p-1 rounded-lg border bg-card hover:bg-muted transition-colors flex flex-col items-center justify-center"
+                    >
+                      <span className="text-lg font-bold">{day.day}</span>
+                      <span className="text-[10px] text-muted-foreground">{day.total_calories}</span>
+                      <span className="text-[10px] text-muted-foreground">ккал</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setGeneratedPlan(null)}
+                  className="flex-1"
+                >
+                  Создать новый план
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleShareMenu}
+                  className="gap-2"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Поделиться
+                </Button>
+              </div>
             </TabsContent>
             
             <TabsContent value="shopping" className="p-4 space-y-4 mt-0">
@@ -730,6 +1082,11 @@ export default function MealPlanGeneratorPage() {
                   <Button onClick={exportToTXT} className="w-full" variant="outline">
                     <FileText className="h-4 w-4 mr-2" />
                     Скачать TXT
+                  </Button>
+                  
+                  <Button onClick={handleShareMenu} className="w-full" variant="outline">
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Поделиться меню
                   </Button>
                 </CardContent>
               </Card>
@@ -819,16 +1176,26 @@ export default function MealPlanGeneratorPage() {
                   variant="outline" 
                   className="flex-1"
                   onClick={() => handleAddToFavorites(selectedMeal.meal)}
+                  disabled={isSavingRecipe}
                 >
-                  <Heart className="h-4 w-4 mr-1.5" />
+                  {isSavingRecipe ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <Heart className="h-4 w-4 mr-1.5" />
+                  )}
                   В избранное
                 </Button>
                 <Button 
                   variant="outline" 
                   className="flex-1"
-                  onClick={() => handleAddToMyRecipes(selectedMeal.meal)}
+                  onClick={() => handleSaveRecipeToDb(selectedMeal.meal)}
+                  disabled={isSavingRecipe}
                 >
-                  <BookOpen className="h-4 w-4 mr-1.5" />
+                  {isSavingRecipe ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <BookOpen className="h-4 w-4 mr-1.5" />
+                  )}
                   В рецепты
                 </Button>
               </div>
