@@ -949,6 +949,7 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          last_active_at: string | null
           phone: string | null
           telegram_chat_id: string | null
           total_savings: number | null
@@ -962,6 +963,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          last_active_at?: string | null
           phone?: string | null
           telegram_chat_id?: string | null
           total_savings?: number | null
@@ -975,6 +977,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          last_active_at?: string | null
           phone?: string | null
           telegram_chat_id?: string | null
           total_savings?: number | null
@@ -1195,6 +1198,72 @@ export type Database = {
           referred_id?: string
           referrer_id?: string
           status?: string
+        }
+        Relationships: []
+      }
+      scheduled_notifications: {
+        Row: {
+          activity_filter: string | null
+          audience: string
+          body: string
+          created_at: string
+          created_by: string
+          error_message: string | null
+          failed_count: number | null
+          has_email_filter: boolean | null
+          has_push_filter: boolean | null
+          html_content: string | null
+          id: string
+          processed_at: string | null
+          scheduled_at: string
+          sent_count: number | null
+          status: string
+          title: string
+          total_count: number | null
+          type: string
+          url: string | null
+        }
+        Insert: {
+          activity_filter?: string | null
+          audience?: string
+          body: string
+          created_at?: string
+          created_by: string
+          error_message?: string | null
+          failed_count?: number | null
+          has_email_filter?: boolean | null
+          has_push_filter?: boolean | null
+          html_content?: string | null
+          id?: string
+          processed_at?: string | null
+          scheduled_at: string
+          sent_count?: number | null
+          status?: string
+          title: string
+          total_count?: number | null
+          type: string
+          url?: string | null
+        }
+        Update: {
+          activity_filter?: string | null
+          audience?: string
+          body?: string
+          created_at?: string
+          created_by?: string
+          error_message?: string | null
+          failed_count?: number | null
+          has_email_filter?: boolean | null
+          has_push_filter?: boolean | null
+          html_content?: string | null
+          id?: string
+          processed_at?: string | null
+          scheduled_at?: string
+          sent_count?: number | null
+          status?: string
+          title?: string
+          total_count?: number | null
+          type?: string
+          url?: string | null
         }
         Relationships: []
       }
