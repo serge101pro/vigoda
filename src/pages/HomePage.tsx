@@ -16,6 +16,7 @@ import { HeaderAvatar } from '@/components/home/HeaderAvatar';
 import { AddressDropdown } from '@/components/home/AddressDropdown';
 import { BusinessWidget } from '@/components/home/BusinessWidget';
 import { ReferralBanner } from '@/components/home/ReferralBanner';
+import { MealPlanGeneratorBanner } from '@/components/home/MealPlanGeneratorBanner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Switch } from '@/components/ui/switch';
 import { mockProducts, mockRecipes } from '@/data/mockData';
@@ -222,6 +223,11 @@ export default function HomePage() {
         <CollapsibleSection title="Акции" linkText="Все" linkTo="/promos" initialExpanded={!allSectionsCollapsed}>
           <ProductCarousel products={[...saleProducts, ...mockProducts.slice(0, 4)]} rows={1} />
         </CollapsibleSection>
+      </section>
+
+      {/* Banner: Генератор меню */}
+      <section className="px-4 pt-6">
+        <MealPlanGeneratorBanner />
       </section>
 
       {/* Banner: Готовые блюда и рационы */}
