@@ -44,6 +44,15 @@ const routeLabels: Record<string, { label: string; color: string }> = {
   'payment-methods': { label: 'Способы оплаты', color: 'bg-green-500/10 text-green-600' },
   'wallet': { label: 'Кошелёк', color: 'bg-emerald-500/10 text-emerald-600' },
   'about': { label: 'О приложении', color: 'bg-gray-500/10 text-gray-600' },
+  // Admin pages
+  'admin': { label: 'Админ-панель', color: 'bg-red-500/10 text-red-600' },
+  'users': { label: 'Пользователи', color: 'bg-blue-500/10 text-blue-600' },
+  'roles': { label: 'Роли', color: 'bg-purple-500/10 text-purple-600' },
+  'orders': { label: 'Заказы', color: 'bg-green-500/10 text-green-600' },
+  'subscriptions': { label: 'Подписки', color: 'bg-orange-500/10 text-orange-600' },
+  'content': { label: 'Контент', color: 'bg-pink-500/10 text-pink-600' },
+  'notifications': { label: 'Уведомления', color: 'bg-yellow-500/10 text-yellow-600' },
+  'database': { label: 'База данных', color: 'bg-slate-500/10 text-slate-600' },
 };
 
 export function Breadcrumbs() {

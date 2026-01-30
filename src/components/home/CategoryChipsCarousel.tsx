@@ -65,9 +65,10 @@ const productCategories: Category[] = [
 
 interface CategoryChipsCarouselProps {
   initialExpanded?: boolean;
+  showHeader?: boolean;
 }
 
-export function CategoryChipsCarousel({ initialExpanded = true }: CategoryChipsCarouselProps) {
+export function CategoryChipsCarousel({ initialExpanded = true, showHeader = true }: CategoryChipsCarouselProps) {
   const [isExpanded, setIsExpanded] = useState(initialExpanded);
 
   // Sync with prop changes (for global collapse toggle)
@@ -78,6 +79,49 @@ export function CategoryChipsCarousel({ initialExpanded = true }: CategoryChipsC
   // Split categories into 2 rows for carousel
   const row1 = productCategories.slice(0, 12);
   const row2 = productCategories.slice(12, 24);
+
+  // If no header needed, just show categories directly
+  if (!showHeader) {
+    return (
+      <div className="space-y-2">
+        {/* Row 1 */}
+        <div className="flex gap-2 overflow-x-auto px-4 pb-2 hide-scrollbar">
+          {row1.map((cat) => (
+            <Link
+              key={cat.id}
+              to={`/catalog?category=${cat.slug}`}
+              className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-muted transition-all"
+            >
+              <img 
+                src={cat.icon} 
+                alt={cat.name} 
+                className="w-8 h-8 object-contain rounded"
+              />
+              <span className="text-sm font-medium text-foreground whitespace-nowrap">{cat.name}</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Row 2 */}
+        <div className="flex gap-2 overflow-x-auto px-4 pb-2 hide-scrollbar">
+          {row2.map((cat) => (
+            <Link
+              key={cat.id}
+              to={`/catalog?category=${cat.slug}`}
+              className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-muted transition-all"
+            >
+              <img 
+                src={cat.icon} 
+                alt={cat.name} 
+                className="w-8 h-8 object-contain rounded"
+              />
+              <span className="text-sm font-medium text-foreground whitespace-nowrap">{cat.name}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">

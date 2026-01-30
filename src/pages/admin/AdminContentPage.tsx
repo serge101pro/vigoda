@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { 
-  ArrowLeft, FileText, Image, Utensils, Package, 
+  FileText, Image, Utensils, Package, 
   Plus, Search, Edit, Trash2, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { BackButton } from '@/components/common/BackButton';
 import { useSuperadmin } from '@/hooks/useSuperadmin';
 
 export default function AdminContentPage() {
@@ -38,11 +39,7 @@ export default function AdminContentPage() {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/admin">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/admin" />
             <div>
               <h1 className="text-xl font-bold">Контент</h1>
               <p className="text-sm text-muted-foreground">Продукты, рецепты, баннеры</p>

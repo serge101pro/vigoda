@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { 
-  ArrowLeft, CreditCard, Crown, Users, Loader2, 
+  CreditCard, Crown, Users, Loader2, 
   TrendingUp, Calendar, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { BackButton } from '@/components/common/BackButton';
 import { useSuperadmin } from '@/hooks/useSuperadmin';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -83,11 +84,7 @@ export default function AdminSubscriptionsPage() {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/admin">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/admin" />
             <div>
               <h1 className="text-xl font-bold">Подписки</h1>
               <p className="text-sm text-muted-foreground">Управление тарифами</p>

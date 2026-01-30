@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { 
-  ArrowLeft, Bell, Mail, Send, Users, 
+  Bell, Mail, Send, Users, 
   Clock, CheckCircle, AlertCircle, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { BackButton } from '@/components/common/BackButton';
 import { useSuperadmin } from '@/hooks/useSuperadmin';
 import { toast } from 'sonner';
 
@@ -63,11 +64,7 @@ export default function AdminNotificationsPage() {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/admin">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/admin" />
             <div>
               <h1 className="text-xl font-bold">Уведомления</h1>
               <p className="text-sm text-muted-foreground">Рассылки и push</p>

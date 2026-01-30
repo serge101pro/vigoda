@@ -1,6 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/common/BackButton';
 
 export default function TermsPage() {
   return (
@@ -8,11 +6,7 @@ export default function TermsPage() {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link to="/profile/settings">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/profile/settings" />
             <h1 className="text-xl font-bold text-foreground">Условия использования</h1>
           </div>
         </div>
