@@ -81,6 +81,12 @@ import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
 import AdminOrdersPage from "@/pages/admin/AdminOrdersPage";
 import AdminAnalyticsPage from "@/pages/admin/AdminAnalyticsPage";
+import AdminSubscriptionsPage from "@/pages/admin/AdminSubscriptionsPage";
+import AdminContentPage from "@/pages/admin/AdminContentPage";
+import AdminNotificationsPage from "@/pages/admin/AdminNotificationsPage";
+import AdminDatabasePage from "@/pages/admin/AdminDatabasePage";
+import AdminSettingsPage from "@/pages/admin/AdminSettingsPage";
+import AdminRolesPage from "@/pages/admin/AdminRolesPage";
 
 import TermsPage from "@/pages/legal/TermsPage";
 import PrivacyPage from "@/pages/legal/PrivacyPage";
@@ -150,13 +156,14 @@ function AppRoutes() {
           {/* Admin routes */}
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/users/roles" element={<AdminRolesPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-          <Route path="/admin/subscriptions" element={<AdminDashboardPage />} />
-          <Route path="/admin/content" element={<AdminDashboardPage />} />
-          <Route path="/admin/notifications" element={<AdminDashboardPage />} />
-          <Route path="/admin/database" element={<AdminDashboardPage />} />
-          <Route path="/admin/settings" element={<AdminDashboardPage />} />
+          <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
+          <Route path="/admin/content" element={<AdminContentPage />} />
+          <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
+          <Route path="/admin/database" element={<AdminDatabasePage />} />
+          <Route path="/admin/settings" element={<AdminSettingsPage />} />
           <Route path="/profile/addresses" element={<AddressesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/affiliate" element={<AffiliatePage />} />

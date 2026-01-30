@@ -210,9 +210,11 @@ export default function AdminUsersPage() {
                           <Crown className="h-4 w-4 mr-2" />
                           Начислить баллы
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Shield className="h-4 w-4 mr-2" />
-                          Управление ролями
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin/users/roles">
+                            <Shield className="h-4 w-4 mr-2" />
+                            Управление ролями
+                          </Link>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
