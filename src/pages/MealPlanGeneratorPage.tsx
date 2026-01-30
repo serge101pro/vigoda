@@ -1,25 +1,22 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
-  Sparkles, Soup, Loader2, ChevronDown, Download, Heart, 
-  Save, FileText, CheckCircle2, ChefHat, Apple, Utensils 
+  Sparkles, Loader2, ChefHat, Heart, Save, FileText, 
+  CheckCircle2, Utensils, Info, Coffee, Sun, Moon, Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { jsPDF } from 'jspdf';
 
-// --- ВСЕ КУХНИ СО СКРИНШОТА (20 ВАРИАНТОВ) ---
-const CUISINE_TYPES = [
+const CUISINES = [
   { id: 'it', label: 'Итальянская', emoji: '🍝' }, { id: 'fr', label: 'Французская', emoji: '🥐' },
   { id: 'ge', label: 'Грузинская', emoji: '🫓' }, { id: 'ru', label: 'Русская', emoji: '🥟' },
   { id: 'jp', label: 'Японская', emoji: '🍣' }, { id: 'th', label: 'Тайская', emoji: '🍜' },
@@ -32,15 +29,14 @@ const CUISINE_TYPES = [
   { id: 'md', label: 'Средиземноморская', emoji: '🫒' }, { id: 'af', label: 'Азиатский фьюжн', emoji: '🥢' }
 ];
 
-// --- ВСЕ ДИЕТЫ СО СКРИНШОТА (9 ВАРИАНТОВ) ---
-const DIET_TYPES = [
+const DIETS = [
   { id: 'vegan', label: 'Веганская', emoji: '🌱' }, { id: 'keto', label: 'Кето', emoji: '🥑' },
   { id: 'paleo', label: 'Палео', emoji: '🍖' }, { id: 'lactose', label: 'Безлактозная', emoji: '🥛' },
   { id: 'gluten', label: 'Безглютеновая', emoji: '🌾' }, { id: 'vege', label: 'Вегетарианская', emoji: '🥬' },
   { id: 'lowcarb', label: 'Низкоуглеводная', emoji: '📉' }, { id: 'highprotein', label: 'Высокобелковая', emoji: '💪' }
 ];
 
-const MEAL_TIMES = [
+const MEALS = [
   { id: 'brk', label: 'Завтрак', emoji: '🍳' }, { id: 'sn1', label: 'Перекус 1', emoji: '🍎' },
   { id: 'lnc', label: 'Обед', emoji: '🍲' }, { id: 'sn2', label: 'Перекус 2', emoji: '🥜' },
   { id: 'din', label: 'Ужин', emoji: '🥗' }, { id: 'lsn', label: 'Поздний ужин', emoji: '🌙' }
@@ -51,211 +47,212 @@ export default function MealPlanGeneratorPage() {
   const [progress, setProgress] = useState(0);
   const [plan, setPlan] = useState<any>(null);
   const [selectedMeal, setSelectedMeal] = useState<any>(null);
-  const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
-    cuisines: [] as string[],
-    diets: [] as string[],
+    cuisines: ['it', 'ru'],
+    diets: ['lowcarb'],
     calories: '1650',
     allergies: 'орехи, морепрод',
     servings: 3,
+    soupOption: 'lnc',
     days: '3',
-    soupOption: 'no_soup',
-    meals: MEAL_TIMES.reduce((acc, m) => ({
-      ...acc, [m.id]: { enabled: true, count: 1 }
-    }), {} as any)
+    meals: MEALS.reduce((acc, m) => ({ ...acc, [m.id]: { enabled: true, count: 1 } }), {} as any)
   });
 
-  // --- ЛОГИКА СОХРАНЕНИЯ ФОТО В STORAGE ---
-  const processImage = async (mealName: string) => {
+  const processImage = async (name: string) => {
     try {
-      const { data: existing } = await supabase.from('recipe_photos').select('public_url').eq('recipe_name', mealName).single();
-      if (existing) return existing.public_url;
+      const { data } = await supabase.from('recipe_photos').select('public_url').eq('recipe_name', name).maybeSingle();
+      if (data) return data.public_url;
 
-      const res = await fetch(`https://source.unsplash.com/featured/?dish,${encodeURIComponent(mealName)}`);
+      const res = await fetch(`https://source.unsplash.com/featured/?dish,${encodeURIComponent(name)}`);
       const blob = await res.blob();
-      const path = `meals/${mealName}-${Date.now()}.jpg`;
-      
+      const path = `meals/${Date.now()}-${name.substring(0,10)}.jpg`;
       await supabase.storage.from('recipe-photos').upload(path, blob);
       const { data: { publicUrl } } = supabase.storage.from('recipe-photos').getPublicUrl(path);
-      
-      await supabase.from('recipe_photos').insert({ recipe_name: mealName, storage_path: path, public_url: publicUrl });
+      await supabase.from('recipe_photos').insert({ recipe_name: name, storage_path: path, public_url: publicUrl });
       return publicUrl;
     } catch { return 'https://source.unsplash.com/featured/?food'; }
   };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
-    setProgress(10);
+    setProgress(15);
     try {
       const { data, error } = await supabase.functions.invoke('generate-meal-plan', { body: { prompt_params: formData } });
       if (error) throw error;
-      
       setProgress(60);
-      const enrichedPlan = data.plan;
-      for (const day of enrichedPlan.days) {
-        for (const meal of day.meals) {
-          meal.items[0].imageUrl = await processImage(meal.items[0].name);
+      for (const day of data.plan.days) {
+        for (const m of day.meals) {
+          m.items[0].imageUrl = await processImage(m.items[0].name);
         }
       }
-
-      setPlan(enrichedPlan);
-      toast.success('План создан и фото сохранены!');
+      setPlan(data.plan);
     } catch (e: any) { toast.error(e.message); }
     finally { setIsGenerating(false); setProgress(0); }
   };
 
+  const toggleFavorite = async (meal: any) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return toast.error("Войдите в систему");
+    const { error } = await supabase.from('favorites').insert({
+      user_id: user.id, recipe_name: meal.name, recipe_data: meal, image_url: meal.imageUrl
+    });
+    error ? toast.error("Ошибка") : toast.success("В избранном!");
+  };
+
   return (
-    <div className="max-w-md mx-auto bg-[#00b27a] min-h-screen text-white pb-20 font-sans">
-      <header className="p-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold flex items-center gap-2"><Sparkles /> Генератор меню</h1>
+    <div className="max-w-md mx-auto bg-[#00b27a] min-h-screen text-white pb-24 font-sans">
+      <header className="p-4 flex items-center gap-3">
+        <div className="bg-white/20 p-2 rounded-xl"><Sparkles size={20}/></div>
+        <div><h1 className="font-bold text-lg leading-none">Генератор меню</h1><p className="text-[10px] opacity-70">Персональный план питания с ИИ</p></div>
       </header>
 
       {isGenerating ? (
         <div className="p-10 text-center space-y-6">
-          <Loader2 className="animate-spin mx-auto h-12 w-12 opacity-50" />
+          <Loader2 className="animate-spin mx-auto h-12 w-12 opacity-40" />
           <Progress value={progress} className="h-1 bg-white/20" />
         </div>
       ) : !plan ? (
-        <div className="p-4 space-y-6">
-          {/* КУХНИ */}
+        <div className="p-4 space-y-8 animate-in fade-in">
+          {/* КУХНЯ */}
           <section>
-            <Label className="text-xs uppercase font-bold opacity-70 mb-3 block">Тип кухни</Label>
+            <div className="flex items-center gap-2 mb-3"><Utensils size={14}/><Label className="text-xs font-bold uppercase tracking-wider">Тип кухни</Label></div>
             <div className="flex flex-wrap gap-2">
-              {CUISINE_TYPES.map(c => (
-                <Badge key={c.id} variant="outline" className={`rounded-full py-2 px-4 transition-all ${formData.cuisines.includes(c.id) ? 'bg-white text-[#00b27a]' : 'bg-white/10'}`} onClick={() => setFormData(f => ({ ...f, cuisines: f.cuisines.includes(c.id) ? f.cuisines.filter(i => i !== c.id) : [...f.cuisines, c.id] }))}>
+              {CUISINES.map(c => (
+                <Badge key={c.id} className={`rounded-full py-2 px-4 border-none cursor-pointer ${formData.cuisines.includes(c.id) ? 'bg-white text-[#00b27a]' : 'bg-white/10'}`} onClick={() => setFormData(f => ({ ...f, cuisines: f.cuisines.includes(c.id) ? f.cuisines.filter(x => x !== c.id) : [...f.cuisines, c.id] }))}>
                   {c.emoji} {c.label}
                 </Badge>
               ))}
             </div>
           </section>
 
-          {/* ДИЕТЫ */}
+          {/* ДИЕТА */}
           <section>
-            <Label className="text-xs uppercase font-bold opacity-70 mb-3 block">Диета</Label>
+            <div className="flex items-center gap-2 mb-3"><Zap size={14}/><Label className="text-xs font-bold uppercase tracking-wider">Диета</Label></div>
             <div className="flex flex-wrap gap-2">
-              {DIET_TYPES.map(d => (
-                <Badge key={d.id} className={`rounded-full py-2 px-4 ${formData.diets.includes(d.id) ? 'bg-blue-500' : 'bg-white/10'}`} onClick={() => setFormData(f => ({ ...f, diets: f.diets.includes(d.id) ? f.diets.filter(i => i !== d.id) : [...f.diets, d.id] }))}>
+              {DIETS.map(d => (
+                <Badge key={d.id} className={`rounded-full py-2 px-4 border-none cursor-pointer ${formData.diets.includes(d.id) ? 'bg-[#3b82f6]' : 'bg-white/10'}`} onClick={() => setFormData(f => ({ ...f, diets: f.diets.includes(d.id) ? f.diets.filter(x => x !== d.id) : [...f.diets, d.id] }))}>
                   {d.emoji} {d.label}
                 </Badge>
               ))}
             </div>
           </section>
 
-          {/* ПАРАМЕТРЫ */}
+          {/* КАЛОРИИ И АЛЛЕРГИИ */}
           <div className="grid grid-cols-2 gap-4">
-            <div><Label className="text-[10px] uppercase">Калории/день</Label><Input className="bg-white/10" value={formData.calories} onChange={e => setFormData({...formData, calories: e.target.value})}/></div>
-            <div><Label className="text-[10px] uppercase">Аллергии</Label><Input className="bg-white/10" value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})}/></div>
+            <div className="space-y-2"><Label className="text-[10px] uppercase font-bold opacity-70">Калории/день</Label><Input className="bg-white/10 border-none h-12" value={formData.calories} onChange={e => setFormData({...formData, calories: e.target.value})}/></div>
+            <div className="space-y-2"><Label className="text-[10px] uppercase font-bold opacity-70">Аллергии</Label><Input className="bg-white/10 border-none h-12" value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})}/></div>
           </div>
 
+          {/* ПОРЦИИ */}
           <section>
-            <Label className="text-center block mb-2">Порций: {formData.servings}</Label>
-            <div className="flex gap-1 overflow-x-auto pb-2">
+            <Label className="text-xs font-bold uppercase opacity-70 mb-3 block text-center">Порций (едоков): {formData.servings}</Label>
+            <div className="flex gap-1 overflow-x-auto no-scrollbar">
               {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                <Button key={n} variant="ghost" className={`flex-1 rounded-full ${formData.servings === n ? 'bg-blue-500' : 'bg-white/10'}`} onClick={() => setFormData({...formData, servings: n})}>{n}</Button>
+                <Button key={n} variant="ghost" className={`flex-1 min-w-[40px] h-10 rounded-full ${formData.servings === n ? 'bg-blue-500' : 'bg-white/10'}`} onClick={() => setFormData({...formData, servings: n})}>{n}</Button>
               ))}
             </div>
           </section>
 
           {/* ПРИЕМЫ ПИЩИ */}
-          <section className="space-y-2">
-            {MEAL_TIMES.map(m => (
-              <div key={m.id} className="flex items-center justify-between bg-white/10 p-3 rounded-2xl border border-white/10">
-                <div className="flex items-center gap-3">
-                  <Checkbox checked={formData.meals[m.id].enabled} onCheckedChange={(val) => setFormData({...formData, meals: {...formData.meals, [m.id]: {...formData.meals[m.id], enabled: !!val}}})}/>
-                  <span className="text-sm">{m.emoji} {m.label}</span>
+          <section className="space-y-3">
+            <Label className="text-xs font-bold uppercase opacity-70 mb-1 block">Приёмы пищи</Label>
+            {MEALS.map(m => (
+              <div key={m.id} className="flex items-center justify-between bg-white/10 p-4 rounded-2xl border border-white/5 shadow-inner">
+                <div className="flex items-center gap-4">
+                  <Checkbox className="border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-[#00b27a]" checked={formData.meals[m.id].enabled} onCheckedChange={(v) => setFormData({...formData, meals: {...formData.meals, [m.id]: {...formData.meals[m.id], enabled: !!v}}})}/>
+                  <span className="text-sm font-medium">{m.emoji} {m.label}</span>
                 </div>
                 <Select value={formData.meals[m.id].count.toString()} onValueChange={v => setFormData({...formData, meals: {...formData.meals, [m.id]: {...formData.meals[m.id], count: parseInt(v)}}})}>
-                  <SelectTrigger className="w-24 bg-transparent border-none text-xs"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-24 bg-black/10 border-none h-8 text-[11px]"><SelectValue /></SelectTrigger>
                   <SelectContent><SelectItem value="1">Блюд: 1</SelectItem><SelectItem value="2">Блюд: 2</SelectItem><SelectItem value="3">Блюд: 3</SelectItem></SelectContent>
                 </Select>
               </div>
             ))}
           </section>
 
-          {/* ДНИ */}
-          <section className="grid grid-cols-4 gap-2">
-            {['1', '3', '7', '14'].map(d => (
-              <Button key={d} className={`h-12 rounded-xl ${formData.days === d ? 'bg-blue-600' : 'bg-white/10'}`} onClick={() => setFormData({...formData, days: d})}>{d} {d === '1' ? 'день' : 'дней'}</Button>
-            ))}
+          {/* СУП */}
+          <section className="bg-white/5 p-4 rounded-3xl space-y-3">
+            <Label className="text-xs font-bold uppercase opacity-70 flex items-center gap-2"><Soup size={14}/> Первое блюдо (суп)</Label>
+            <div className="flex gap-2">
+              {[{id:'no', l:'Без супа'}, {id:'lnc', l:'🍲 На обед'}, {id:'din', l:'🍲 На ужин'}].map(s => (
+                <Button key={s.id} variant="ghost" className={`flex-1 text-[11px] h-10 rounded-full ${formData.soupOption === s.id ? 'bg-[#00b27a] border-white/20 border shadow-lg' : 'bg-white/5'}`} onClick={() => setFormData({...formData, soupOption: s.id})}>{s.l}</Button>
+              ))}
+            </div>
           </section>
 
-          <Button className="w-full h-16 bg-purple-600 rounded-3xl text-xl font-bold shadow-2xl" onClick={handleGenerate}>Создать</Button>
+          {/* КОЛИЧЕСТВО ДНЕЙ */}
+          <section className="space-y-3">
+            <Label className="text-xs font-bold uppercase opacity-70">Количество дней</Label>
+            <div className="grid grid-cols-4 gap-2">
+              {[{v:'1', l:'1 день'}, {v:'3', l:'3 дня'}, {v:'7', l:'7 дней'}, {v:'14', l:'14 дней'}].map(d => (
+                <Button key={d.v} className={`h-14 rounded-2xl text-[11px] ${formData.days === d.v ? 'bg-blue-600 shadow-xl scale-105 transition-all' : 'bg-white/10'}`} onClick={() => setFormData({...formData, days: d.v})}>{d.l}</Button>
+              ))}
+            </div>
+          </section>
+
+          <Button className="w-full h-16 bg-[#9333ea] rounded-2xl text-lg font-bold shadow-[0_10px_30px_-10px_rgba(147,51,234,0.5)]" onClick={handleGenerate}>Создать</Button>
         </div>
       ) : (
-        /* РЕЗУЛЬТАТЫ */
-        <div className="p-4 space-y-6 animate-in slide-in-from-bottom-10">
+        /* РЕЗУЛЬТАТЫ (ПЛАН) */
+        <div className="p-4 space-y-6 animate-in slide-in-from-bottom-5">
           <Tabs defaultValue="days">
-            <TabsList className="grid grid-cols-2 bg-black/20 rounded-xl p-1">
-              <TabsTrigger value="days" className="rounded-lg">📅 Календарь</TabsTrigger>
-              <TabsTrigger value="shop" className="rounded-lg">🛒 Покупки</TabsTrigger>
+            <TabsList className="grid grid-cols-2 bg-black/20 rounded-2xl p-1 mb-4">
+              <TabsTrigger value="days" className="rounded-xl">📅 Календарь</TabsTrigger>
+              <TabsTrigger value="shop" className="rounded-xl">🛒 Покупки</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="days" className="space-y-4 pt-4">
+            <TabsContent value="days" className="space-y-6">
               {plan.days.map((day: any) => (
                 <div key={day.day} className="space-y-2">
-                  <h3 className="font-bold text-sm pl-2">ДЕНЬ {day.day}</h3>
+                  <h3 className="text-[10px] font-black uppercase opacity-60 tracking-widest ml-2">День {day.day}</h3>
                   {day.meals.map((m: any, idx: number) => (
-                    <Card key={idx} className="bg-white text-black rounded-2xl overflow-hidden cursor-pointer" onClick={() => setSelectedMeal(m.items[0])}>
-                      <div className="flex">
-                        <img src={m.items[0].imageUrl} className="w-24 h-24 object-cover" />
-                        <div className="p-3">
-                          <p className="text-[10px] font-bold text-[#00b27a] uppercase">{m.type}</p>
-                          <h4 className="font-bold text-sm leading-tight">{m.items[0].name}</h4>
-                          <p className="text-xs opacity-50">{m.items[0].calories} ккал</p>
-                        </div>
+                    <Card key={idx} className="bg-white text-black border-none rounded-2xl overflow-hidden shadow-xl flex cursor-pointer active:scale-95 transition-transform" onClick={() => setSelectedMeal(m.items[0])}>
+                      <img src={m.items[0].imageUrl} className="w-24 h-24 object-cover" />
+                      <div className="p-4 flex-1">
+                        <p className="text-[9px] font-bold text-[#00b27a] uppercase mb-1">{m.type}</p>
+                        <h4 className="font-bold text-sm leading-tight mb-2">{m.items[0].name}</h4>
+                        <Badge variant="secondary" className="text-[10px] h-5 bg-slate-100">{m.items[0].calories} ккал</Badge>
                       </div>
                     </Card>
                   ))}
                 </div>
               ))}
             </TabsContent>
-
-            <TabsContent value="shop" className="pt-4">
-              <Card className="bg-white text-black rounded-3xl p-6">
-                <h3 className="text-xl font-bold mb-4">Список покупок</h3>
-                {plan.shopping_list.map((cat: any, i: number) => (
-                  <div key={i} className="mb-4">
-                    <h4 className="text-[10px] font-black uppercase text-slate-400 mb-2">{cat.category}</h4>
-                    {cat.items.map((it: any, j: number) => (
-                      <div key={j} className="flex items-center gap-3 mb-2">
-                        <Checkbox id={`${i}-${j}`} checked={checkedItems.includes(`${i}-${j}`)} onCheckedChange={() => setCheckedItems(p => p.includes(`${i}-${j}`) ? p.filter(x => x !== `${i}-${j}`) : [...p, `${i}-${j}`])}/>
-                        <label htmlFor={`${i}-${j}`} className={`text-sm flex-1 ${checkedItems.includes(`${i}-${j}`) ? 'line-through opacity-30' : ''}`}>{it.name}</label>
-                        <span className="text-xs font-bold text-slate-400">{it.amount}</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </Card>
-            </TabsContent>
           </Tabs>
         </div>
       )}
 
-      {/* МОДАЛКА РЕЦЕПТА */}
+      {/* РЕЦЕПТ DIALOG */}
       <Dialog open={!!selectedMeal} onOpenChange={() => setSelectedMeal(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto p-0 border-none bg-white text-black sm:rounded-3xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto p-0 border-none bg-white text-black sm:rounded-3xl shadow-2xl">
           {selectedMeal && (
-            <div className="relative">
+            <div>
               <img src={selectedMeal.imageUrl} className="w-full h-64 object-cover" />
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-6">
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-bold leading-tight">{selectedMeal.name}</DialogTitle>
-                  <DialogDescription>КБЖУ: {selectedMeal.calories}ккал | Б:{selectedMeal.protein}г | Ж:{selectedMeal.fat}г | У:{selectedMeal.carbs}г</DialogDescription>
+                  <DialogDescription className="text-xs uppercase font-bold text-slate-400">КБЖУ: {selectedMeal.calories}ккал | Б:{selectedMeal.protein}г | Ж:{selectedMeal.fat}г | У:{selectedMeal.carbs}г</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <h4 className="font-bold flex items-center gap-2"><ChefHat /> Ингредиенты</h4>
-                  <div className="text-sm space-y-1">
+                  <h4 className="font-bold flex items-center gap-2 border-b pb-2"><ChefHat size={18} className="text-[#00b27a]"/> Ингредиенты</h4>
+                  <div className="grid gap-2">
                     {selectedMeal.recipe.ingredients.map((ing: any, i: number) => (
-                      <div key={i} className="flex justify-between border-b pb-1"><span>{ing.name}</span><b>{ing.amount}</b></div>
+                      <div key={i} className="flex justify-between text-sm border-b border-slate-50 pb-1"><span>{ing.name}</span><span className="font-bold">{ing.amount}</span></div>
                     ))}
                   </div>
-                  <h4 className="font-bold flex items-center gap-2"><Apple /> Инструкция</h4>
-                  <div className="space-y-2">
+                  <h4 className="font-bold flex items-center gap-2 pt-2 border-b pb-2"><Info size={18} className="text-[#00b27a]"/> Приготовление</h4>
+                  <div className="space-y-4">
                     {selectedMeal.recipe.steps.map((step: string, i: number) => (
-                      <p key={i} className="text-sm leading-relaxed"><b className="text-[#00b27a]">{i+1}.</b> {step}</p>
+                      <div key={i} className="flex gap-4">
+                        <span className="w-6 h-6 rounded-full bg-[#00b27a]/10 text-[#00b27a] flex items-center justify-center text-[10px] font-bold shrink-0">{i+1}</span>
+                        <p className="text-sm leading-relaxed">{step}</p>
+                      </div>
                     ))}
                   </div>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button className="flex-1 rounded-xl bg-[#00b27a]" onClick={() => toggleFavorite(selectedMeal)}><Heart className="mr-2 h-4 w-4"/> В избранное</Button>
+                  <Button variant="outline" className="flex-1 rounded-xl"><Save className="mr-2 h-4 w-4"/> В мои</Button>
                 </div>
               </div>
             </div>
