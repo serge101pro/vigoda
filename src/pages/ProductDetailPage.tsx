@@ -131,7 +131,7 @@ export default function ProductDetailPage() {
       {/* Main Image */}
       <section className="relative px-4">
         <div className="aspect-square bg-muted rounded-2xl overflow-hidden">
-          <img 
+          <SafeImage 
             src={product.image} 
             alt={product.name}
             className="w-full h-full object-cover"

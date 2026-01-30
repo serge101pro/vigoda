@@ -92,7 +92,7 @@ export default function MealPlanDetailPage() {
       {/* Main Image */}
       <section className="relative">
         <div className="aspect-video bg-muted">
-          <img 
+          <SafeImage 
             src={mealPlan.image} 
             alt={mealPlan.name}
             className="w-full h-full object-cover"
@@ -419,7 +419,7 @@ export default function MealPlanDetailPage() {
               className="flex-shrink-0 w-44 bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors"
             >
               <div className="aspect-video bg-muted">
-                <img src={plan.image} alt={plan.name} className="w-full h-full object-cover" />
+                <SafeImage src={plan.image} alt={plan.name} className="w-full h-full object-cover" />
               </div>
               <div className="p-3">
                 <p className="text-sm font-medium line-clamp-2 mb-1">{plan.name}</p>

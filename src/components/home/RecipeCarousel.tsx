@@ -40,7 +40,7 @@ export function RecipeCarousel({ recipes }: RecipeCarouselProps) {
           <div className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-shadow">
             {/* Image */}
             <div className="relative h-[100px] overflow-hidden">
-              <img 
+              <SafeImage 
                 src={recipe.image} 
                 alt={recipe.name}
                 className="w-full h-full object-cover"

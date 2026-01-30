@@ -44,7 +44,7 @@ export function MealCarousel({ meals, rows = 1 }: MealCarouselProps) {
               className="flex-shrink-0 w-56 bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/30 transition-colors"
             >
               <div className="relative h-32">
-                <img src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
+                <SafeImage src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
                 {meal.oldPrice && (
                   <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground text-xs">
                     -{Math.round((1 - meal.price / meal.oldPrice) * 100)}%

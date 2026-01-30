@@ -53,7 +53,7 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
       <>
         <div className="card-product flex gap-4 animate-fade-in">
           <Link to={`/product/${product.id}`} className="relative w-24 h-24 flex-shrink-0">
-            <img
+            <SafeImage
               src={product.image}
               alt={product.name}
               className="w-full h-full object-cover rounded-xl"
@@ -161,7 +161,7 @@ export function ProductCard({ product, variant = 'default' }: ProductCardProps) 
 
         {/* Image */}
         <Link to={`/product/${product.id}`} className="block aspect-square mb-3 rounded-xl overflow-hidden bg-muted">
-          <img
+          <SafeImage
             src={product.image}
             alt={product.name}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"

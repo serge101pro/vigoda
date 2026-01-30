@@ -176,7 +176,7 @@ export default function RecipeDetailPage() {
     <div className="page-container">
       {/* Hero Image */}
       <div className="relative h-72 md:h-96">
-        <img 
+        <SafeImage 
           src={recipe.image} 
           alt={recipe.name}
           className="w-full h-full object-cover"
@@ -356,7 +356,7 @@ export default function RecipeDetailPage() {
             </DialogHeader>
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <img src={recipe.image} alt={recipe.name} className="w-20 h-20 rounded-xl object-cover" />
+                <SafeImage src={recipe.image} alt={recipe.name} className="w-20 h-20 rounded-xl object-cover" />
                 <div className="flex-1">
                   <p className="font-semibold">{recipe.name}</p>
                   <p className="text-sm text-muted-foreground">{recipe.ingredients.length} ингредиентов</p>

@@ -123,7 +123,7 @@ export function PromoBannerCarousel() {
         onTouchEnd={handleTouchEnd}
       >
         {/* Background Image */}
-        <img 
+        <SafeImage 
           src={currentBanner.image} 
           alt={currentBanner.title}
           className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"

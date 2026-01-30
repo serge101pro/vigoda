@@ -235,7 +235,7 @@ export default function ReadyMealDetailPage() {
       {/* Main Image */}
       <section className="relative">
         <div className="aspect-video bg-muted">
-          <img 
+          <SafeImage 
             src={meal.image} 
             alt={meal.name}
             className="w-full h-full object-cover"
@@ -603,7 +603,7 @@ export default function ReadyMealDetailPage() {
               <div className="space-y-4 py-4">
                 <div className="flex items-center gap-3 p-4 bg-muted rounded-xl">
                   <div className="w-16 h-16 rounded-lg overflow-hidden">
-                    <img src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
+                    <SafeImage src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold">{meal.name}</p>

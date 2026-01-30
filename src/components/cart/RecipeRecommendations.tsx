@@ -86,7 +86,7 @@ export function RecipeRecommendations() {
               key={recipe.id}
               className="bg-card rounded-xl p-3 border border-border flex gap-3"
             >
-              <img 
+              <SafeImage 
                 src={recipe.image} 
                 alt={recipe.name}
                 className="w-16 h-16 rounded-lg object-cover"

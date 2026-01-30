@@ -71,7 +71,7 @@ function CateringCartItem({ item, onRemove }: { item: CartItem; onRemove: () => 
       <div className="flex gap-3">
         {item.cateringImage && (
           <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
-            <img src={item.cateringImage} alt={item.cateringName} className="w-full h-full object-cover" />
+            <SafeImage src={item.cateringImage} alt={item.cateringName} className="w-full h-full object-cover" />
           </div>
         )}
         <div className="flex-1 min-w-0">
@@ -115,7 +115,7 @@ function FarmProductCartItem({ item, onRemove, onUpdateQuantity }: { item: CartI
       <div className="flex gap-3">
         {item.product?.image && (
           <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
-            <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
+            <SafeImage src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
           </div>
         )}
         <div className="flex-1 min-w-0">

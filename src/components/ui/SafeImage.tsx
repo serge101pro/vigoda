@@ -38,7 +38,7 @@ export const SafeImage = ({ src, alt, className, ...props }: SafeImageProps) => 
           <ImageOff size={20} className="opacity-20" />
         </div>
       ) : (
-        <img
+        <SafeImage
           {...props}
           src={finalSrc}
           alt={alt}

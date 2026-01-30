@@ -197,7 +197,7 @@ export default function UserRecipesPage() {
       <div className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
         <div className="h-32 bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center relative">
           {recipe.image ? (
-            <img src={recipe.image} alt={recipe.name} className="w-full h-full object-cover" />
+            <SafeImage src={recipe.image} alt={recipe.name} className="w-full h-full object-cover" />
           ) : (
             <span className="text-5xl">🍽️</span>
           )}

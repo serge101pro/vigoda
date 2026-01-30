@@ -30,7 +30,7 @@ export function UserHeader({ name, email, avatarUrl, plan = 'free', onEditProfil
       <div className="relative">
         <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center overflow-hidden">
           {avatarUrl ? (
-            <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
+            <SafeImage src={avatarUrl} alt={name} className="w-full h-full object-cover" />
           ) : (
             <span className="text-3xl font-bold text-primary-foreground">
               {name?.charAt(0).toUpperCase() || 'П'}

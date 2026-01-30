@@ -66,7 +66,7 @@ export function OnboardingPage() {
       {/* Hero Image */}
       <div className="relative h-[45vh] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background z-10" />
-        <img
+        <SafeImage
           src={heroImage}
           alt="Свежие продукты"
           className="w-full h-full object-cover"

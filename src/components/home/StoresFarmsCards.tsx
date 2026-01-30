@@ -8,7 +8,7 @@ export function StoresFarmsCards() {
     <div className="grid grid-cols-2 gap-3">
       <Link to="/stores" className="block">
         <div className="relative overflow-hidden rounded-2xl h-[72px]">
-          <img 
+          <SafeImage 
             src={storesBg} 
             alt="Stores" 
             className="absolute inset-0 w-full h-full object-cover"
@@ -30,7 +30,7 @@ export function StoresFarmsCards() {
       
       <Link to="/farms" className="block">
         <div className="relative overflow-hidden rounded-2xl h-[72px]">
-          <img 
+          <SafeImage 
             src={farmsBg} 
             alt="Farms" 
             className="absolute inset-0 w-full h-full object-cover"

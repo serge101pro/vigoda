@@ -107,7 +107,7 @@ export default function PromosPage() {
                 className="bg-card rounded-2xl border border-border hover:border-primary/50 transition-colors overflow-hidden"
               >
                 <div className="relative aspect-square">
-                  <img 
+                  <SafeImage 
                     src={product.image} 
                     alt={product.name}
                     className="w-full h-full object-cover"

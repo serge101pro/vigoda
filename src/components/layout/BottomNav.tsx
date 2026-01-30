@@ -23,7 +23,7 @@ export function BottomNav() {
           className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 overflow-hidden"
           activeClassName="ring-2 ring-primary/50"
         >
-          <img src={navHome} alt="Главная" className="h-7 w-7 object-contain" />
+          <SafeImage src={navHome} alt="Главная" className="h-7 w-7 object-contain" />
         </NavLink>
 
         {/* Catalog */}
@@ -32,7 +32,7 @@ export function BottomNav() {
           className="bottom-nav-item bottom-nav-item-inactive"
           activeClassName="bottom-nav-item-active"
         >
-          <img src={navCatalog} alt="Каталог" className="h-6 w-6 object-contain" />
+          <SafeImage src={navCatalog} alt="Каталог" className="h-6 w-6 object-contain" />
           <span className="mt-0.5 text-[10px] font-medium">Каталог</span>
         </NavLink>
 
@@ -42,7 +42,7 @@ export function BottomNav() {
           className="bottom-nav-item bottom-nav-item-inactive"
           activeClassName="bottom-nav-item-active"
         >
-          <img src={navRecipes} alt="Рецепты" className="h-6 w-6 object-contain" />
+          <SafeImage src={navRecipes} alt="Рецепты" className="h-6 w-6 object-contain" />
           <span className="mt-0.5 text-[10px] font-medium">Рецепты</span>
         </NavLink>
 
@@ -52,7 +52,7 @@ export function BottomNav() {
           className="bottom-nav-item bottom-nav-item-inactive"
           activeClassName="bottom-nav-item-active"
         >
-          <img src={navMeals} alt="Готовое" className="h-6 w-6 object-contain" />
+          <SafeImage src={navMeals} alt="Готовое" className="h-6 w-6 object-contain" />
           <span className="mt-0.5 text-[10px] font-medium">Готовое</span>
         </NavLink>
 
@@ -62,7 +62,7 @@ export function BottomNav() {
           className="bottom-nav-item bottom-nav-item-inactive"
           activeClassName="bottom-nav-item-active"
         >
-          <img src={navCatering} alt="Кейтеринг" className="h-6 w-6 object-contain" />
+          <SafeImage src={navCatering} alt="Кейтеринг" className="h-6 w-6 object-contain" />
           <span className="mt-0.5 text-[10px] font-medium">Кейтеринг</span>
         </NavLink>
 
@@ -72,7 +72,7 @@ export function BottomNav() {
           className="relative flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 overflow-hidden"
           activeClassName="ring-2 ring-primary/50"
         >
-          <img src={navCart} alt="Корзина" className="h-7 w-7 object-contain" />
+          <SafeImage src={navCart} alt="Корзина" className="h-7 w-7 object-contain" />
           {cartItemsCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
               {cartItemsCount > 99 ? '99+' : cartItemsCount}

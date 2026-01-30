@@ -66,7 +66,7 @@ export function FlashDealCard({
     >
       <div className="flex items-center gap-3 mb-2">
         <div className="w-14 h-14 rounded-lg bg-white/20 flex items-center justify-center overflow-hidden">
-          <img 
+          <SafeImage 
             src={product.image} 
             alt={product.name}
             className="w-full h-full object-cover"

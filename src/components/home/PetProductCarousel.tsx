@@ -63,7 +63,7 @@ export function PetProductCarousel({ products, rows = 1 }: PetProductCarouselPro
                   <Link to={`/product/${product.id}`}>
                     <div className="bg-card rounded-2xl border border-border overflow-hidden">
                       <div className="relative aspect-square bg-muted">
-                        <img
+                        <SafeImage
                           src={product.image}
                           alt={product.name}
                           className="w-full h-full object-cover"

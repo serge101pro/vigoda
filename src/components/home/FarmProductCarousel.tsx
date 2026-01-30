@@ -49,7 +49,7 @@ function FarmProductCard({ product }: { product: FarmProduct }) {
 
       {/* Image */}
       <Link to={`/farm-product/${product.id}`} className="block aspect-square mb-3 rounded-xl overflow-hidden bg-muted">
-        <img
+        <SafeImage
           src={product.image}
           alt={product.name}
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"

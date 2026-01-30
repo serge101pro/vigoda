@@ -46,7 +46,7 @@ export function CateringCarousel({ offers, rows = 1 }: CateringCarouselProps) {
               className="flex-shrink-0 w-64 bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/30 transition-colors"
             >
               <div className="relative h-36">
-                <img src={offer.image} alt={offer.title} className="w-full h-full object-cover" />
+                <SafeImage src={offer.image} alt={offer.title} className="w-full h-full object-cover" />
                 <span className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium ${categoryColors[offer.category]}`}>
                   {categoryLabels[offer.category]}
                 </span>

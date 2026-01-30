@@ -62,7 +62,7 @@ export default function PromoDetailPage() {
       {/* Main Image */}
       <section className="relative">
         <div className="aspect-square bg-muted">
-          <img 
+          <SafeImage 
             src={promoProduct.image} 
             alt={promoProduct.name}
             className="w-full h-full object-cover"
@@ -137,7 +137,7 @@ export default function PromoDetailPage() {
               className="flex-shrink-0 w-36 bg-card rounded-xl border border-border overflow-hidden"
             >
               <div className="aspect-square bg-muted relative">
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                <SafeImage src={product.image} alt={product.name} className="w-full h-full object-cover" />
                 {product.oldPrice && (
                   <Badge className="absolute top-2 left-2 bg-destructive text-xs">
                     -{Math.round((1 - product.price / product.oldPrice) * 100)}%

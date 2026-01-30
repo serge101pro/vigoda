@@ -142,7 +142,7 @@ export default function FavoritesPage() {
                     return viewMode === 'grid' ? (
                       <div key={favorite.id} className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
                         <div className="relative aspect-square">
-                          <img src={product.image || ''} alt={product.name} className="w-full h-full object-cover" />
+                          <SafeImage src={product.image || ''} alt={product.name} className="w-full h-full object-cover" />
                           <Button
                             variant="ghost"
                             size="icon"
@@ -175,7 +175,7 @@ export default function FavoritesPage() {
                       </div>
                     ) : (
                       <div key={favorite.id} className="bg-card rounded-xl p-3 flex items-center gap-4 shadow-sm border border-border">
-                        <img src={product.image || ''} alt={product.name} className="w-20 h-20 rounded-lg object-cover" />
+                        <SafeImage src={product.image || ''} alt={product.name} className="w-20 h-20 rounded-lg object-cover" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-muted-foreground">{product.category}</p>
                           <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
@@ -220,7 +220,7 @@ export default function FavoritesPage() {
                       <Link key={favorite.id} to={`/recipes/${recipe.id}`}>
                         <div className="bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:shadow-lg transition-shadow">
                           <div className="relative h-40">
-                            <img src={recipe.image || ''} alt={recipe.name} className="w-full h-full object-cover" />
+                            <SafeImage src={recipe.image || ''} alt={recipe.name} className="w-full h-full object-cover" />
                             <Button
                               variant="ghost"
                               size="icon"

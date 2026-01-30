@@ -142,7 +142,7 @@ export default function CateringPage() {
 
       {/* Hero */}
       <section className="relative h-48 overflow-hidden">
-        <img 
+        <SafeImage 
           src="https://images.unsplash.com/photo-1555244162-803834f70033?w=800&q=80"
           alt="Кейтеринг"
           className="w-full h-full object-cover"
@@ -205,7 +205,7 @@ export default function CateringPage() {
                 onClick={() => navigate(`/catering/home-${pkg.id}`)}
               >
                 <div className="relative h-40">
-                  <img src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
+                  <SafeImage src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
                   {pkg.popular && (
                     <Badge className="absolute top-3 left-3 bg-primary">Популярное</Badge>
                   )}
@@ -243,7 +243,7 @@ export default function CateringPage() {
                 onClick={() => navigate(`/catering/office-${pkg.id}`)}
               >
                 <div className="relative h-40">
-                  <img src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
+                  <SafeImage src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
                   {pkg.popular && (
                     <Badge className="absolute top-3 left-3 bg-primary">Популярное</Badge>
                   )}
@@ -282,7 +282,7 @@ export default function CateringPage() {
                   className="bg-card rounded-xl border border-border overflow-hidden text-left hover:border-primary/50 transition-all"
                 >
                   <div className="relative h-24">
-                    <img src={event.image} alt={event.name} className="w-full h-full object-cover" />
+                    <SafeImage src={event.image} alt={event.name} className="w-full h-full object-cover" />
                     <span className="absolute top-2 left-2 text-2xl">{event.emoji}</span>
                   </div>
                   <div className="p-3">

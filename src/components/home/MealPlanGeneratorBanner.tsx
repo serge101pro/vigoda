@@ -27,7 +27,7 @@ export function MealPlanGeneratorBanner() {
     <Link to="/meal-plan-generator" onClick={handleClick} className="block">
       <div className="relative overflow-hidden rounded-2xl h-[140px]">
         {/* Background Image */}
-        <img 
+        <SafeImage 
           src={mealPlanGeneratorBg} 
           alt="Meal Plan Generator" 
           className="absolute inset-0 w-full h-full object-cover"

@@ -46,7 +46,7 @@ export function PromoBanner({
         </Link>
       </div>
       <div className="absolute right-0 top-0 bottom-0 w-[45%]">
-        <img
+        <SafeImage
           src={image}
           alt={title}
           className="w-full h-full object-cover object-center"

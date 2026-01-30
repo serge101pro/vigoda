@@ -120,7 +120,7 @@ export default function FarmProductsPage() {
       {/* Hero Banner */}
       <section className="px-4 py-4">
         <div className="relative h-36 rounded-2xl overflow-hidden">
-          <img 
+          <SafeImage 
             src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80"
             alt="Фермерские продукты"
             className="w-full h-full object-cover"
@@ -166,7 +166,7 @@ export default function FarmProductsPage() {
               className="flex-shrink-0 w-64 bg-card rounded-xl border border-border overflow-hidden"
             >
               <div className="relative h-24">
-                <img src={farm.image} alt={farm.name} className="w-full h-full object-cover" />
+                <SafeImage src={farm.image} alt={farm.name} className="w-full h-full object-cover" />
                 {farm.verified && (
                   <Badge className="absolute top-2 right-2 bg-primary text-xs">
                     ✓ Проверено
@@ -235,7 +235,7 @@ export default function FarmProductsPage() {
               className="bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors"
             >
               <div className="relative aspect-square">
-                <img 
+                <SafeImage 
                   src={product.image} 
                   alt={product.name}
                   className="w-full h-full object-cover"

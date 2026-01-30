@@ -41,7 +41,7 @@ export function HeaderAvatar({ size = 'md' }: HeaderAvatarProps) {
       className={`${sizeClasses[size]} rounded-full bg-primary flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ${borderColor}`}
     >
       {profile?.avatar_url ? (
-        <img 
+        <SafeImage 
           src={profile.avatar_url} 
           alt="Avatar" 
           className="w-full h-full object-cover"

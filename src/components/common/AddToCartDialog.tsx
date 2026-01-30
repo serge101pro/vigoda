@@ -108,7 +108,7 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
           
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <img src={product.image} alt={product.name} className="w-20 h-20 rounded-xl object-cover" />
+              <SafeImage src={product.image} alt={product.name} className="w-20 h-20 rounded-xl object-cover" />
               <div className="flex-1">
                 <p className="font-semibold">{product.name}</p>
                 <p className="text-primary font-bold">{product.price} ₽/{product.unit}</p>
@@ -167,7 +167,7 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
           
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <img src={recipe.image} alt={recipe.name} className="w-20 h-20 rounded-xl object-cover" />
+              <SafeImage src={recipe.image} alt={recipe.name} className="w-20 h-20 rounded-xl object-cover" />
               <div className="flex-1">
                 <p className="font-semibold">{recipe.name}</p>
                 <p className="text-sm text-muted-foreground">{recipe.ingredients.length} ингредиентов</p>
@@ -222,7 +222,7 @@ export function AddToCartDialog({ open, onOpenChange, type, product, recipe, mea
           
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <img src={mealPlan.image} alt={mealPlan.name} className="w-20 h-20 rounded-xl object-cover" />
+              <SafeImage src={mealPlan.image} alt={mealPlan.name} className="w-20 h-20 rounded-xl object-cover" />
               <div className="flex-1">
                 <p className="font-semibold">{mealPlan.name}</p>
                 <p className="text-sm text-muted-foreground">{mealPlan.days} дней, {mealPlan.mealsPerDay} приёмов пищи</p>

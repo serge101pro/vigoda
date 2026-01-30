@@ -137,7 +137,7 @@ export default function CateringDetailPage() {
       {/* Main Image */}
       <section className="relative">
         <div className="aspect-video bg-muted">
-          <img 
+          <SafeImage 
             src={offer.image} 
             alt={offer.title}
             className="w-full h-full object-cover"
@@ -295,7 +295,7 @@ export default function CateringDetailPage() {
                 className="flex-shrink-0 w-48 bg-card rounded-xl border border-border overflow-hidden"
               >
                 <div className="aspect-video bg-muted">
-                  <img src={similar.image} alt={similar.title} className="w-full h-full object-cover" />
+                  <SafeImage src={similar.image} alt={similar.title} className="w-full h-full object-cover" />
                 </div>
                 <div className="p-3">
                   <p className="font-medium line-clamp-1 mb-1">{similar.title}</p>

@@ -92,7 +92,7 @@ export function CategoryChipsCarousel({ initialExpanded = true, showHeader = tru
               to={`/catalog?category=${cat.slug}`}
               className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-muted transition-all"
             >
-              <img 
+              <SafeImage 
                 src={cat.icon} 
                 alt={cat.name} 
                 className="w-8 h-8 object-contain rounded"
@@ -110,7 +110,7 @@ export function CategoryChipsCarousel({ initialExpanded = true, showHeader = tru
               to={`/catalog?category=${cat.slug}`}
               className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-muted transition-all"
             >
-              <img 
+              <SafeImage 
                 src={cat.icon} 
                 alt={cat.name} 
                 className="w-8 h-8 object-contain rounded"
@@ -158,7 +158,7 @@ export function CategoryChipsCarousel({ initialExpanded = true, showHeader = tru
                 to={`/catalog?category=${cat.slug}`}
                 className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-muted transition-all"
               >
-                <img 
+                <SafeImage 
                   src={cat.icon} 
                   alt={cat.name} 
                   className="w-8 h-8 object-contain rounded"
@@ -176,7 +176,7 @@ export function CategoryChipsCarousel({ initialExpanded = true, showHeader = tru
                 to={`/catalog?category=${cat.slug}`}
                 className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-xl hover:border-primary/50 hover:bg-muted transition-all"
               >
-                <img 
+                <SafeImage 
                   src={cat.icon} 
                   alt={cat.name} 
                   className="w-8 h-8 object-contain rounded"

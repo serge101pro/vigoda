@@ -15,7 +15,7 @@ export function BusinessWidget({ hasOrganization, organizationName, balance }: B
     return (
       <Link to="/organization">
         <div className="relative overflow-hidden rounded-2xl h-[140px]">
-          <img 
+          <SafeImage 
             src={businessBg} 
             alt="Business" 
             className="absolute inset-0 w-full h-full object-cover"
@@ -54,7 +54,7 @@ export function BusinessWidget({ hasOrganization, organizationName, balance }: B
   // User is not part of organization - show promotional widget
   return (
     <div className="relative overflow-hidden rounded-2xl h-[140px]">
-      <img 
+      <SafeImage 
         src={businessBg} 
         alt="Business" 
         className="absolute inset-0 w-full h-full object-cover"

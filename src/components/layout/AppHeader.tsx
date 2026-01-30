@@ -20,12 +20,12 @@ export function AppHeader() {
           <div className="flex items-center gap-1">
             <Link to="/nearest-stores">
               <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 overflow-hidden">
-                <img src={actionLocation} alt="Магазины" className="h-6 w-6 object-contain" />
+                <SafeImage src={actionLocation} alt="Магазины" className="h-6 w-6 object-contain" />
               </Button>
             </Link>
             <Link to="/favorites">
               <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 overflow-hidden">
-                <img src={actionHeart} alt="Избранное" className="h-6 w-6 object-contain" />
+                <SafeImage src={actionHeart} alt="Избранное" className="h-6 w-6 object-contain" />
               </Button>
             </Link>
             <ThemeToggle />

@@ -8,7 +8,7 @@ export function CulinaryClubBanner() {
     <Link to="/social-recipes" className="block">
       <div className="relative overflow-hidden rounded-2xl h-[140px]">
         {/* Background Image */}
-        <img 
+        <SafeImage 
           src={culinaryClubBg} 
           alt="Culinary Club" 
           className="absolute inset-0 w-full h-full object-cover"

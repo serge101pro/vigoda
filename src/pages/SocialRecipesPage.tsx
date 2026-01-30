@@ -304,7 +304,7 @@ export default function SocialRecipesPage() {
               {/* Image */}
               <Link to={`/recipes/${recipe.id}`}>
                 <div className="relative aspect-[4/3]">
-                  <img
+                  <SafeImage
                     src={recipe.image}
                     alt={recipe.title}
                     className="w-full h-full object-cover"
@@ -393,7 +393,7 @@ export default function SocialRecipesPage() {
               className="bg-card rounded-2xl border border-border overflow-hidden"
             >
               <div className="relative h-32">
-                <img
+                <SafeImage
                   src={challenge.image}
                   alt={challenge.title}
                   className="w-full h-full object-cover"

@@ -1,3 +1,4 @@
+import { SafeImage } from '@/components/ui/SafeImage';
 import { useState } from 'react';
 import { ArrowLeft, Search, Plus, Clock, Users, Heart, Eye, MessageCircle, Share2, Check, Flame, Trophy, Store, ShoppingCart, Utensils, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -147,7 +148,7 @@ export default function RecipesPage() {
       <div className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
         <div className="relative h-40 bg-gradient-to-br from-accent to-accent/80">
           {recipe.imageUrl ? (
-            <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
+            <SafeImage src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <span className="text-6xl">{recipe.emoji}</span>
@@ -248,7 +249,7 @@ export default function RecipesPage() {
                 {extendedMealPlans.slice(0, 4).map(plan => (
                   <Link key={plan.id} to={`/meal-plan/${plan.id}`} className="bg-card rounded-xl overflow-hidden min-w-[200px] border border-border">
                     <div className="h-24 relative">
-                      <img src={plan.image} alt={plan.name} className="w-full h-full object-cover" />
+                      <SafeImage src={plan.image} alt={plan.name} className="w-full h-full object-cover" />
                       {plan.discount && (
                         <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
                           -{plan.discount}%
@@ -444,7 +445,7 @@ function ExtendedRecipeCard({ recipe }: { recipe: typeof extendedRecipes[0] }) {
     <Link to={`/recipe/${recipe.id}`} className="block">
       <div className="card-product animate-fade-in">
         <div className="aspect-video rounded-xl overflow-hidden mb-3 relative">
-          <img
+          <SafeImage
             src={recipe.image}
             alt={recipe.name}
             className="w-full h-full object-cover"

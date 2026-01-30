@@ -370,7 +370,7 @@ export default function ReadyMealsPage() {
               {mealPlans.map((plan) => (
                 <Link key={plan.id} to={`/meal-plan/${plan.id}`} className="block bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/50 transition-colors">
                   <div className="relative h-44">
-                    <img src={plan.image} alt={plan.name} className="w-full h-full object-cover" />
+                    <SafeImage src={plan.image} alt={plan.name} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
                     {plan.isPopular && (
                       <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground">
@@ -621,7 +621,7 @@ export default function ReadyMealsPage() {
                     className="bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/50 transition-colors"
                   >
                     <div className="relative h-40">
-                      <img src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
+                      <SafeImage src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
                       {meal.oldPrice && (
                         <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
                           -{Math.round((1 - meal.price / meal.oldPrice) * 100)}%

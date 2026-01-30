@@ -84,7 +84,7 @@ export function AvatarUpload({ size = 'md', onUploadComplete }: AvatarUploadProp
     <div className="relative">
       <div className={`${sizeClasses[size]} rounded-full bg-primary flex items-center justify-center overflow-hidden`}>
         {profile?.avatar_url ? (
-          <img 
+          <SafeImage 
             src={profile.avatar_url} 
             alt="Avatar" 
             className="w-full h-full object-cover"

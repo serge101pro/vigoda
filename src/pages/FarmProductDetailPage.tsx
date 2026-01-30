@@ -64,7 +64,7 @@ export default function FarmProductDetailPage() {
       {/* Main Image */}
       <section className="relative">
         <div className="aspect-square bg-muted">
-          <img 
+          <SafeImage 
             src={product.images[selectedImage]} 
             alt={product.name}
             className="w-full h-full object-cover"
@@ -93,7 +93,7 @@ export default function FarmProductDetailPage() {
                   selectedImage === idx ? 'border-primary' : 'border-background'
                 }`}
               >
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <SafeImage src={img} alt="" className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
@@ -255,7 +255,7 @@ export default function FarmProductDetailPage() {
                 className="flex-shrink-0 w-40 bg-card rounded-xl border border-border overflow-hidden"
               >
                 <div className="aspect-square bg-muted relative">
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                  <SafeImage src={p.image} alt={p.name} className="w-full h-full object-cover" />
                   {p.oldPrice && (
                     <Badge className="absolute top-2 left-2 bg-destructive text-xs">
                       -{Math.round((1 - p.price / p.oldPrice) * 100)}%
@@ -288,7 +288,7 @@ export default function FarmProductDetailPage() {
               className="flex-shrink-0 w-40 bg-card rounded-xl border border-border overflow-hidden"
             >
               <div className="aspect-square bg-muted">
-                <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                <SafeImage src={p.image} alt={p.name} className="w-full h-full object-cover" />
               </div>
               <div className="p-3">
                 <p className="text-sm font-medium line-clamp-2 mb-1">{p.name}</p>

@@ -68,7 +68,7 @@ export function LazyImage({
       
       {/* Actual image */}
       {isInView && (
-        <img
+        <SafeImage
           src={hasError ? '/placeholder.svg' : src}
           alt={alt}
           className={cn(

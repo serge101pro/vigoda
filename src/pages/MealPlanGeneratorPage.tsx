@@ -203,7 +203,7 @@ export default function MealPlanGeneratorPage() {
                       className="bg-white text-black border-none rounded-[2rem] overflow-hidden shadow-2xl flex items-center cursor-pointer active:scale-[0.98] transition-all" 
                       onClick={() => setSelectedMeal(m.items?.[0])}
                     >
-                      <img src={m.items?.[0]?.imageUrl} className="w-28 h-28 object-cover" alt="food" />
+                      <SafeImage src={m.items?.[0]?.imageUrl} className="w-28 h-28 object-cover" alt="food" />
                       <div className="p-5 flex-1 min-w-0">
                         <p className="text-[10px] font-black text-[#00b27a] uppercase mb-1">{m.type}</p>
                         <h4 className="font-bold text-base leading-snug truncate">{m.items?.[0]?.name}</h4>
@@ -227,7 +227,7 @@ export default function MealPlanGeneratorPage() {
           {selectedMeal && (
             <div className="pb-10">
               <div className="relative">
-                <img src={selectedMeal.imageUrl} className="w-full h-80 object-cover" alt="meal" />
+                <SafeImage src={selectedMeal.imageUrl} className="w-full h-80 object-cover" alt="meal" />
                 <div className="absolute top-4 right-4">
                   <Button size="icon" className="rounded-full bg-white/90 text-red-500 hover:bg-white" onClick={() => handleSaveToFavorites(selectedMeal)}>
                     <Heart size={24} />
