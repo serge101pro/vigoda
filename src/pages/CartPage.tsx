@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ArrowLeft, Trash2, ShoppingBag, Zap, Clock, Scale, MapPin, ChevronRight, Tag, Percent, Users, Utensils, Leaf, Package, UtensilsCrossed } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Trash2, ShoppingBag, Zap, Clock, Scale, MapPin, ChevronRight, Tag, Sparkles, Loader2, Package, Utensils, UtensilsCrossed, Leaf, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,10 @@ import { ProductCard } from '@/components/products/ProductCard';
 import { AggregatedIngredientsSection } from '@/components/cart/AggregatedIngredientsSection';
 import { RecipeRecommendations } from '@/components/cart/RecipeRecommendations';
 import { Badge } from '@/components/ui/badge';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useCart, CartItemDB } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const strategies = [
   {
@@ -127,13 +131,70 @@ function FarmProductCartItem({ item, onRemove, onUpdateQuantity }: { item: CartI
   );
 }
 
+// DB Cart item for optimized display
+function DBCartItem({ item, onRemove, onUpdateQuantity }: { 
+  item: CartItemDB; 
+  onRemove: () => void; 
+  onUpdateQuantity: (qty: number) => void;
+}) {
+  const displayQuantity = item.is_optimized 
+    ? `${item.quantity} ${item.unit || 'шт'} (${item.packs_count || 1} уп.)`
+    : `${item.quantity} ${item.unit || 'шт'}`;
+
+  return (
+    <div className="bg-card rounded-2xl border border-border p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold text-foreground text-sm line-clamp-1">{item.name}</h4>
+            {item.is_optimized && (
+              <Badge className="bg-green-500/10 text-green-600 text-xs">
+                <Sparkles className="h-3 w-3 mr-1" />
+                AI
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">{displayQuantity}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon-sm" onClick={() => onUpdateQuantity(item.quantity - 1)}>-</Button>
+            <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+            <Button variant="outline" size="icon-sm" onClick={() => onUpdateQuantity(item.quantity + 1)}>+</Button>
+          </div>
+          <Button variant="ghost" size="icon-sm" onClick={onRemove} className="text-destructive">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CartPage() {
-  const { cart, cartStrategy, setCartStrategy, clearCart, updateQuantity, removeFromCart } = useAppStore();
+  const { user } = useAuth();
+  const { cart, cartStrategy, setCartStrategy, clearCart: clearLocalCart, updateQuantity, removeFromCart } = useAppStore();
+  const { isPremium, loading: subscriptionLoading } = useSubscription();
+  const { 
+    items: dbItems, 
+    groupedItems: dbGroupedItems, 
+    loading: cartLoading, 
+    optimizing, 
+    optimizeCart, 
+    removeItem: removeDbItem,
+    updateItemQuantity: updateDbItemQuantity,
+    clearCart: clearDbCart,
+    refetch: refetchCart
+  } = useCart();
+  
   const [showStrategySelector, setShowStrategySelector] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number } | null>(null);
 
-  // Group cart items by type
+  // Use DB items if user is logged in, otherwise use local cart
+  const useDbCart = !!user && dbItems.length > 0;
+
+  // Group cart items by type (for local cart)
   const groupedItems = cart.reduce((acc, item) => {
     if (!acc[item.type]) acc[item.type] = [];
     acc[item.type].push(item);
@@ -192,7 +253,37 @@ export default function CartPage() {
     }
   };
 
-  if (cart.length === 0) {
+  const handleOptimize = async () => {
+    if (!user) {
+      toast.error('Войдите в систему для использования AI-оптимизации');
+      return;
+    }
+
+    if (!isPremium) {
+      toast.error('AI-оптимизация доступна только для Premium пользователей', {
+        description: 'Перейдите на платный тариф для доступа к этой функции',
+        action: {
+          label: 'Подробнее',
+          onClick: () => window.location.href = '/profile/premium'
+        }
+      });
+      return;
+    }
+
+    await optimizeCart();
+  };
+
+  const handleClearCart = async () => {
+    if (user && dbItems.length > 0) {
+      await clearDbCart();
+    }
+    clearLocalCart();
+  };
+
+  // Show empty state if both carts are empty
+  const isEmpty = cart.length === 0 && dbItems.length === 0;
+
+  if (isEmpty && !cartLoading) {
     return (
       <div className="page-container flex flex-col items-center justify-center px-4">
         <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
@@ -225,13 +316,36 @@ export default function CartPage() {
               </Link>
               <h1 className="text-xl font-bold text-foreground">Корзина</h1>
             </div>
-            <Button variant="ghost" size="sm" onClick={clearCart} className="text-destructive">
+            <Button variant="ghost" size="sm" onClick={handleClearCart} className="text-destructive">
               <Trash2 className="h-4 w-4 mr-1" />
               Очистить
             </Button>
           </div>
         </div>
       </header>
+
+      {/* AI Optimization Button */}
+      <section className="px-4 pt-4">
+        <Button
+          onClick={handleOptimize}
+          disabled={optimizing || (!dbItems.length && !cart.length)}
+          className={`w-full ${isPremium ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : 'bg-muted text-muted-foreground'}`}
+          size="lg"
+        >
+          {optimizing ? (
+            <>
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              Оптимизация...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-5 w-5 mr-2" />
+              Оптимизировать (AI)
+              {!isPremium && <Badge className="ml-2 bg-white/20">Premium</Badge>}
+            </>
+          )}
+        </Button>
+      </section>
 
       {/* Strategy Selector - only show if there are store products */}
       {storeProducts.length > 0 && (
@@ -284,70 +398,106 @@ export default function CartPage() {
         </section>
       )}
 
+      {/* DB Cart Items (grouped by category) */}
+      {useDbCart && (
+        <section className="px-4 pt-4 space-y-6">
+          {cartLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            Object.entries(dbGroupedItems).map(([category, items]) => (
+              <div key={category} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-primary/10 text-primary">
+                    <Package className="h-3 w-3 mr-1" />
+                    {category}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">({items.length})</span>
+                </div>
+                
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <DBCartItem
+                      key={item.id}
+                      item={item}
+                      onRemove={() => removeDbItem(item.id)}
+                      onUpdateQuantity={(qty) => updateDbItemQuantity(item.id, qty)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </section>
+      )}
+
       {/* Aggregated Ingredients */}
       <AggregatedIngredientsSection />
 
       {/* Recipe Recommendations */}
       <RecipeRecommendations />
 
-      {/* Grouped Cart Items */}
-      <section className="px-4 pt-4 space-y-6">
-        {Object.entries(groupedItems).map(([type, items]) => {
-          const config = CART_TYPE_CONFIG[type] || { label: 'Прочее', icon: Package, color: 'bg-gray-500/10 text-gray-600' };
-          const Icon = config.icon;
-          
-          return (
-            <div key={type} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Badge className={config.color}>
-                  <Icon className="h-3 w-3 mr-1" />
-                  {config.label}
-                </Badge>
-                <span className="text-sm text-muted-foreground">({items.length})</span>
-                {STORE_PRODUCT_TYPES.includes(type) && (
-                  <Badge variant="outline" className="text-xs ml-auto">
-                    <Zap className="h-3 w-3 mr-1" />
-                    Оптимизация
+      {/* Grouped Cart Items (local cart) */}
+      {!useDbCart && cart.length > 0 && (
+        <section className="px-4 pt-4 space-y-6">
+          {Object.entries(groupedItems).map(([type, items]) => {
+            const config = CART_TYPE_CONFIG[type] || { label: 'Прочее', icon: Package, color: 'bg-gray-500/10 text-gray-600' };
+            const Icon = config.icon;
+            
+            return (
+              <div key={type} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge className={config.color}>
+                    <Icon className="h-3 w-3 mr-1" />
+                    {config.label}
                   </Badge>
-                )}
+                  <span className="text-sm text-muted-foreground">({items.length})</span>
+                  {STORE_PRODUCT_TYPES.includes(type) && (
+                    <Badge variant="outline" className="text-xs ml-auto">
+                      <Zap className="h-3 w-3 mr-1" />
+                      Оптимизация
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  {items.map((item) => {
+                    if (type === 'catering') {
+                      return (
+                        <CateringCartItem 
+                          key={item.id} 
+                          item={item} 
+                          onRemove={() => removeFromCart(item.id)} 
+                        />
+                      );
+                    }
+                    
+                    if (type === 'farm-product') {
+                      return (
+                        <FarmProductCartItem 
+                          key={item.id} 
+                          item={item} 
+                          onRemove={() => removeFromCart(item.id)}
+                          onUpdateQuantity={(qty) => updateQuantity(item.id, qty)}
+                        />
+                      );
+                    }
+                    
+                    if (item.product) {
+                      return (
+                        <ProductCard key={item.id} product={item.product} variant="horizontal" />
+                      );
+                    }
+                    
+                    return null;
+                  })}
+                </div>
               </div>
-              
-              <div className="space-y-2">
-                {items.map((item) => {
-                  if (type === 'catering') {
-                    return (
-                      <CateringCartItem 
-                        key={item.id} 
-                        item={item} 
-                        onRemove={() => removeFromCart(item.id)} 
-                      />
-                    );
-                  }
-                  
-                  if (type === 'farm-product') {
-                    return (
-                      <FarmProductCartItem 
-                        key={item.id} 
-                        item={item} 
-                        onRemove={() => removeFromCart(item.id)}
-                        onUpdateQuantity={(qty) => updateQuantity(item.id, qty)}
-                      />
-                    );
-                  }
-                  
-                  if (item.product) {
-                    return (
-                      <ProductCard key={item.id} product={item.product} variant="horizontal" />
-                    );
-                  }
-                  
-                  return null;
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </section>
+            );
+          })}
+        </section>
+      )}
 
       {/* Promo Code */}
       <section className="px-4 pt-4">
@@ -410,7 +560,7 @@ export default function CartPage() {
           </Link>
         )}
         <Link to="/checkout" className="block">
-          <Button variant="hero" size="xl" className="w-full">
+          <Button variant="hero" size="lg" className="w-full">
             Оформить заказ • {finalTotal.toLocaleString()} ₽
           </Button>
         </Link>
