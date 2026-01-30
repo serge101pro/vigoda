@@ -277,7 +277,7 @@ export default function HomePage() {
 
       {/* Popular Recipes - After Culinary Club */}
       <section className="pt-6">
-        <CollapsibleSection title="Популярные рецепты" linkText="Все" linkTo="/recipes" initialExpanded={false}>
+        <CollapsibleSection title="Популярные рецепты" linkText="Все" linkTo="/recipes" initialExpanded={!allSectionsCollapsed}>
           <RecipeCarousel recipes={popularRecipes} />
         </CollapsibleSection>
       </section>

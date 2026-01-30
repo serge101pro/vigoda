@@ -768,6 +768,33 @@ export type Database = {
         }
         Relationships: []
       }
+      product_rules: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+          pack_size: number
+          unit: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          pack_size: number
+          unit: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          pack_size?: number
+          unit?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           badge: string | null

@@ -57,7 +57,7 @@ export function CategoryChipsCarousel({ initialExpanded = true }: CategoryChipsC
     <div className="space-y-3">
       {/* Header with collapse toggle */}
       <div className="flex items-center justify-between px-4">
-        <h2 className="text-lg font-bold text-foreground">Продукты</h2>
+        <h2 className="text-lg font-bold text-foreground">Категории</h2>
         <div className="flex items-center gap-2">
           <Link to="/catalog" className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
             Все
