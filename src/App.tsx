@@ -64,6 +64,7 @@ import NearestStoresPage from "@/pages/NearestStoresPage";
 import ShoppingRoutePage from "@/pages/ShoppingRoutePage";
 import DailyDealsPage from "@/pages/DailyDealsPage";
 import CheckoutPage from "@/pages/CheckoutPage";
+import MealPlanGeneratorPage from "@/pages/MealPlanGeneratorPage";
 import BusinessLandingPage from "@/pages/BusinessLandingPage";
 import OrganizationDashboardPage from "@/pages/organization/OrganizationDashboardPage";
 import OrganizationAnalyticsPage from "@/pages/organization/OrganizationAnalyticsPage";
@@ -130,6 +131,7 @@ function AppRoutes() {
           <Route path="/nearest-stores" element={<NearestStoresPage />} />
           <Route path="/shopping-route" element={<ShoppingRoutePage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/meal-plan-generator" element={<MealPlanGeneratorPage />} />
           <Route path="/business" element={<BusinessLandingPage />} />
           <Route path="/organization" element={<OrganizationDashboardPage />} />
           <Route path="/organization/analytics" element={<OrganizationAnalyticsPage />} />
