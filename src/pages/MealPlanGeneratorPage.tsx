@@ -1,20 +1,7 @@
 import { useState } from 'react';
 import { 
-  Sparkles, 
-  Loader2, 
-  ChefHat, 
-  Heart, 
-  Save, 
-  Utensils, 
-  Info, 
-  Soup, 
-  Zap, 
-  ChevronDown, 
-  Download, 
-  Apple, 
-  Coffee, 
-  Sun, 
-  Moon 
+  Sparkles, Loader2, ChefHat, Heart, Save, Utensils, 
+  Info, Soup, Zap, Coffee, Sun, Moon 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,8 +52,8 @@ export default function MealPlanGeneratorPage() {
     cuisines: ['it', 'ru'],
     diets: ['lowcarb'],
     calories: '1650',
-    allergies: 'орехи, морепрод',
-    servings: 3,
+    allergies: '',
+    servings: 2,
     soupOption: 'lnc',
     days: '3',
     meals: MEAL_TIMES.reduce((acc, m) => ({ ...acc, [m.id]: { enabled: true, count: 1 } }), {} as any)
@@ -74,36 +61,33 @@ export default function MealPlanGeneratorPage() {
 
   const handleGenerate = async () => {
     setIsGenerating(true);
-    setProgress(20);
+    setProgress(15);
     try {
-      // Теперь мы просто вызываем функцию. 
-      // Вся логика поиска картинок и сохранения в Storage перенесена внутрь Edge Function
       const { data, error } = await supabase.functions.invoke('generate-meal-plan', { 
-        body: { 
-          prompt_params: formData,
-          include_images: true // Флаг для сервера, чтобы он сам скачал фото
-        } 
+        body: { prompt_params: formData } 
       });
 
       if (error) throw error;
-      setProgress(100);
+      if (!data?.plan) throw new Error("Ошибка формата данных");
 
-      // В ответе (data.plan) ссылки imageUrl уже должны вести на ВАШ Supabase Storage
       setPlan(data.plan);
-      toast.success('Меню создано! Фото загружены через сервер.');
+      toast.success('План питания успешно сформирован!');
     } catch (e: any) {
       console.error(e);
-      toast.error('Ошибка сервера. Попробуйте позже или используйте VPN.');
+      toast.error('Проблема со связью. Попробуйте обновить страницу или использовать VPN/Cloudflare.');
     } finally {
       setIsGenerating(false);
       setProgress(0);
     }
   };
 
-  const saveToFavorites = async (meal: any) => {
+  const handleSaveToFavorites = async (meal: any) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return toast.error("Войдите в систему");
+      if (!user) {
+        toast.error("Пожалуйста, войдите в систему");
+        return;
+      }
 
       const { error } = await supabase.from('favorites').insert({
         user_id: user.id,
@@ -113,42 +97,38 @@ export default function MealPlanGeneratorPage() {
       });
 
       if (error) throw error;
-      toast.success("Сохранено!");
-    } catch (e) {
-      toast.error("Ошибка сохранения");
+      toast.success("Рецепт сохранен в избранное!");
+    } catch (e: any) {
+      toast.error("Не удалось сохранить. Возможно, рецепт уже есть в списке.");
     }
   };
 
   return (
     <div className="max-w-md mx-auto bg-[#00b27a] min-h-screen text-white pb-24 font-sans">
-      <header className="p-4 flex items-center gap-3">
-        <div className="bg-white/20 p-2 rounded-xl"><Sparkles size={20}/></div>
-        <div>
-          <h1 className="font-bold text-lg leading-none">Smart Menu</h1>
-          <p className="text-[10px] opacity-70">Генерация без прямого обращения к API фото</p>
-        </div>
+      <header className="p-4 flex items-center gap-3 bg-[#00b27a] sticky top-0 z-10">
+        <Sparkles className="text-white" />
+        <h1 className="font-bold text-xl tracking-tight">AI Нутрициолог</h1>
       </header>
 
       {isGenerating ? (
-        <div className="p-10 text-center space-y-6">
-          <Loader2 className="animate-spin mx-auto h-12 w-12 opacity-40" />
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Сервер подготавливает план и загружает файлы...</p>
-            <Progress value={progress} className="h-1 bg-white/20" />
+        <div className="p-12 text-center space-y-8 animate-in fade-in">
+          <Loader2 className="animate-spin mx-auto h-16 w-16 opacity-50" />
+          <div className="space-y-4">
+            <Progress value={progress} className="h-1.5 bg-white/20" />
+            <p className="text-sm font-medium animate-pulse">ИИ анализирует ингредиенты...</p>
           </div>
         </div>
       ) : !plan ? (
-        <div className="p-4 space-y-8">
-          {/* СЕКЦИЯ КУХНИ */}
+        <div className="p-5 space-y-8 pb-10 animate-in slide-in-from-bottom-4">
           <section>
-            <Label className="text-[11px] font-bold uppercase tracking-widest opacity-80 mb-3 flex items-center gap-2">
-              <Utensils size={14}/> Кухня мира
+            <Label className="text-[11px] font-black uppercase tracking-[0.2em] opacity-70 mb-4 block flex items-center gap-2">
+              <Utensils size={14}/> Предпочтения в еде
             </Label>
             <div className="flex flex-wrap gap-2">
               {CUISINES.map(c => (
                 <Badge 
                   key={c.id} 
-                  className={`rounded-full py-2 px-4 border-none cursor-pointer transition-all ${formData.cuisines.includes(c.id) ? 'bg-white text-[#00b27a] shadow-lg' : 'bg-white/10 opacity-70'}`}
+                  className={`rounded-full py-2.5 px-5 border-none cursor-pointer transition-all active:scale-95 ${formData.cuisines.includes(c.id) ? 'bg-white text-[#00b27a] shadow-xl' : 'bg-white/10 opacity-70'}`}
                   onClick={() => setFormData(f => ({ ...f, cuisines: f.cuisines.includes(c.id) ? f.cuisines.filter(x => x !== c.id) : [...f.cuisines, c.id] }))}
                 >
                   {c.emoji} {c.label}
@@ -157,16 +137,15 @@ export default function MealPlanGeneratorPage() {
             </div>
           </section>
 
-          {/* СЕКЦИЯ ДИЕТЫ */}
           <section>
-            <Label className="text-[11px] font-bold uppercase tracking-widest opacity-80 mb-3 flex items-center gap-2">
-              <Zap size={14}/> Диета
+            <Label className="text-[11px] font-black uppercase tracking-[0.2em] opacity-70 mb-4 block flex items-center gap-2">
+              <Zap size={14}/> Диетические цели
             </Label>
             <div className="flex flex-wrap gap-2">
               {DIETS.map(d => (
                 <Badge 
                   key={d.id} 
-                  className={`rounded-full py-2 px-4 border-none cursor-pointer transition-all ${formData.diets.includes(d.id) ? 'bg-[#3b82f6]' : 'bg-white/10 opacity-70'}`}
+                  className={`rounded-full py-2.5 px-5 border-none cursor-pointer transition-all ${formData.diets.includes(d.id) ? 'bg-blue-600' : 'bg-white/10 opacity-70'}`}
                   onClick={() => setFormData(f => ({ ...f, diets: f.diets.includes(d.id) ? f.diets.filter(x => x !== d.id) : [...f.diets, d.id] }))}
                 >
                   {d.emoji} {d.label}
@@ -175,100 +154,62 @@ export default function MealPlanGeneratorPage() {
             </div>
           </section>
 
-          {/* КАЛОРИИ И АЛЛЕРГИИ */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-5">
             <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold opacity-70">Калории</Label>
-              <Input className="bg-white/10 border-none h-12" value={formData.calories} onChange={e => setFormData({...formData, calories: e.target.value})}/>
+              <Label className="text-[10px] font-bold uppercase opacity-60">Целевые калории</Label>
+              <Input className="bg-white/10 border-none h-14 rounded-2xl text-lg font-medium" value={formData.calories} onChange={e => setFormData({...formData, calories: e.target.value})}/>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold opacity-70">Аллергии</Label>
-              <Input className="bg-white/10 border-none h-12" value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})}/>
+              <Label className="text-[10px] font-bold uppercase opacity-60">Аллергии</Label>
+              <Input className="bg-white/10 border-none h-14 rounded-2xl placeholder:text-white/30" placeholder="Нет" value={formData.allergies} onChange={e => setFormData({...formData, allergies: e.target.value})}/>
             </div>
           </div>
 
-          {/* ПОРЦИИ */}
-          <section>
-            <Label className="text-[11px] font-bold uppercase opacity-80 mb-3 block text-center">Количество порций: {formData.servings}</Label>
-            <div className="flex gap-1 overflow-x-auto no-scrollbar pb-1">
-              {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                <Button key={n} variant="ghost" className={`flex-1 min-w-[40px] h-10 rounded-full ${formData.servings === n ? 'bg-blue-500 shadow-md' : 'bg-white/10'}`} onClick={() => setFormData({...formData, servings: n})}>{n}</Button>
-              ))}
-            </div>
-          </section>
-
-          {/* ПРИЕМЫ ПИЩИ */}
-          <section className="space-y-3">
-            <Label className="text-[11px] font-bold uppercase opacity-80 mb-1 block">Приёмы пищи</Label>
+          <section className="space-y-4">
+            <Label className="text-[11px] font-black uppercase tracking-[0.2em] opacity-70 mb-2 block">График питания</Label>
             {MEAL_TIMES.map(m => (
-              <div key={m.id} className="flex items-center justify-between bg-white/10 p-4 rounded-2xl border border-white/5">
+              <div key={m.id} className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/10">
                 <div className="flex items-center gap-4">
                   <Checkbox 
-                    className="w-5 h-5 border-white/30 data-[state=checked]:bg-white data-[state=checked]:text-[#00b27a]" 
+                    className="w-6 h-6 border-white/20 data-[state=checked]:bg-white data-[state=checked]:text-[#00b27a]" 
                     checked={formData.meals[m.id].enabled} 
                     onCheckedChange={(v) => setFormData({...formData, meals: {...formData.meals, [m.id]: {...formData.meals[m.id], enabled: !!v}}})}
                   />
-                  <span className="text-sm font-medium">{m.emoji} {m.label}</span>
+                  <span className="text-base font-semibold">{m.emoji} {m.label}</span>
                 </div>
-                <Select value={formData.meals[m.id].count.toString()} onValueChange={v => setFormData({...formData, meals: {...formData.meals, [m.id]: {...formData.meals[m.id], count: parseInt(v)}}})}>
-                  <SelectTrigger className="w-24 bg-black/20 border-none h-8 text-[11px] rounded-lg"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">Блюд: 1</SelectItem>
-                    <SelectItem value="2">Блюд: 2</SelectItem>
-                    <SelectItem value="3">Блюд: 3</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             ))}
           </section>
 
-          {/* СУП */}
-          <section className="bg-white/5 p-4 rounded-3xl space-y-3">
-            <Label className="text-[11px] font-bold uppercase opacity-80 flex items-center gap-2"><Soup size={14}/> Первое блюдо (суп)</Label>
-            <div className="flex gap-2">
-              {[{id:'no', l:'Без супа'}, {id:'lnc', l:'🍲 На обед'}, {id:'din', l:'🍲 На ужин'}].map(s => (
-                <Button key={s.id} variant="ghost" className={`flex-1 text-[11px] h-10 rounded-full ${formData.soupOption === s.id ? 'bg-[#00b27a] border-white/20 border shadow-lg' : 'bg-white/5'}`} onClick={() => setFormData({...formData, soupOption: s.id})}>{s.l}</Button>
-              ))}
-            </div>
-          </section>
-
-          {/* ДНИ */}
-          <section className="space-y-3">
-            <Label className="text-[11px] font-bold uppercase opacity-80">Период планирования</Label>
-            <div className="grid grid-cols-4 gap-2">
-              {[{v:'1', l:'1 день'}, {v:'3', l:'3 дня'}, {v:'7', l:'7 дней'}, {v:'14', l:'14 дней'}].map(d => (
-                <Button key={d.v} className={`h-14 rounded-2xl text-[11px] ${formData.days === d.v ? 'bg-blue-600 shadow-xl scale-105' : 'bg-white/10 opacity-70'}`} onClick={() => setFormData({...formData, days: d.v})}>{d.l}</Button>
-              ))}
-            </div>
-          </section>
-
-          <Button className="w-full h-16 bg-[#9333ea] rounded-2xl text-lg font-bold shadow-2xl active:scale-95 transition-all" onClick={handleGenerate}>
-            <Sparkles className="mr-2" size={20}/> Сгенерировать
+          <Button className="w-full h-18 bg-[#9333ea] hover:bg-[#a855f7] rounded-3xl text-xl font-black shadow-[0_15px_30px_-10px_rgba(147,51,234,0.6)] active:scale-95 transition-all" onClick={handleGenerate}>
+            <Sparkles className="mr-3" size={24}/> Создать меню
           </Button>
         </div>
       ) : (
-        /* РЕЗУЛЬТАТЫ */
         <div className="p-4 space-y-6 animate-in slide-in-from-bottom-5">
           <Tabs defaultValue="days">
-            <TabsList className="grid grid-cols-2 bg-black/20 rounded-xl p-1 mb-4">
-              <TabsTrigger value="days">📅 Календарь</TabsTrigger>
-              <TabsTrigger value="shop">🛒 Список покупок</TabsTrigger>
+            <TabsList className="grid grid-cols-2 bg-black/20 rounded-2xl p-1.5 mb-6">
+              <TabsTrigger value="days" className="rounded-xl font-bold py-3">📅 План по дням</TabsTrigger>
+              <TabsTrigger value="shop" className="rounded-xl font-bold py-3">🛒 Продукты</TabsTrigger>
             </TabsList>
-            <TabsContent value="days" className="space-y-6">
+            
+            <TabsContent value="days" className="space-y-8">
               {plan.days?.map((day: any) => (
-                <div key={day.day} className="space-y-2">
-                  <h3 className="text-[10px] font-black uppercase opacity-60 ml-2">День {day.day}</h3>
+                <div key={day.day} className="space-y-3">
+                  <h3 className="text-xs font-black uppercase tracking-widest opacity-60 ml-3">День {day.day}</h3>
                   {day.meals?.map((m: any, idx: number) => (
                     <Card 
                       key={idx} 
-                      className="bg-white text-black border-none rounded-2xl overflow-hidden shadow-lg flex cursor-pointer" 
+                      className="bg-white text-black border-none rounded-[2rem] overflow-hidden shadow-2xl flex items-center cursor-pointer active:scale-[0.98] transition-all" 
                       onClick={() => setSelectedMeal(m.items?.[0])}
                     >
-                      <img src={m.items?.[0]?.imageUrl} className="w-24 h-24 object-cover" alt="food" />
-                      <div className="p-4 flex-1">
-                        <p className="text-[9px] font-bold text-[#00b27a] uppercase mb-1">{m.type}</p>
-                        <h4 className="font-bold text-sm leading-tight mb-2">{m.items?.[0]?.name}</h4>
-                        <Badge variant="secondary" className="text-[10px]">{m.items?.[0]?.calories} ккал</Badge>
+                      <img src={m.items?.[0]?.imageUrl} className="w-28 h-28 object-cover" alt="food" />
+                      <div className="p-5 flex-1 min-w-0">
+                        <p className="text-[10px] font-black text-[#00b27a] uppercase mb-1">{m.type}</p>
+                        <h4 className="font-bold text-base leading-snug truncate">{m.items?.[0]?.name}</h4>
+                        <div className="flex gap-2 mt-2">
+                          <Badge variant="secondary" className="bg-slate-100 text-[10px] px-2">{m.items?.[0]?.calories} ккал</Badge>
+                        </div>
                       </div>
                     </Card>
                   ))}
@@ -276,45 +217,62 @@ export default function MealPlanGeneratorPage() {
               ))}
             </TabsContent>
           </Tabs>
-          <Button variant="outline" className="w-full text-white border-white/20" onClick={() => setPlan(null)}>Изменить параметры</Button>
+          <Button variant="ghost" className="w-full text-white/50 py-8" onClick={() => setPlan(null)}>Сбросить настройки</Button>
         </div>
       )}
 
-      {/* МОДАЛКА РЕЦЕПТА */}
+      {/* МОДАЛЬНОЕ ОКНО РЕЦЕПТА */}
       <Dialog open={!!selectedMeal} onOpenChange={() => setSelectedMeal(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto p-0 border-none bg-white text-black rounded-t-3xl sm:rounded-3xl">
+        <DialogContent className="max-h-[92vh] overflow-y-auto p-0 border-none bg-white text-black rounded-t-[3rem] sm:rounded-[3rem] shadow-3xl">
           {selectedMeal && (
-            <div>
-              <img src={selectedMeal.imageUrl} className="w-full h-64 object-cover" />
-              <div className="p-6 space-y-6">
+            <div className="pb-10">
+              <div className="relative">
+                <img src={selectedMeal.imageUrl} className="w-full h-80 object-cover" alt="meal" />
+                <div className="absolute top-4 right-4">
+                  <Button size="icon" className="rounded-full bg-white/90 text-red-500 hover:bg-white" onClick={() => handleSaveToFavorites(selectedMeal)}>
+                    <Heart size={24} />
+                  </Button>
+                </div>
+              </div>
+              <div className="p-8 space-y-8">
                 <DialogHeader>
-                  <div className="flex justify-between items-start">
-                    <DialogTitle className="text-2xl font-bold">{selectedMeal.name}</DialogTitle>
-                    <Button variant="ghost" size="icon" className="text-red-500" onClick={() => saveToFavorites(selectedMeal)}><Heart size={24} /></Button>
+                  <DialogTitle className="text-3xl font-black leading-tight tracking-tight">{selectedMeal.name}</DialogTitle>
+                  <div className="flex flex-wrap gap-2 pt-4">
+                    <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-none px-4 py-1 font-bold">Б: {selectedMeal.protein}г</Badge>
+                    <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-4 py-1 font-bold">Ж: {selectedMeal.fat}г</Badge>
+                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none px-4 py-1 font-bold">У: {selectedMeal.carbs}г</Badge>
                   </div>
-                  <DialogDescription className="text-xs uppercase font-bold text-slate-400 pt-2">
-                    КБЖУ: {selectedMeal.calories}ккал | Б:{selectedMeal.protein}г | Ж:{selectedMeal.fat}г | У:{selectedMeal.carbs}г
-                  </DialogDescription>
                 </DialogHeader>
                 
-                <div className="space-y-4">
-                  <h4 className="font-bold flex items-center gap-2 border-b pb-2"><ChefHat size={18} className="text-[#00b27a]"/> Ингредиенты</h4>
-                  <div className="grid gap-2 text-sm">
-                    {selectedMeal.recipe?.ingredients?.map((ing: any, i: number) => (
-                      <div key={i} className="flex justify-between border-b border-slate-50 pb-1">
-                        <span>{ing.name}</span><span className="font-bold">{ing.amount}</span>
-                      </div>
-                    ))}
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <h4 className="font-black text-lg flex items-center gap-3">
+                      <ChefHat size={22} className="text-[#00b27a]"/> Ингредиенты
+                    </h4>
+                    <div className="bg-slate-50 rounded-3xl p-6 space-y-3">
+                      {selectedMeal.recipe?.ingredients?.map((ing: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center text-sm border-b border-slate-200/50 pb-2 last:border-0 last:pb-0">
+                          <span className="font-medium">{ing.name}</span>
+                          <span className="font-black text-slate-400">{ing.amount}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   
-                  <h4 className="font-bold flex items-center gap-2 pt-2 border-b pb-2"><Info size={18} className="text-[#00b27a]"/> Шаги приготовления</h4>
                   <div className="space-y-4">
-                    {selectedMeal.recipe?.steps?.map((step: string, i: number) => (
-                      <div key={i} className="flex gap-4">
-                        <span className="w-6 h-6 rounded-full bg-[#00b27a]/10 text-[#00b27a] flex items-center justify-center text-[10px] font-bold shrink-0">{i+1}</span>
-                        <p className="text-sm leading-relaxed">{step}</p>
-                      </div>
-                    ))}
+                    <h4 className="font-black text-lg flex items-center gap-3">
+                      <Info size={22} className="text-[#00b27a]"/> Инструкция
+                    </h4>
+                    <div className="space-y-5">
+                      {selectedMeal.recipe?.steps?.map((step: string, i: number) => (
+                        <div key={i} className="flex gap-5">
+                          <span className="w-8 h-8 rounded-2xl bg-[#00b27a] text-white flex items-center justify-center text-xs font-black shrink-0 shadow-lg shadow-[#00b27a]/30">
+                            {i+1}
+                          </span>
+                          <p className="text-slate-600 text-sm leading-relaxed pt-1">{step}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
