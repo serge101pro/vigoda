@@ -16,6 +16,13 @@ interface DiscountedProduct {
   telegramChatId: string | null;
 }
 
+interface PushSubscription {
+  id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
 async function sendTelegramNotification(
   botToken: string, 
   chatId: string, 
@@ -41,6 +48,46 @@ async function sendTelegramNotification(
   });
 }
 
+async function sendWebPushNotification(
+  subscription: PushSubscription,
+  product: DiscountedProduct,
+  vapidPublicKey: string,
+  vapidPrivateKey: string
+): Promise<boolean> {
+  try {
+    const webPush = await import("https://esm.sh/web-push@3.6.7");
+    
+    webPush.setVapidDetails(
+      "mailto:support@vigoda.app",
+      vapidPublicKey,
+      vapidPrivateKey
+    );
+
+    const payload = JSON.stringify({
+      title: `🔥 Скидка ${product.discount}%!`,
+      body: `${product.productName}: ${product.oldPrice}₽ → ${product.newPrice}₽`,
+      url: "/deals",
+      tag: `discount-${product.productId}`,
+    });
+
+    await webPush.sendNotification(
+      {
+        endpoint: subscription.endpoint,
+        keys: {
+          p256dh: subscription.p256dh,
+          auth: subscription.auth,
+        },
+      },
+      payload
+    );
+
+    return true;
+  } catch (error) {
+    console.error("Error sending web push:", error);
+    return false;
+  }
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -50,6 +97,8 @@ serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+    const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
+    const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -96,7 +145,7 @@ serve(async (req: Request) => {
         // Check notification settings
         const { data: settings } = await supabase
           .from("notification_settings")
-          .select("telegram_enabled, discount_alerts")
+          .select("telegram_enabled, discount_alerts, push_enabled")
           .eq("user_id", fav.user_id)
           .maybeSingle();
 
@@ -117,27 +166,75 @@ serve(async (req: Request) => {
 
     console.log(`Found ${discountedProducts.length} discounted favorites`);
 
-    // Send Telegram notifications
+    // Send notifications
     const notificationResults = [];
     
-    if (botToken) {
-      for (const product of discountedProducts) {
-        if (product.telegramChatId) {
-          try {
-            await sendTelegramNotification(botToken, product.telegramChatId, product);
-            notificationResults.push({
-              userId: product.userId,
-              productName: product.productName,
-              telegram: "sent",
-            });
-            console.log(`Sent Telegram notification to ${product.telegramChatId} for ${product.productName}`);
-          } catch (err) {
-            console.error(`Failed to send Telegram to ${product.telegramChatId}:`, err);
-            notificationResults.push({
-              userId: product.userId,
-              productName: product.productName,
-              telegram: "failed",
-            });
+    // Group products by user for efficient notification sending
+    const productsByUser = new Map<string, DiscountedProduct[]>();
+    for (const product of discountedProducts) {
+      const existing = productsByUser.get(product.userId) || [];
+      existing.push(product);
+      productsByUser.set(product.userId, existing);
+    }
+
+    for (const [userId, products] of productsByUser) {
+      const firstProduct = products[0];
+      
+      // Send Telegram notification
+      if (botToken && firstProduct.telegramChatId) {
+        try {
+          await sendTelegramNotification(botToken, firstProduct.telegramChatId, firstProduct);
+          notificationResults.push({
+            userId,
+            productName: firstProduct.productName,
+            telegram: "sent",
+          });
+          console.log(`Sent Telegram notification to ${firstProduct.telegramChatId} for ${firstProduct.productName}`);
+        } catch (err) {
+          console.error(`Failed to send Telegram to ${firstProduct.telegramChatId}:`, err);
+          notificationResults.push({
+            userId,
+            productName: firstProduct.productName,
+            telegram: "failed",
+          });
+        }
+      }
+
+      // Send Web Push notification if VAPID keys are configured
+      if (vapidPublicKey && vapidPrivateKey) {
+        // Get user's push subscriptions
+        const { data: pushSubs } = await supabase
+          .from("push_subscriptions")
+          .select("id, endpoint, p256dh, auth")
+          .eq("user_id", userId);
+
+        if (pushSubs && pushSubs.length > 0) {
+          for (const sub of pushSubs) {
+            try {
+              const success = await sendWebPushNotification(
+                sub as PushSubscription,
+                firstProduct,
+                vapidPublicKey,
+                vapidPrivateKey
+              );
+              
+              if (success) {
+                notificationResults.push({
+                  userId,
+                  productName: firstProduct.productName,
+                  webPush: "sent",
+                });
+                console.log(`Sent Web Push to user ${userId} for ${firstProduct.productName}`);
+              } else {
+                // Remove invalid subscription
+                await supabase
+                  .from("push_subscriptions")
+                  .delete()
+                  .eq("id", sub.id);
+              }
+            } catch (err) {
+              console.error(`Failed to send Web Push:`, err);
+            }
           }
         }
       }
