@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart_items: {
+        Row: {
+          cart_id: string
+          category: string | null
+          created_at: string
+          id: string
+          is_optimized: boolean | null
+          name: string
+          packs_count: number | null
+          quantity: number
+          unit: string | null
+        }
+        Insert: {
+          cart_id: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_optimized?: boolean | null
+          name: string
+          packs_count?: number | null
+          quantity: number
+          unit?: string | null
+        }
+        Update: {
+          cart_id?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_optimized?: boolean | null
+          name?: string
+          packs_count?: number | null
+          quantity?: number
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carts: {
+        Row: {
+          created_at: string
+          id: string
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       coop_cart_items: {
         Row: {
           added_by: string
