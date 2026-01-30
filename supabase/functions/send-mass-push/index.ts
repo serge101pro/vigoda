@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const VERSION = "v1.0.0";
+const VERSION = "v1.1.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,8 +13,11 @@ interface MassPushRequest {
   body: string;
   url?: string;
   tag?: string;
-  targetUserIds?: string[]; // If empty, send to all users with subscriptions
+  targetUserIds?: string[];
   audience?: 'all' | 'paid' | 'solo' | 'family' | 'corp';
+  activityFilter?: 'all' | 'active_7d' | 'active_30d' | 'inactive_7d' | 'inactive_30d';
+  hasEmailFilter?: boolean;
+  hasPushFilter?: boolean;
 }
 
 interface PushPayload {
@@ -135,8 +138,17 @@ serve(async (req: Request) => {
       );
     }
 
-    const body: MassPushRequest = await req.json();
-    const { title, body: notificationBody, url, tag, targetUserIds, audience = 'all' } = body;
+    const reqBody: MassPushRequest = await req.json();
+    const { 
+      title, 
+      body: notificationBody, 
+      url, 
+      tag, 
+      targetUserIds, 
+      audience = 'all',
+      activityFilter = 'all',
+      hasEmailFilter = false,
+    } = reqBody;
 
     if (!title || !notificationBody) {
       return new Response(
@@ -145,13 +157,12 @@ serve(async (req: Request) => {
       );
     }
 
-    console.log(`[${VERSION}] Sending mass push notification: "${title}"`);
+    console.log(`[${VERSION}] Sending mass push: "${title}", audience=${audience}, activity=${activityFilter}`);
 
-    // Resolve audience -> user ids (server-side, with service role)
-    let effectiveTargetUserIds: string[] | null =
-      targetUserIds && targetUserIds.length > 0 ? targetUserIds : null;
+    // Step 1: Get base user IDs from subscription filter
+    let baseUserIds: Set<string> | null = null;
 
-    if (!effectiveTargetUserIds && audience !== 'all') {
+    if (audience !== 'all') {
       let subQuery = supabaseAdmin
         .from('user_subscriptions')
         .select('user_id')
@@ -164,17 +175,58 @@ serve(async (req: Request) => {
       }
 
       const { data: subs, error: subsError } = await subQuery;
+      if (subsError) throw subsError;
 
-      if (subsError) {
-        console.error(`[${VERSION}] Error fetching subscriptions:`, subsError);
-        return new Response(
-          JSON.stringify({ error: subsError.message, _version: VERSION }),
-          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
-
-      effectiveTargetUserIds = (subs || []).map((s: any) => s.user_id).filter(Boolean);
+      baseUserIds = new Set((subs || []).map((s: any) => s.user_id).filter(Boolean));
     }
+
+    // Step 2: Apply activity filter via profiles
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    let profilesQuery = supabaseAdmin.from('profiles').select('user_id, email, last_active_at');
+
+    if (baseUserIds && baseUserIds.size > 0) {
+      profilesQuery = profilesQuery.in('user_id', Array.from(baseUserIds));
+    }
+
+    if (activityFilter === 'active_7d') {
+      profilesQuery = profilesQuery.gte('last_active_at', sevenDaysAgo);
+    } else if (activityFilter === 'active_30d') {
+      profilesQuery = profilesQuery.gte('last_active_at', thirtyDaysAgo);
+    } else if (activityFilter === 'inactive_7d') {
+      profilesQuery = profilesQuery.lt('last_active_at', sevenDaysAgo);
+    } else if (activityFilter === 'inactive_30d') {
+      profilesQuery = profilesQuery.lt('last_active_at', thirtyDaysAgo);
+    }
+
+    // Paginate profiles
+    let allProfiles: any[] = [];
+    const pageSize = 1000;
+    let offset = 0;
+
+    while (true) {
+      const { data, error } = await profilesQuery.range(offset, offset + pageSize - 1);
+      if (error) throw error;
+      const chunk = data || [];
+      allProfiles = allProfiles.concat(chunk);
+      if (chunk.length < pageSize) break;
+      offset += pageSize;
+    }
+
+    // Step 3: Apply email filter if needed
+    if (hasEmailFilter) {
+      allProfiles = allProfiles.filter(p => p.email && p.email.includes('@'));
+    }
+
+    // Use target user IDs if provided, otherwise use filtered profiles
+    let effectiveTargetUserIds: string[] | null = 
+      targetUserIds && targetUserIds.length > 0 
+        ? targetUserIds 
+        : (activityFilter !== 'all' || audience !== 'all' || hasEmailFilter)
+          ? allProfiles.map(p => p.user_id)
+          : null;
 
     // Get push subscriptions
     let subscriptions: any[] = [];

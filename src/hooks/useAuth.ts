@@ -10,18 +10,37 @@ export function useAuth() {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Update last_active_at when user signs in or session refreshes
+        if (session?.user?.id && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          // Use setTimeout to avoid blocking the auth flow
+          setTimeout(async () => {
+            await supabase
+              .from('profiles')
+              .update({ last_active_at: new Date().toISOString() })
+              .eq('user_id', session.user.id);
+          }, 0);
+        }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Update last_active_at on app load if logged in
+      if (session?.user?.id) {
+        await supabase
+          .from('profiles')
+          .update({ last_active_at: new Date().toISOString() })
+          .eq('user_id', session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
