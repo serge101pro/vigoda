@@ -1,20 +1,24 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, Clock, Users, Flame, ShoppingCart, Filter, 
-  ChevronRight, Star, Leaf, Wheat, Milk, Check
+  ChevronRight, Star, Leaf, Wheat, X, SlidersHorizontal,
+  AlertTriangle, Timer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
+import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 // Import local images
 import saladImg from '@/assets/products/salad.jpg';
 import chickenImg from '@/assets/products/chicken.jpg';
-import honeyImg from '@/assets/products/honey.jpg';
-import milkImg from '@/assets/products/milk.jpg';
 import broccoliImg from '@/assets/products/broccoli.jpg';
 import beefImg from '@/assets/products/beef.jpg';
 
@@ -49,6 +53,7 @@ interface ReadyMeal {
   tags: string[];
   rating: number;
   cookTime: number;
+  allergens: string[];
 }
 
 const mealPlans: MealPlan[] = [
@@ -143,6 +148,7 @@ const readyMeals: ReadyMeal[] = [
     tags: ['Высокобелковое', 'Без глютена'],
     rating: 4.8,
     cookTime: 3,
+    allergens: [],
   },
   {
     id: '2',
@@ -157,6 +163,7 @@ const readyMeals: ReadyMeal[] = [
     tags: ['Омега-3', 'Премиум'],
     rating: 4.9,
     cookTime: 3,
+    allergens: ['Рыба', 'Соя', 'Кунжут'],
   },
   {
     id: '3',
@@ -171,6 +178,7 @@ const readyMeals: ReadyMeal[] = [
     tags: ['Завтрак', 'Растительное'],
     rating: 4.7,
     cookTime: 2,
+    allergens: ['Молоко', 'Орехи'],
   },
   {
     id: '4',
@@ -186,6 +194,7 @@ const readyMeals: ReadyMeal[] = [
     tags: ['Вегетарианское', 'Лёгкое'],
     rating: 4.6,
     cookTime: 0,
+    allergens: ['Молоко'],
   },
   {
     id: '5',
@@ -200,6 +209,7 @@ const readyMeals: ReadyMeal[] = [
     tags: ['Высокобелковое', 'Безглютеновое'],
     rating: 4.8,
     cookTime: 3,
+    allergens: [],
   },
   {
     id: '6',
@@ -214,30 +224,122 @@ const readyMeals: ReadyMeal[] = [
     tags: ['Веган', 'Безмолочное'],
     rating: 4.5,
     cookTime: 2,
+    allergens: [],
   },
 ];
 
 const categories = ['Все', 'Завтраки', 'Обеды', 'Ужины', 'Салаты', 'Супы', 'Десерты'];
 
+// All possible allergens
+const allAllergens = ['Молоко', 'Орехи', 'Рыба', 'Соя', 'Кунжут', 'Глютен', 'Яйца'];
+
 export default function ReadyMealsPage() {
+  const { user } = useAuth();
+  const { addItem } = useCart();
   const [selectedCategory, setSelectedCategory] = useState('Все');
   const [sortBy, setSortBy] = useState('popular');
+  const [addingMealId, setAddingMealId] = useState<string | null>(null);
+  
+  // Filter states
+  const [caloriesRange, setCaloriesRange] = useState<[number, number]>([0, 1000]);
+  const [cookTimeMax, setCookTimeMax] = useState<number>(60);
+  const [excludeAllergens, setExcludeAllergens] = useState<string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const filteredMeals = selectedCategory === 'Все' 
-    ? readyMeals 
-    : readyMeals.filter(m => m.category === selectedCategory);
-
-  const handleAddPlanToCart = (plan: MealPlan) => {
-    toast({ title: `Рацион "${plan.name}" добавлен в корзину` });
+  const toggleAllergen = (allergen: string) => {
+    setExcludeAllergens(prev =>
+      prev.includes(allergen)
+        ? prev.filter(a => a !== allergen)
+        : [...prev, allergen]
+    );
   };
 
-  const handleAddMealToCart = (meal: ReadyMeal) => {
-    toast({ title: `${meal.name} добавлено в корзину` });
+  const clearFilters = () => {
+    setCaloriesRange([0, 1000]);
+    setCookTimeMax(60);
+    setExcludeAllergens([]);
+  };
+
+  const hasActiveFilters = caloriesRange[0] > 0 || caloriesRange[1] < 1000 || cookTimeMax < 60 || excludeAllergens.length > 0;
+
+  // Filter and sort meals
+  const filteredMeals = useMemo(() => {
+    let meals = readyMeals;
+
+    // Category filter
+    if (selectedCategory !== 'Все') {
+      meals = meals.filter(m => m.category === selectedCategory);
+    }
+
+    // Calories filter
+    meals = meals.filter(m => m.calories >= caloriesRange[0] && m.calories <= caloriesRange[1]);
+
+    // Cook time filter
+    meals = meals.filter(m => m.cookTime <= cookTimeMax);
+
+    // Allergens filter
+    if (excludeAllergens.length > 0) {
+      meals = meals.filter(m => 
+        !m.allergens.some(a => excludeAllergens.includes(a))
+      );
+    }
+
+    // Sort
+    switch (sortBy) {
+      case 'price-asc':
+        meals = [...meals].sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        meals = [...meals].sort((a, b) => b.price - a.price);
+        break;
+      case 'rating':
+        meals = [...meals].sort((a, b) => b.rating - a.rating);
+        break;
+      case 'calories-asc':
+        meals = [...meals].sort((a, b) => a.calories - b.calories);
+        break;
+      case 'calories-desc':
+        meals = [...meals].sort((a, b) => b.calories - a.calories);
+        break;
+      default:
+        // popular - keep original order
+        break;
+    }
+
+    return meals;
+  }, [selectedCategory, sortBy, caloriesRange, cookTimeMax, excludeAllergens]);
+
+  const handleAddPlanToCart = async (plan: MealPlan) => {
+    if (!user) {
+      toast.error('Войдите в систему для добавления в корзину');
+      return;
+    }
+    
+    const success = await addItem(plan.name, 1, 'рацион', 'Рационы питания');
+    if (success) {
+      toast.success(`Рацион "${plan.name}" добавлен в корзину`);
+    }
+  };
+
+  const handleAddMealToCart = async (meal: ReadyMeal) => {
+    if (!user) {
+      toast.error('Войдите в систему для добавления в корзину');
+      return;
+    }
+
+    setAddingMealId(meal.id);
+    try {
+      const success = await addItem(meal.name, 1, 'порц.', 'Готовые блюда');
+      if (success) {
+        toast.success(`${meal.name} добавлено в корзину`);
+      }
+    } finally {
+      setAddingMealId(null);
+    }
   };
 
   return (
     <div className="page-container pt-4">
-
       <div className="px-4 py-4 space-y-6">
         <Tabs defaultValue="plans">
           <TabsList className="w-full">
@@ -333,7 +435,7 @@ export default function ReadyMealsPage() {
 
           {/* Ready Meals */}
           <TabsContent value="meals" className="mt-4 space-y-4">
-            {/* Filters */}
+            {/* Filters Row */}
             <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
               {categories.map((cat) => (
                 <Button
@@ -348,82 +450,246 @@ export default function ReadyMealsPage() {
               ))}
             </div>
 
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">{filteredMeals.length} блюд</p>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="popular">По популярности</SelectItem>
-                  <SelectItem value="price-asc">Сначала дешевле</SelectItem>
-                  <SelectItem value="price-desc">Сначала дороже</SelectItem>
-                  <SelectItem value="rating">По рейтингу</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex justify-between items-center gap-2">
+              <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="relative">
+                    <SlidersHorizontal className="h-4 w-4 mr-2" />
+                    Фильтры
+                    {hasActiveFilters && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full" />
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="h-[80vh]">
+                  <SheetHeader>
+                    <SheetTitle>Фильтры</SheetTitle>
+                  </SheetHeader>
+                  
+                  <div className="space-y-6 py-6">
+                    {/* Calories Range */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium flex items-center gap-2">
+                          <Flame className="h-4 w-4 text-orange-500" />
+                          Калории
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {caloriesRange[0]} - {caloriesRange[1]} ккал
+                        </span>
+                      </div>
+                      <Slider
+                        value={caloriesRange}
+                        onValueChange={(v) => setCaloriesRange(v as [number, number])}
+                        min={0}
+                        max={1000}
+                        step={50}
+                        className="w-full"
+                      />
+                    </div>
+
+                    {/* Cook Time */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium flex items-center gap-2">
+                          <Timer className="h-4 w-4 text-blue-500" />
+                          Время приготовления
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          до {cookTimeMax} мин
+                        </span>
+                      </div>
+                      <Slider
+                        value={[cookTimeMax]}
+                        onValueChange={(v) => setCookTimeMax(v[0])}
+                        min={0}
+                        max={60}
+                        step={5}
+                        className="w-full"
+                      />
+                    </div>
+
+                    {/* Allergens */}
+                    <div>
+                      <span className="font-medium flex items-center gap-2 mb-3">
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                        Исключить аллергены
+                      </span>
+                      <div className="grid grid-cols-2 gap-3">
+                        {allAllergens.map((allergen) => (
+                          <div
+                            key={allergen}
+                            className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors ${
+                              excludeAllergens.includes(allergen)
+                                ? 'border-destructive bg-destructive/10'
+                                : 'border-border hover:border-muted-foreground'
+                            }`}
+                            onClick={() => toggleAllergen(allergen)}
+                          >
+                            <Checkbox
+                              checked={excludeAllergens.includes(allergen)}
+                              onCheckedChange={() => toggleAllergen(allergen)}
+                            />
+                            <span className="text-sm">{allergen}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-3 pt-4 border-t border-border">
+                      <Button variant="outline" className="flex-1" onClick={clearFilters}>
+                        Сбросить
+                      </Button>
+                      <Button className="flex-1" onClick={() => setIsFilterOpen(false)}>
+                        Показать ({filteredMeals.length})
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">{filteredMeals.length} блюд</p>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-44">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="popular">По популярности</SelectItem>
+                    <SelectItem value="price-asc">Сначала дешевле</SelectItem>
+                    <SelectItem value="price-desc">Сначала дороже</SelectItem>
+                    <SelectItem value="rating">По рейтингу</SelectItem>
+                    <SelectItem value="calories-asc">Калории ↑</SelectItem>
+                    <SelectItem value="calories-desc">Калории ↓</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            {/* Active Filters Pills */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap gap-2">
+                {caloriesRange[0] > 0 || caloriesRange[1] < 1000 ? (
+                  <Badge variant="secondary" className="gap-1">
+                    <Flame className="h-3 w-3" />
+                    {caloriesRange[0]}-{caloriesRange[1]} ккал
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={() => setCaloriesRange([0, 1000])} 
+                    />
+                  </Badge>
+                ) : null}
+                {cookTimeMax < 60 && (
+                  <Badge variant="secondary" className="gap-1">
+                    <Timer className="h-3 w-3" />
+                    до {cookTimeMax} мин
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={() => setCookTimeMax(60)} 
+                    />
+                  </Badge>
+                )}
+                {excludeAllergens.map(a => (
+                  <Badge key={a} variant="destructive" className="gap-1">
+                    Без {a}
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={() => toggleAllergen(a)} 
+                    />
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {/* Meals Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredMeals.map((meal) => (
-                <Link 
-                  key={meal.id} 
-                  to={`/ready-meal/${meal.id}`}
-                  className="bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/50 transition-colors"
-                >
-                  <div className="relative h-40">
-                    <img src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
-                    {meal.oldPrice && (
-                      <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
-                        -{Math.round((1 - meal.price / meal.oldPrice) * 100)}%
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="p-4">
-                    <h3 className="font-bold text-foreground mb-1">{meal.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{meal.description}</p>
-
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                      <span>{meal.weight}г</span>
-                      <span>{meal.calories} ккал</span>
-                      <span>{meal.protein}г белка</span>
+            {filteredMeals.length === 0 ? (
+              <div className="text-center py-12">
+                <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg font-semibold text-foreground mb-2">Блюда не найдены</p>
+                <p className="text-muted-foreground mb-4">Попробуйте изменить параметры фильтров</p>
+                <Button variant="outline" onClick={clearFilters}>
+                  Сбросить фильтры
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredMeals.map((meal) => (
+                  <Link 
+                    key={meal.id} 
+                    to={`/ready-meal/${meal.id}`}
+                    className="bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/50 transition-colors"
+                  >
+                    <div className="relative h-40">
+                      <img src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
+                      {meal.oldPrice && (
+                        <Badge className="absolute top-2 left-2 bg-accent text-accent-foreground">
+                          -{Math.round((1 - meal.price / meal.oldPrice) * 100)}%
+                        </Badge>
+                      )}
+                      {meal.allergens.length > 0 && (
+                        <Badge className="absolute top-2 right-2 bg-amber-500/80 text-white text-xs">
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          {meal.allergens.length}
+                        </Badge>
+                      )}
                     </div>
 
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {meal.tags.map((tag, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">{tag}</Badge>
-                      ))}
-                    </div>
+                    <div className="p-4">
+                      <h3 className="font-bold text-foreground mb-1">{meal.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-3">{meal.description}</p>
 
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-lg font-bold text-foreground">{meal.price}₽</span>
-                        {meal.oldPrice && (
-                          <span className="text-sm text-muted-foreground line-through ml-2">{meal.oldPrice}₽</span>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                        <span>{meal.weight}г</span>
+                        <span className="flex items-center gap-1">
+                          <Flame className="h-3 w-3" />
+                          {meal.calories} ккал
+                        </span>
+                        <span>{meal.protein}г белка</span>
+                        {meal.cookTime > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {meal.cookTime} мин
+                          </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                          {meal.rating}
+
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {meal.tags.map((tag, i) => (
+                          <Badge key={i} variant="outline" className="text-xs">{tag}</Badge>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-lg font-bold text-foreground">{meal.price}₽</span>
+                          {meal.oldPrice && (
+                            <span className="text-sm text-muted-foreground line-through ml-2">{meal.oldPrice}₽</span>
+                          )}
                         </div>
-                        <Button 
-                          variant="hero" 
-                          size="sm" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleAddMealToCart(meal);
-                          }}
-                        >
-                          <ShoppingCart className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                            {meal.rating}
+                          </div>
+                          <Button 
+                            variant="hero" 
+                            size="sm" 
+                            disabled={addingMealId === meal.id}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleAddMealToCart(meal);
+                            }}
+                          >
+                            <ShoppingCart className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
