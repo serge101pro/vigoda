@@ -143,12 +143,12 @@ ${allergies.length > 0 ? `- Исключить аллергены: ${allergies.j
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-2.0-flash',
         messages: [
           { role: 'user', content: prompt }
         ],
-        temperature: 0.7,
-        max_tokens: 8000,
+        temperature: 0.6,
+        max_tokens: 16000,
       }),
     });
 

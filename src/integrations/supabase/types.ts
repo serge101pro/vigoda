@@ -1243,6 +1243,30 @@ export type Database = {
         }
         Relationships: []
       }
+      superadmin_users: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["superadmin_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["superadmin_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["superadmin_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string
@@ -1347,6 +1371,7 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_superadmin: { Args: { _user_id: string }; Returns: boolean }
       is_test_admin: { Args: { _user_id: string }; Returns: boolean }
       set_subscription_plan: {
         Args: { _plan: Database["public"]["Enums"]["subscription_plan"] }
@@ -1361,6 +1386,7 @@ export type Database = {
         | "office_kitchen"
         | "other"
       subscription_plan: "free" | "solo" | "family" | "corp"
+      superadmin_role: "superadmin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1496,6 +1522,7 @@ export const Constants = {
         "other",
       ],
       subscription_plan: ["free", "solo", "family", "corp"],
+      superadmin_role: ["superadmin"],
     },
   },
 } as const
