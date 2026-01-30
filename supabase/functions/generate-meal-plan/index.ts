@@ -5,7 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+// Using Gemini API directly instead of Lovable AI Gateway
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
 interface MealInfo {
   type: string;
@@ -136,19 +137,20 @@ ${allergies.length > 0 ? `- Исключить аллергены: ${allergies.j
 7. КБЖУ должно быть реалистичным для каждого блюда
 8. Рецепты должны быть подробными с 4-8 шагами`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Using Google Gemini API directly
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash',
-        messages: [
-          { role: 'user', content: prompt }
+        contents: [
+          { parts: [{ text: prompt }] }
         ],
-        temperature: 0.6,
-        max_tokens: 16000,
+        generationConfig: {
+          temperature: 0.6,
+          maxOutputTokens: 16000,
+        },
       }),
     });
 
@@ -159,10 +161,13 @@ ${allergies.length > 0 ? `- Исключить аллергены: ${allergies.j
     }
 
     const data = await response.json();
-    const content = data.choices[0]?.message?.content;
+    
+    // Extract content from Gemini response format
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!content) {
-      throw new Error('No content in AI response');
+      console.error('Gemini response:', JSON.stringify(data));
+      throw new Error('No content in Gemini response');
     }
 
     console.log('AI response received, parsing...');
