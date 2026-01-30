@@ -1,4 +1,4 @@
-// Extended ready meals data with recipes and ingredients
+// Extended ready meals data with recipes, ingredients, and restaurant info
 
 import chickenQuinoa from '@/assets/meals/chicken-quinoa.jpg';
 import salmonTeriyaki from '@/assets/meals/salmon-teriyaki.jpg';
@@ -26,6 +26,16 @@ export interface RecipeStep {
   duration?: number;
 }
 
+export interface Restaurant {
+  id: string;
+  name: string;
+  logo: string;
+  rating: number;
+  deliveryTime: string;
+  deliveryFee: number;
+  minOrder: number;
+}
+
 export interface ReadyMealFull {
   id: string;
   name: string;
@@ -50,7 +60,68 @@ export interface ReadyMealFull {
   recipeSteps: RecipeStep[];
   reviews: { author: string; rating: number; text: string; date: string }[];
   baseServings: number;
+  // Restaurant info for direct ordering
+  restaurant: Restaurant;
+  restaurantPrice: number;
+  isAvailableForDelivery: boolean;
 }
+
+const restaurants: Restaurant[] = [
+  {
+    id: 'rest1',
+    name: 'ЗОЖ Кухня',
+    logo: '🥗',
+    rating: 4.8,
+    deliveryTime: '30-45 мин',
+    deliveryFee: 99,
+    minOrder: 500,
+  },
+  {
+    id: 'rest2',
+    name: 'Суши Мастер',
+    logo: '🍣',
+    rating: 4.9,
+    deliveryTime: '40-60 мин',
+    deliveryFee: 149,
+    minOrder: 800,
+  },
+  {
+    id: 'rest3',
+    name: 'Breakfast Club',
+    logo: '🍳',
+    rating: 4.7,
+    deliveryTime: '25-35 мин',
+    deliveryFee: 79,
+    minOrder: 400,
+  },
+  {
+    id: 'rest4',
+    name: 'Средиземноморская',
+    logo: '🫒',
+    rating: 4.6,
+    deliveryTime: '35-50 мин',
+    deliveryFee: 99,
+    minOrder: 600,
+  },
+  {
+    id: 'rest5',
+    name: 'Борщ & Пельмени',
+    logo: '🥣',
+    rating: 4.9,
+    deliveryTime: '30-40 мин',
+    deliveryFee: 79,
+    minOrder: 450,
+  },
+  {
+    id: 'rest6',
+    name: 'Pasta House',
+    logo: '🍝',
+    rating: 4.8,
+    deliveryTime: '35-50 мин',
+    deliveryFee: 119,
+    minOrder: 700,
+  },
+];
 
 export const readyMealsData: ReadyMealFull[] = [
   {
@@ -71,6 +142,9 @@ export const readyMealsData: ReadyMealFull[] = [
     category: 'Обеды',
     tags: ['Высокобелковое', 'Без глютена'],
     baseServings: 1,
+    restaurant: restaurants[0],
+    restaurantPrice: 499,
+    isAvailableForDelivery: true,
     ingredients: [
       { id: 'ing1', name: 'Куриная грудка', amount: 200, unit: 'г', pricePerUnit: 3.29 },
       { id: 'ing2', name: 'Киноа', amount: 80, unit: 'г', pricePerUnit: 0.89 },
@@ -112,6 +186,9 @@ export const readyMealsData: ReadyMealFull[] = [
     category: 'Обеды',
     tags: ['Омега-3', 'Премиум'],
     baseServings: 1,
+    restaurant: restaurants[1],
+    restaurantPrice: 749,
+    isAvailableForDelivery: true,
     ingredients: [
       { id: 'ing7', name: 'Филе лосося', amount: 180, unit: 'г', pricePerUnit: 8.99 },
       { id: 'ing8', name: 'Рис жасмин', amount: 100, unit: 'г', pricePerUnit: 0.79 },
@@ -153,6 +230,9 @@ export const readyMealsData: ReadyMealFull[] = [
     category: 'Завтраки',
     tags: ['Завтрак', 'Растительное'],
     baseServings: 1,
+    restaurant: restaurants[2],
+    restaurantPrice: 299,
+    isAvailableForDelivery: true,
     ingredients: [
       { id: 'ing13', name: 'Овсяные хлопья', amount: 60, unit: 'г', pricePerUnit: 0.25 },
       { id: 'ing14', name: 'Молоко', amount: 150, unit: 'мл', pricePerUnit: 0.12 },
@@ -193,6 +273,9 @@ export const readyMealsData: ReadyMealFull[] = [
     category: 'Салаты',
     tags: ['Вегетарианское', 'Лёгкое'],
     baseServings: 1,
+    restaurant: restaurants[3],
+    restaurantPrice: 399,
+    isAvailableForDelivery: true,
     ingredients: [
       { id: 'ing19', name: 'Огурцы', amount: 80, unit: 'г', pricePerUnit: 0.35 },
       { id: 'ing20', name: 'Томаты', amount: 100, unit: 'г', pricePerUnit: 0.45 },
@@ -233,6 +316,9 @@ export const readyMealsData: ReadyMealFull[] = [
     category: 'Супы',
     tags: ['Традиционное', 'Сытное'],
     baseServings: 1,
+    restaurant: restaurants[4],
+    restaurantPrice: 379,
+    isAvailableForDelivery: true,
     ingredients: [
       { id: 'ing26', name: 'Говядина', amount: 100, unit: 'г', pricePerUnit: 5.49 },
       { id: 'ing27', name: 'Свёкла', amount: 80, unit: 'г', pricePerUnit: 0.35 },
@@ -276,6 +362,9 @@ export const readyMealsData: ReadyMealFull[] = [
     category: 'Обеды',
     tags: ['Итальянское', 'Классика'],
     baseServings: 1,
+    restaurant: restaurants[5],
+    restaurantPrice: 499,
+    isAvailableForDelivery: true,
     ingredients: [
       { id: 'ing34', name: 'Спагетти', amount: 120, unit: 'г', pricePerUnit: 0.45 },
       { id: 'ing35', name: 'Бекон/Гуанчиале', amount: 80, unit: 'г', pricePerUnit: 1.89 },
