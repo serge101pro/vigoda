@@ -7,9 +7,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BackButton } from '@/components/common/BackButton';
 import { useSuperadmin } from '@/hooks/useSuperadmin';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,12 +23,17 @@ interface NotificationResult {
   total: number;
 }
 
+type Audience = 'all' | 'paid' | 'solo' | 'family' | 'corp';
+
 export default function AdminNotificationsPage() {
   const { isSuperadmin, loading: superadminLoading } = useSuperadmin();
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
+  const [emailAudience, setEmailAudience] = useState<Audience>('all');
   const [pushTitle, setPushTitle] = useState('');
   const [pushBody, setPushBody] = useState('');
+  const [pushUrl, setPushUrl] = useState('/');
+  const [pushAudience, setPushAudience] = useState<Audience>('all');
   const [isSendingPush, setIsSendingPush] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [lastPushResult, setLastPushResult] = useState<NotificationResult | null>(null);
@@ -87,6 +94,7 @@ export default function AdminNotificationsPage() {
           subject: emailSubject,
           htmlContent,
           textContent: emailBody,
+          audience: emailAudience,
         }
       });
 
@@ -129,8 +137,9 @@ export default function AdminNotificationsPage() {
         body: {
           title: pushTitle,
           body: pushBody,
-          url: '/',
+          url: pushUrl || '/',
           tag: 'admin-broadcast',
+          audience: pushAudience,
         }
       });
 
@@ -198,6 +207,32 @@ export default function AdminNotificationsPage() {
                 <CardTitle className="text-lg">Новое Push-уведомление</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <Label>Аудитория</Label>
+                  <Select value={pushAudience} onValueChange={(v) => setPushAudience(v as Audience)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите аудиторию" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все пользователи</SelectItem>
+                      <SelectItem value="paid">Только платные</SelectItem>
+                      <SelectItem value="solo">Solo</SelectItem>
+                      <SelectItem value="family">Family</SelectItem>
+                      <SelectItem value="corp">Corp</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Ссылка при клике</Label>
+                  <Input
+                    placeholder="/ (или /promos, /meal-plans и т.д.)"
+                    value={pushUrl}
+                    onChange={(e) => setPushUrl(e.target.value)}
+                    disabled={isSendingPush}
+                  />
+                </div>
+
                 <Input
                   placeholder="Заголовок уведомления"
                   value={pushTitle}
@@ -255,6 +290,22 @@ export default function AdminNotificationsPage() {
                 <CardTitle className="text-lg">Новая Email-рассылка</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <Label>Аудитория</Label>
+                  <Select value={emailAudience} onValueChange={(v) => setEmailAudience(v as Audience)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите аудиторию" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все пользователи</SelectItem>
+                      <SelectItem value="paid">Только платные</SelectItem>
+                      <SelectItem value="solo">Solo</SelectItem>
+                      <SelectItem value="family">Family</SelectItem>
+                      <SelectItem value="corp">Corp</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <Input
                   placeholder="Тема письма"
                   value={emailSubject}
