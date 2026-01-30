@@ -7,13 +7,19 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
+interface MealInfo {
+  type: string;
+  dishCount: number;
+  includeSoup: boolean;
+}
+
 interface MealPlanRequest {
   cuisines: string[];
   diets: string[];
   calories: number | null;
   allergies: string[];
   servings: number;
-  meals: string[];
+  meals: MealInfo[] | string[];
   days: number;
 }
 
@@ -28,12 +34,28 @@ serve(async (req) => {
 
     console.log('Generating meal plan with params:', body);
 
+    // Handle both old format (string[]) and new format (MealInfo[])
+    let mealsDescription = '';
+    if (meals.length > 0 && typeof meals[0] === 'object') {
+      const mealInfos = meals as MealInfo[];
+      mealsDescription = mealInfos.map(m => {
+        let desc = `${m.type} (${m.dishCount} ${m.dishCount === 1 ? 'блюдо' : m.dishCount < 5 ? 'блюда' : 'блюд'}`;
+        if (m.includeSoup) {
+          desc += ', обязательно включи первое блюдо - суп';
+        }
+        desc += ')';
+        return desc;
+      }).join(', ');
+    } else {
+      mealsDescription = (meals as string[]).join(', ');
+    }
+
     const prompt = `Ты — профессиональный диетолог и шеф-повар. Создай детальный план питания.
 
 ПАРАМЕТРЫ:
 - Дней: ${days}
 - Порций: ${servings}
-- Приёмы пищи: ${meals.join(', ')}
+- Приёмы пищи: ${mealsDescription}
 ${cuisines.length > 0 ? `- Кухни: ${cuisines.join(', ')}` : ''}
 ${diets.length > 0 ? `- Диеты: ${diets.join(', ')}` : ''}
 ${calories ? `- Целевые калории в день: ${calories}` : ''}
@@ -105,12 +127,14 @@ ${allergies.length > 0 ? `- Исключить аллергены: ${allergies.j
 }
 
 Требования:
-1. Создай план на ${days} дней с приёмами: ${meals.join(', ')}
-2. Все блюда должны быть реалистичными и вкусными
-3. photo_search_query — ключевые слова на английском для поиска фото
-4. Список покупок должен быть сгруппирован и суммирован
-5. КБЖУ должно быть реалистичным для каждого блюда
-6. Рецепты должны быть подробными с 4-8 шагами`;
+1. Создай план на ${days} дней с приёмами: ${mealsDescription}
+2. Если для приёма пищи указано несколько блюд - создай несколько объектов meal для этого приёма
+3. Если указано "суп" - обязательно добавь первое блюдо (суп) в этот приём пищи
+4. Все блюда должны быть реалистичными и вкусными
+5. photo_search_query — ключевые слова на английском для поиска HD фото еды (например: "chicken soup bowl", "grilled salmon plate")
+6. Список покупок должен быть сгруппирован и суммирован
+7. КБЖУ должно быть реалистичным для каждого блюда
+8. Рецепты должны быть подробными с 4-8 шагами`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
