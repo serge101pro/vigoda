@@ -226,14 +226,43 @@ export function useCart() {
 
   // Optimize cart with AI
   const optimizeCart = useCallback(async (): Promise<OptimizedCartItem[] | null> => {
-    if (!cartId || items.length === 0) {
+    // Re-fetch to ensure we have the latest data
+    if (!user) {
+      toast.error('Войдите в систему для использования AI-оптимизации');
+      return null;
+    }
+    
+    // Get fresh cart data
+    let activeCartId = cartId;
+    if (!activeCartId) {
+      activeCartId = await getOrCreateCart();
+    }
+    
+    if (!activeCartId) {
+      toast.error('Не удалось найти корзину');
+      return null;
+    }
+    
+    // Fetch current items from DB to ensure fresh data
+    const { data: freshItems, error: fetchError } = await supabase
+      .from('cart_items')
+      .select('*')
+      .eq('cart_id', activeCartId);
+    
+    if (fetchError) {
+      console.error('Error fetching cart items:', fetchError);
+      toast.error('Ошибка при загрузке корзины');
+      return null;
+    }
+    
+    if (!freshItems || freshItems.length === 0) {
       toast.error('Корзина пуста');
       return null;
     }
 
     setOptimizing(true);
     try {
-      const itemsToOptimize = items.map(item => ({
+      const itemsToOptimize = freshItems.map(item => ({
         id: item.id,
         name: item.name,
         quantity: item.quantity,
@@ -242,7 +271,7 @@ export function useCart() {
       }));
 
       const { data, error } = await supabase.functions.invoke('optimize-cart', {
-        body: { items: itemsToOptimize, cart_id: cartId }
+        body: { items: itemsToOptimize, cart_id: activeCartId }
       });
 
       if (error) throw error;
@@ -266,7 +295,7 @@ export function useCart() {
     } finally {
       setOptimizing(false);
     }
-  }, [cartId, items, fetchCartItems]);
+  }, [user, cartId, getOrCreateCart, fetchCartItems]);
 
   // Load cart on mount and user change
   useEffect(() => {

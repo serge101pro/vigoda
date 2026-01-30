@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAppStore } from "@/stores/useAppStore";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 // Layout
 import { MainLayout } from "@/components/layout/MainLayout";
 
@@ -177,37 +178,61 @@ function AppRoutes() {
 }
 
 const App = () => {
-  // Global error handler to prevent white screen on mobile
+  // Global error handler to prevent white screen on mobile (especially Android)
   useEffect(() => {
     const handleRejection = (event: PromiseRejectionEvent) => {
       console.error("Unhandled rejection:", event.reason);
+      // Prevent the default browser handling which can crash the app on Android
       event.preventDefault();
     };
 
     const handleError = (event: ErrorEvent) => {
       console.error("Runtime error:", event.error);
+      // Prevent the default browser handling which can crash the app on Android
       event.preventDefault();
+    };
+
+    // Android WebView specific: catch any global errors
+    const handleGlobalError = (...args: unknown[]) => {
+      console.error("Global error caught:", args);
+      return true; // Prevent default error handling
     };
 
     window.addEventListener("unhandledrejection", handleRejection);
     window.addEventListener("error", handleError);
     
+    // Override console.error to catch any remaining issues
+    const originalConsoleError = console.error;
+    console.error = (...args: unknown[]) => {
+      originalConsoleError.apply(console, args);
+      // Don't throw - just log
+    };
+    
     return () => {
       window.removeEventListener("unhandledrejection", handleRejection);
       window.removeEventListener("error", handleError);
+      console.error = originalConsoleError;
     };
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={
+              <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            }>
+              <AppRoutes />
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

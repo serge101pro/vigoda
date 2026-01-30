@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/stores/useAppStore';
+import { useCart } from '@/hooks/useCart';
 
 // Cuisine types (Top 20)
 const CUISINE_TYPES = [
@@ -139,6 +140,7 @@ export default function MealPlanGeneratorPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { hasPaidPlan, loading: subscriptionLoading } = useSubscription();
+  const { addItem: addToDbCart } = useCart();
   const { addToCart } = useAppStore();
   
   // Fetch user preferences for dietary restrictions
@@ -464,31 +466,51 @@ export default function MealPlanGeneratorPage() {
     setGeneratedPlan(newPlan);
   };
   
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!generatedPlan) return;
     
     const uncheckedItems = generatedPlan.shopping_list
-      .flatMap(c => c.items.filter(i => !i.checked));
+      .flatMap(cat => cat.items.filter(i => !i.checked).map(i => ({ ...i, category: cat.category })));
     
-    // Add each item to cart as a product
-    uncheckedItems.forEach(item => {
-      // Parse amount to get quantity
-      const amountMatch = item.amount.match(/^([\d.,]+)/);
-      const quantity = amountMatch ? parseFloat(amountMatch[1].replace(',', '.')) : 1;
-      
-      addToCart({
-        id: `generated-${item.name}-${Date.now()}`,
-        name: item.name,
-        category: 'Ингредиенты',
-        image: '/placeholder.svg',
-        price: 0, // Price will be determined at checkout
-        unit: item.amount.replace(/^[\d.,]+\s*/, '') || 'шт',
-        rating: 0,
-        reviewCount: 0,
-      }, Math.ceil(quantity) || 1);
-    });
+    if (uncheckedItems.length === 0) {
+      toast.info('Все товары уже отмечены');
+      return;
+    }
     
-    toast.success(`${uncheckedItems.length} товаров добавлено в корзину`);
+    let addedCount = 0;
+    
+    // Add each item to cart (DB or local depending on auth)
+    for (const item of uncheckedItems) {
+      try {
+        // Parse amount to get quantity
+        const amountMatch = item.amount.match(/^([\d.,]+)/);
+        const quantity = amountMatch ? parseFloat(amountMatch[1].replace(',', '.')) : 1;
+        const unit = item.amount.replace(/^[\d.,]+\s*/, '') || 'шт';
+        
+        if (user) {
+          // Add to Supabase cart_items for authenticated users
+          const success = await addToDbCart(item.name, Math.ceil(quantity) || 1, unit, item.category);
+          if (success) addedCount++;
+        } else {
+          // Fallback to local Zustand store for guests
+          addToCart({
+            id: `generated-${item.name}-${Date.now()}`,
+            name: item.name,
+            category: item.category || 'Ингредиенты',
+            image: '/placeholder.svg',
+            price: 0,
+            unit: unit,
+            rating: 0,
+            reviewCount: 0,
+          }, Math.ceil(quantity) || 1);
+          addedCount++;
+        }
+      } catch (error) {
+        console.error(`Failed to add ${item.name} to cart:`, error);
+      }
+    }
+    
+    toast.success(`${addedCount} товаров добавлено в корзину`);
   };
   
   const handleShareMenu = async () => {
