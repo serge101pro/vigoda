@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Clock, User, Phone, Mail, Send, MapPin, CreditCard, Shield, LogOut, Bell, Loader2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Clock, User, Phone, Mail, Send, MapPin, CreditCard, Shield, LogOut, Bell, Loader2, MessageCircle, BellRing } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useTelegramNotify } from '@/hooks/useTelegramNotify';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { toast } from '@/hooks/use-toast';
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 
@@ -23,8 +24,18 @@ export default function SettingsPage() {
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
   const { sendWelcomeNotification } = useTelegramNotify();
+  const { 
+    isSupported: isPushSupported, 
+    isSubscribed: isPushSubscribed, 
+    isLoading: isPushLoading,
+    permission: pushPermission,
+    subscribe: subscribeToPush,
+    unsubscribe: unsubscribeFromPush,
+    sendTestNotification: sendTestPush,
+  } = usePushNotifications();
   const [saving, setSaving] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
+  const [sendingPushTest, setSendingPushTest] = useState(false);
   const previousTelegramId = useRef<string | null>(null);
 
   // Account
@@ -97,6 +108,42 @@ export default function SettingsPage() {
       toast({ title: '✅ Тестовое уведомление отправлено!' });
     } else {
       toast({ title: 'Ошибка отправки уведомления', description: 'Проверьте правильность Telegram ID', variant: 'destructive' });
+    }
+  };
+
+  const handlePushSubscribe = async () => {
+    const result = await subscribeToPush();
+    if (result.success) {
+      toast({ title: '✅ Push-уведомления включены!' });
+    } else {
+      toast({ 
+        title: 'Ошибка подписки', 
+        description: result.error || 'Не удалось включить push-уведомления', 
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  const handlePushUnsubscribe = async () => {
+    const result = await unsubscribeFromPush();
+    if (result.success) {
+      toast({ title: 'Push-уведомления отключены' });
+    }
+  };
+
+  const handleSendTestPush = async () => {
+    setSendingPushTest(true);
+    const result = await sendTestPush();
+    setSendingPushTest(false);
+    
+    if (result.success) {
+      toast({ title: '✅ Тестовое push-уведомление отправлено!' });
+    } else {
+      toast({ 
+        title: 'Ошибка отправки', 
+        description: result.error, 
+        variant: 'destructive' 
+      });
     }
   };
 
@@ -264,6 +311,77 @@ export default function SettingsPage() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Сохранить профиль
               </Button>
+            </div>
+          </section>
+        )}
+
+        {/* Web Push Notifications Section */}
+        {isAuthenticated && isPushSupported && (
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+              <BellRing className="h-5 w-5 text-primary" />
+              Push-уведомления в браузере
+            </h2>
+            <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-foreground">Web Push уведомления</p>
+                  <p className="text-sm text-muted-foreground">
+                    Получайте уведомления о скидках даже без Telegram
+                  </p>
+                </div>
+                {isPushSubscribed ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePushUnsubscribe}
+                    disabled={isPushLoading}
+                  >
+                    {isPushLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Отключить'}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={handlePushSubscribe}
+                    disabled={isPushLoading || pushPermission === 'denied'}
+                  >
+                    {isPushLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Включить'}
+                  </Button>
+                )}
+              </div>
+
+              {pushPermission === 'denied' && (
+                <div className="p-3 bg-destructive/10 rounded-lg border border-destructive/20">
+                  <p className="text-sm text-destructive">
+                    ⚠️ Уведомления заблокированы в браузере. Разрешите их в настройках браузера.
+                  </p>
+                </div>
+              )}
+
+              {isPushSubscribed && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleSendTestPush}
+                  disabled={sendingPushTest}
+                >
+                  {sendingPushTest ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <BellRing className="h-4 w-4 mr-2" />
+                  )}
+                  Отправить тестовое push-уведомление
+                </Button>
+              )}
+
+              <div className="p-3 bg-muted rounded-lg border border-border">
+                <p className="text-xs text-muted-foreground">
+                  💡 Push-уведомления работают в браузере Chrome, Firefox, Edge и Safari. 
+                  Вы будете получать уведомления о скидках на товары из избранного.
+                </p>
+              </div>
             </div>
           </section>
         )}
