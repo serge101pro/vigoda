@@ -366,7 +366,11 @@ export default function ReadyMealsPage() {
             {/* Meals Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredMeals.map((meal) => (
-                <div key={meal.id} className="bg-card rounded-2xl overflow-hidden shadow-md border border-border">
+                <Link 
+                  key={meal.id} 
+                  to={`/ready-meal/${meal.id}`}
+                  className="bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:border-primary/50 transition-colors"
+                >
                   <div className="relative h-40">
                     <img src={meal.image} alt={meal.name} className="w-full h-full object-cover" />
                     {meal.oldPrice && (
@@ -404,13 +408,20 @@ export default function ReadyMealsPage() {
                           <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                           {meal.rating}
                         </div>
-                        <Button variant="hero" size="sm" onClick={() => handleAddMealToCart(meal)}>
+                        <Button 
+                          variant="hero" 
+                          size="sm" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAddMealToCart(meal);
+                          }}
+                        >
                           <ShoppingCart className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </TabsContent>
