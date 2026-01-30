@@ -1,6 +1,13 @@
-import { Home, Search, ShoppingCart, ChefHat, UtensilsCrossed } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAppStore } from '@/stores/useAppStore';
+
+// Import HD navigation icons
+import navHome from '@/assets/icons/nav-home.png';
+import navCatalog from '@/assets/icons/nav-catalog.png';
+import navRecipes from '@/assets/icons/nav-recipes.png';
+import navMeals from '@/assets/icons/nav-meals.png';
+import navCatering from '@/assets/icons/nav-catering.png';
+import navCart from '@/assets/icons/nav-cart.png';
 
 export function BottomNav() {
   const cart = useAppStore((state) => state.cart);
@@ -13,10 +20,10 @@ export function BottomNav() {
         <NavLink
           to="/"
           end
-          className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105"
+          className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 overflow-hidden"
           activeClassName="ring-2 ring-primary/50"
         >
-          <Home className="h-6 w-6 stroke-[2.5]" />
+          <img src={navHome} alt="Главная" className="h-7 w-7 object-contain" />
         </NavLink>
 
         {/* Catalog */}
@@ -25,7 +32,7 @@ export function BottomNav() {
           className="bottom-nav-item bottom-nav-item-inactive"
           activeClassName="bottom-nav-item-active"
         >
-          <Search className="h-5 w-5" />
+          <img src={navCatalog} alt="Каталог" className="h-6 w-6 object-contain" />
           <span className="mt-0.5 text-[10px] font-medium">Каталог</span>
         </NavLink>
 
@@ -35,7 +42,7 @@ export function BottomNav() {
           className="bottom-nav-item bottom-nav-item-inactive"
           activeClassName="bottom-nav-item-active"
         >
-          <ChefHat className="h-5 w-5" />
+          <img src={navRecipes} alt="Рецепты" className="h-6 w-6 object-contain" />
           <span className="mt-0.5 text-[10px] font-medium">Рецепты</span>
         </NavLink>
 
@@ -45,7 +52,7 @@ export function BottomNav() {
           className="bottom-nav-item bottom-nav-item-inactive"
           activeClassName="bottom-nav-item-active"
         >
-          <UtensilsCrossed className="h-5 w-5" />
+          <img src={navMeals} alt="Готовое" className="h-6 w-6 object-contain" />
           <span className="mt-0.5 text-[10px] font-medium">Готовое</span>
         </NavLink>
 
@@ -55,17 +62,17 @@ export function BottomNav() {
           className="bottom-nav-item bottom-nav-item-inactive"
           activeClassName="bottom-nav-item-active"
         >
-          <span className="text-lg">🍽️</span>
+          <img src={navCatering} alt="Кейтеринг" className="h-6 w-6 object-contain" />
           <span className="mt-0.5 text-[10px] font-medium">Кейтеринг</span>
         </NavLink>
 
         {/* Cart - Circular Button */}
         <NavLink
           to="/cart"
-          className="relative flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105"
+          className="relative flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 overflow-hidden"
           activeClassName="ring-2 ring-primary/50"
         >
-          <ShoppingCart className="h-6 w-6 stroke-[2.5]" />
+          <img src={navCart} alt="Корзина" className="h-7 w-7 object-contain" />
           {cartItemsCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
               {cartItemsCount > 99 ? '99+' : cartItemsCount}
