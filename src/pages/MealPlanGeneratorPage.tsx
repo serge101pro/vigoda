@@ -183,7 +183,7 @@ export default function MealPlanGeneratorPage() {
   const [formData, setFormData] = useState<FormData>({
     cuisines: [],
     diets: [],
-    calories: "",
+    calories: "1800",
     allergies: "",
     servings: 2,
     mealSettings: initialMealSettings,
@@ -198,12 +198,53 @@ export default function MealPlanGeneratorPage() {
   const [activeTab, setActiveTab] = useState("plan");
   const [expandedDays, setExpandedDays] = useState<number[]>([1]);
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
-  const [isSavingRecipe, setIsSavingRecipe] = useState(false);
-  const [editingMeal, setEditingMeal] = useState<{ dayIndex: number; mealIndex: number; meal: MealPlanMeal } | null>(
-    null,
-  );
-  const [editedMealName, setEditedMealName] = useState("");
-  const [editedMealCalories, setEditedMealCalories] = useState("");
+
+  const toggleCuisine = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      cuisines: prev.cuisines.includes(id) ? prev.cuisines.filter((c) => c !== id) : [...prev.cuisines, id],
+    }));
+  };
+
+  const toggleDiet = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      diets: prev.diets.includes(id) ? prev.diets.filter((d) => d !== id) : [...prev.diets, id],
+    }));
+  };
+
+  const toggleMeal = (id: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      mealSettings: {
+        ...prev.mealSettings,
+        [id]: { ...prev.mealSettings[id], enabled: !prev.mealSettings[id].enabled },
+      },
+    }));
+  };
+
+  const setMealDishCount = (id: string, count: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      mealSettings: {
+        ...prev.mealSettings,
+        [id]: { ...prev.mealSettings[id], dishCount: count },
+      },
+    }));
+  };
+
+  const setSoupMeal = (mealId: "lunch" | "dinner" | null) => {
+    setFormData((prev) => {
+      const newSettings = { ...prev.mealSettings };
+      Object.keys(newSettings).forEach((key) => {
+        newSettings[key] = { ...newSettings[key], includeSoup: false };
+      });
+      if (mealId) {
+        newSettings[mealId] = { ...newSettings[mealId], includeSoup: true };
+      }
+      return { ...prev, mealSettings: newSettings, soupMeal: mealId };
+    });
+  };
 
   const handleGenerate = async () => {
     if (isGenerating) return;
@@ -230,79 +271,28 @@ export default function MealPlanGeneratorPage() {
             allergies: formData.allergies,
             days: parseInt(formData.days),
             servings: formData.servings,
+            meals: enabledMeals.map((id) => ({
+              type: MEAL_TYPES.find((m) => m.id === id)?.label,
+              dishCount: formData.mealSettings[id].dishCount,
+              includeSoup: formData.mealSettings[id].includeSoup,
+            })),
           },
         },
       });
 
       if (error) throw error;
-
-      // Парсинг результата от Groq
       const result = typeof data === "string" ? JSON.parse(data) : data;
-
-      if (!result || !result.meal_plan) {
-        throw new Error("Некорректный формат ответа от ИИ");
-      }
 
       setGeneratedPlan(result);
       setGenerationProgress(100);
       setActiveTab("plan");
-      toast.success("План успешно создан!");
+      toast.success("План питания успешно сформирован!");
     } catch (error: any) {
-      console.error("Generation error:", error);
-      toast.error("Ошибка: " + (error.message || "Не удалось создать план"));
+      console.error("Error:", error);
+      toast.error("Ошибка: " + error.message);
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  // Вспомогательные функции для UI
-  const toggleCuisine = (id: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      cuisines: prev.cuisines.includes(id) ? prev.cuisines.filter((c) => c !== id) : [...prev.cuisines, id],
-    }));
-  };
-
-  const toggleDiet = (id: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      diets: prev.diets.includes(id) ? prev.diets.filter((d) => d !== id) : [...prev.diets, id],
-    }));
-  };
-
-  const toggleMeal = (id: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      mealSettings: {
-        ...prev.mealSettings,
-        [id]: { ...prev.mealSettings[id], enabled: !prev.mealSettings[id].enabled },
-      },
-    }));
-  };
-
-  const handleAddToCart = async () => {
-    if (!generatedPlan) return;
-    const items = generatedPlan.shopping_list.flatMap((c) => c.items);
-    for (const item of items) {
-      if (!item.checked) {
-        if (user) await addToDbCart(item.name, 1, item.amount, "Ингредиенты");
-        else
-          addToCart(
-            {
-              id: item.name,
-              name: item.name,
-              price: 0,
-              category: "Ингредиенты",
-              image: "",
-              unit: "шт",
-              rating: 5,
-              reviewCount: 0,
-            },
-            1,
-          );
-      }
-    }
-    toast.success("Товары добавлены в корзину");
   };
 
   if (!subscriptionLoading && !hasPaidPlan) {
@@ -320,113 +310,235 @@ export default function MealPlanGeneratorPage() {
     <div className="page-container pb-24">
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b p-4">
         <div className="flex items-center gap-3">
-          <Sparkles className="h-6 w-6 text-violet-500" />
-          <h1 className="text-xl font-bold">ИИ Генератор Меню</h1>
+          <div className="bg-gradient-to-r from-violet-500 to-purple-500 p-2 rounded-xl">
+            <Sparkles className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold">Генератор меню</h1>
+            <p className="text-xs text-muted-foreground">Персональный план питания с ИИ</p>
+          </div>
         </div>
       </header>
 
       {!generatedPlan ? (
         <div className="p-4 space-y-6">
+          {/* Кухни мира */}
           <section>
-            <Label className="mb-2 block">Кухни мира</Label>
+            <Label className="text-base font-semibold flex items-center gap-2 mb-3">
+              <ChefHat className="h-5 w-5 text-primary" />
+              Тип кухни
+            </Label>
             <div className="flex flex-wrap gap-2">
               {CUISINE_TYPES.map((c) => (
-                <Badge
+                <button
                   key={c.id}
-                  variant={formData.cuisines.includes(c.id) ? "default" : "outline"}
-                  className="cursor-pointer py-1.5 px-3"
                   onClick={() => toggleCuisine(c.id)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    formData.cuisines.includes(c.id)
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted hover:bg-muted/80"
+                  }`}
                 >
                   {c.emoji} {c.label}
-                </Badge>
+                </button>
               ))}
             </div>
           </section>
 
+          {/* Диета */}
           <section>
-            <Label className="mb-2 block">Диета</Label>
+            <Label className="text-base font-semibold flex items-center gap-2 mb-3">
+              <Apple className="h-5 w-5 text-green-500" />
+              Диета
+            </Label>
             <div className="flex flex-wrap gap-2">
               {DIET_TYPES.map((d) => (
-                <Badge
+                <button
                   key={d.id}
-                  variant={formData.diets.includes(d.id) ? "secondary" : "outline"}
-                  className={`cursor-pointer py-1.5 px-3 ${formData.diets.includes(d.id) ? "bg-green-500 text-white" : ""}`}
                   onClick={() => toggleDiet(d.id)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    formData.diets.includes(d.id) ? "bg-green-500 text-white" : "bg-muted hover:bg-muted/80"
+                  }`}
                 >
                   {d.emoji} {d.label}
-                </Badge>
+                </button>
               ))}
             </div>
           </section>
 
+          {/* Калории и Аллергии */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Цель калорий</Label>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Flame className="h-4 w-4 text-orange-500" /> Калории/день
+              </Label>
               <Input
                 type="number"
                 value={formData.calories}
                 onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
-                placeholder="2000"
               />
             </div>
-            <div>
-              <Label>Срок (дней)</Label>
-              <Select value={formData.days} onValueChange={(v) => setFormData({ ...formData, days: v })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DAY_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-red-500" /> Аллергии
+              </Label>
+              <Input
+                placeholder="орехи, лактоза..."
+                value={formData.allergies}
+                onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+              />
             </div>
           </div>
 
+          {/* Порции */}
+          <section>
+            <Label className="flex items-center gap-2 mb-3">
+              <Users className="h-5 w-5 text-blue-500" /> Порций (едоков): {formData.servings}
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setFormData((prev) => ({ ...prev, servings: n }))}
+                  className={`w-9 h-9 rounded-full text-sm font-medium transition-all ${
+                    formData.servings === n ? "bg-blue-500 text-white" : "bg-muted"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Приёмы пищи */}
+          <section className="space-y-3">
+            <Label className="text-base font-semibold block mb-2">Приёмы пищи</Label>
+            {MEAL_TYPES.map((meal) => (
+              <div
+                key={meal.id}
+                className={`p-3 rounded-xl border transition-all ${formData.mealSettings[meal.id].enabled ? "border-primary bg-primary/5" : "border-border"}`}
+              >
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-3 cursor-pointer flex-1">
+                    <Checkbox
+                      checked={formData.mealSettings[meal.id].enabled}
+                      onCheckedChange={() => toggleMeal(meal.id)}
+                    />
+                    <span className="text-lg">{meal.emoji}</span>
+                    <span className="text-sm font-medium">{meal.label}</span>
+                  </label>
+                  {formData.mealSettings[meal.id].enabled && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Блюд:</span>
+                      <Select
+                        value={formData.mealSettings[meal.id].dishCount.toString()}
+                        onValueChange={(v) => setMealDishCount(meal.id, parseInt(v))}
+                      >
+                        <SelectTrigger className="w-16 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {/* Выбор супа */}
+          <section className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <Label className="flex items-center gap-2 mb-3 text-amber-700 font-semibold">
+              <Soup className="h-5 w-5" /> Первое блюдо (суп)
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSoupMeal(null)}
+                className={`px-4 py-2 rounded-lg border text-sm transition-all ${formData.soupMeal === null ? "bg-white border-amber-500 shadow-sm" : "bg-transparent border-amber-200"}`}
+              >
+                Без супа
+              </button>
+              {formData.mealSettings.lunch.enabled && (
+                <button
+                  onClick={() => setSoupMeal("lunch")}
+                  className={`px-4 py-2 rounded-lg border text-sm transition-all ${formData.soupMeal === "lunch" ? "bg-white border-amber-500 shadow-sm" : "bg-transparent border-amber-200"}`}
+                >
+                  🍲 На обед
+                </button>
+              )}
+              {formData.mealSettings.dinner.enabled && (
+                <button
+                  onClick={() => setSoupMeal("dinner")}
+                  className={`px-4 py-2 rounded-lg border text-sm transition-all ${formData.soupMeal === "dinner" ? "bg-white border-amber-500 shadow-sm" : "bg-transparent border-amber-200"}`}
+                >
+                  🥣 На ужин
+                </button>
+              )}
+            </div>
+          </section>
+
+          {/* Количество дней */}
+          <section>
+            <Label className="flex items-center gap-2 mb-3">
+              <Calendar className="h-5 w-5 text-purple-500" /> Количество дней
+            </Label>
+            <div className="grid grid-cols-4 gap-2">
+              {DAY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setFormData({ ...formData, days: opt.value })}
+                  className={`py-3 rounded-xl border text-sm font-medium transition-all ${formData.days === opt.value ? "border-purple-500 bg-purple-50 text-purple-700" : "bg-muted"}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </section>
+
           <Button
-            className="w-full h-12 bg-violet-600 hover:bg-violet-700"
+            className="w-full h-14 text-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
             onClick={handleGenerate}
             disabled={isGenerating}
           >
-            {isGenerating ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2 h-4 w-4" />}
-            {isGenerating ? "Создаем план..." : "Сгенерировать меню"}
+            {isGenerating ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2 h-5 w-5" />}
+            {isGenerating ? "Генерируем план..." : "Создать"}
           </Button>
-
           {isGenerating && <Progress value={generationProgress} className="h-2" />}
         </div>
       ) : (
-        <div className="p-4">
+        /* UI РЕЗУЛЬТАТОВ (Остается как в прошлом ответе для совместимости с Groq) */
+        <div className="p-4 space-y-4">
+          <Card className="bg-violet-50 border-violet-200">
+            <CardContent className="p-4 grid grid-cols-4 gap-2 text-center">
+              <div>
+                <p className="font-bold">{generatedPlan.total_metrics.calories_avg}</p>
+                <span className="text-[10px]">ккал/день</span>
+              </div>
+              <div>
+                <p className="font-bold">{generatedPlan.total_metrics.protein}г</p>
+                <span className="text-[10px]">белки</span>
+              </div>
+              <div>
+                <p className="font-bold">{generatedPlan.total_metrics.carbs}г</p>
+                <span className="text-[10px]">углеводы</span>
+              </div>
+              <div>
+                <p className="font-bold">{generatedPlan.total_metrics.fat}г</p>
+                <span className="text-[10px]">жиры</span>
+              </div>
+            </CardContent>
+          </Card>
+
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-2 mb-4">
+            <TabsList className="w-full grid grid-cols-2 mb-4">
               <TabsTrigger value="plan">📅 План</TabsTrigger>
-              <TabsTrigger value="shopping">🛒 Список покупок</TabsTrigger>
+              <TabsTrigger value="shopping">🛒 Продукты</TabsTrigger>
             </TabsList>
-
             <TabsContent value="plan" className="space-y-4">
-              <Card className="bg-violet-50 border-violet-200">
-                <CardContent className="p-4 grid grid-cols-4 gap-2 text-center">
-                  <div>
-                    <p className="font-bold">{generatedPlan.total_metrics.calories_avg}</p>
-                    <span className="text-[10px]">ккал</span>
-                  </div>
-                  <div>
-                    <p className="font-bold">{generatedPlan.total_metrics.protein}г</p>
-                    <span className="text-[10px]">белки</span>
-                  </div>
-                  <div>
-                    <p className="font-bold">{generatedPlan.total_metrics.carbs}г</p>
-                    <span className="text-[10px]">угл</span>
-                  </div>
-                  <div>
-                    <p className="font-bold">{generatedPlan.total_metrics.fat}г</p>
-                    <span className="text-[10px]">жиры</span>
-                  </div>
-                </CardContent>
-              </Card>
-
               {generatedPlan.meal_plan.map((day) => (
                 <Card key={day.day}>
                   <CardHeader className="p-3 bg-muted/30">
@@ -438,26 +550,23 @@ export default function MealPlanGeneratorPage() {
                     {day.meals.map((m, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-accent cursor-pointer"
+                        className="flex items-center justify-between p-2 rounded-lg border bg-card cursor-pointer"
                         onClick={() => setSelectedMeal({ day: day.day, meal: m.meal })}
                       >
                         <div>
                           <p className="text-[10px] uppercase text-muted-foreground">{m.type}</p>
                           <p className="text-sm font-medium">{m.meal.name}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xs font-bold">{m.meal.calories} ккал</p>
-                        </div>
+                        <p className="text-xs font-bold">{m.meal.calories} ккал</p>
                       </div>
                     ))}
                   </CardContent>
                 </Card>
               ))}
               <Button variant="outline" className="w-full" onClick={() => setGeneratedPlan(null)}>
-                Сбросить и создать новый
+                Изменить параметры
               </Button>
             </TabsContent>
-
             <TabsContent value="shopping" className="space-y-4">
               {generatedPlan.shopping_list.map((cat, i) => (
                 <Card key={i}>
@@ -466,26 +575,20 @@ export default function MealPlanGeneratorPage() {
                   </CardHeader>
                   <CardContent className="p-3 space-y-2">
                     {cat.items.map((item, j) => (
-                      <div key={j} className="flex items-center gap-2 text-sm">
-                        <Checkbox id={`item-${i}-${j}`} />
-                        <label htmlFor={`item-${i}-${j}`} className="flex-1">
-                          {item.name}
-                        </label>
+                      <div key={j} className="flex justify-between text-sm border-b pb-1">
+                        <span>{item.name}</span>
                         <span className="text-muted-foreground">{item.amount}</span>
                       </div>
                     ))}
                   </CardContent>
                 </Card>
               ))}
-              <Button className="w-full" onClick={handleAddToCart}>
-                Добавить все в корзину
-              </Button>
             </TabsContent>
           </Tabs>
         </div>
       )}
 
-      {/* Модальное окно рецепта */}
+      {/* Модалка рецепта */}
       <Dialog open={!!selectedMeal} onOpenChange={() => setSelectedMeal(null)}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           {selectedMeal && (
@@ -493,14 +596,13 @@ export default function MealPlanGeneratorPage() {
               <DialogHeader>
                 <DialogTitle>{selectedMeal.meal.name}</DialogTitle>
               </DialogHeader>
-              <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+              <div className="aspect-video bg-muted rounded-xl overflow-hidden">
                 <img
                   src={`https://source.unsplash.com/800x600/?${encodeURIComponent(selectedMeal.meal.photo_search_query)},food`}
                   className="w-full h-full object-cover"
-                  alt="food"
                 />
               </div>
-              <div className="grid grid-cols-4 gap-2 text-center border-y py-2">
+              <div className="grid grid-cols-4 gap-2 text-center py-2 border-y">
                 <div>
                   <p className="font-bold">{selectedMeal.meal.calories}</p>
                   <p className="text-[10px]">ккал</p>
