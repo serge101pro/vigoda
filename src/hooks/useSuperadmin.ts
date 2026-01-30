@@ -3,12 +3,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 export function useSuperadmin() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isSuperadmin, setIsSuperadmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkSuperadmin = async () => {
+      // Wait for auth to complete first
+      if (authLoading) {
+        return;
+      }
+
       if (!user) {
         setIsSuperadmin(false);
         setLoading(false);
@@ -35,7 +40,8 @@ export function useSuperadmin() {
     };
 
     checkSuperadmin();
-  }, [user]);
+  }, [user, authLoading]);
 
-  return { isSuperadmin, loading };
+  // Include authLoading in the overall loading state
+  return { isSuperadmin, loading: authLoading || loading };
 }

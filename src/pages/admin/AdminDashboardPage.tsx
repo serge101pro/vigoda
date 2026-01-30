@@ -89,7 +89,7 @@ const adminModules = [
 ];
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { isSuperadmin, loading: superadminLoading } = useSuperadmin();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -136,7 +136,8 @@ export default function AdminDashboardPage() {
     }
   }, [isSuperadmin]);
 
-  if (superadminLoading) {
+  // Show loading while auth or superadmin check is in progress
+  if (authLoading || superadminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -144,7 +145,8 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (!isSuperadmin) {
+  // Only redirect after loading is complete and we know the user is not superadmin
+  if (!user || !isSuperadmin) {
     return <Navigate to="/" replace />;
   }
 
