@@ -7,7 +7,7 @@ interface SafeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 export const SafeImage = ({ 
   src, 
   alt, 
-  fallback = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=300&h=200&fit=crop", 
+  fallback = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=300&h=200&fit=crop",
   className,
   ...props 
 }: SafeImageProps) => {
